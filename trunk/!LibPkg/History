@@ -1,7 +1,11 @@
 # This file is part of !LibPkg.
-# Copyright © 2003 Graham Shaw.
+# Copyright © 2003-2004 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
+
+Version 0.1.0 (01 Jan 2004)
+
+  Enhanced pkg::path_table to match longest prefix.
 
 Version 0.0.1 (25 Dec 2003)
 
