@@ -68,6 +68,12 @@ void force_move(const string& src_pathname,const string& dst_pathname,
 	if (attr&0x08) rtk::os::OS_File4(dst_pathname.c_str(),attr);
 }
 
+void copy_object(const string& src_pathname,const string& dst_pathname)
+{
+	rtk::os::OS_FSControl26(src_pathname.c_str(),dst_pathname.c_str(),
+		0x0201,0,0,0);
+}
+
 void create_directory(const string& pathname)
 {
 	rtk::os::OS_File8(pathname.c_str(),0);
