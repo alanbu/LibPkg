@@ -3,6 +3,10 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
+#include <sstream>
+#include <fstream>
+
+#include "libpkg/md5.h"
 #include "libpkg/filesystem.h"
 #include "libpkg/control.h"
 #include "libpkg/pkgbase.h"
@@ -113,6 +117,41 @@ string pkgbase::setvars_pathname()
 string pkgbase::bootsprites_pathname()
 {
 	return _pathname+string(".!BootSprites");
+}
+
+void pkgbase::verify_cached_file(const binary_control& ctrl)
+{
+	// Test whether file exists.
+	string pathname=cache_pathname(ctrl.pkgname(),ctrl.version());
+	if (!object_type(pathname))
+		throw cache_error("missing cache file",ctrl);
+
+	// Test whether file has expected size.
+	{
+		control::const_iterator f=ctrl.find("Size");
+		if (f!=ctrl.end())
+		{
+			size_t size=0;
+			istringstream in(f->second);
+			in >> size;
+			if (object_length(pathname)!=size)
+				throw cache_error("incorrect size",ctrl);
+		}
+	}
+
+	// Test whether file has expected MD5Sum.
+	{
+		control::const_iterator f=ctrl.find("MD5Sum");
+		if (f!=ctrl.end())
+		{
+			ifstream in(pathname.c_str());
+			md5 md5sum;
+			md5sum(in);
+			md5sum();
+			if (string(md5sum)!=f->second)
+				throw cache_error("incorrect md5sum",ctrl);
+		}
+	}
 }
 
 bool pkgbase::fix_dependencies(const set<string>& seed)
@@ -429,6 +468,20 @@ void pkgbase::ensure_removed(const string& pkgname)
 		_selstat.insert(pkgname,selstat);
 		_changed=true;
 	}
+}
+
+pkgbase::cache_error::cache_error(const char* message,
+	const binary_control& ctrl):
+	_message(string(message)+string(" for package ")+ctrl.pkgname()+
+		string(" (")+ctrl.version()+string(")"))
+{}
+
+pkgbase::cache_error::~cache_error()
+{}
+
+const char* pkgbase::cache_error::what() const
+{
+	return _message.c_str();
 }
 
 }; /* namespace pkg */
