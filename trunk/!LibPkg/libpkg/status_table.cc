@@ -39,6 +39,21 @@ void status_table::insert(const key_type& key,const mapped_type& value)
 	notify();
 }
 
+void status_table::insert(const status_table& table)
+{
+	for (const_iterator i=table.begin();i!=table.end();++i)
+	{
+		_data[i->first]=i->second;
+	}
+	notify();
+}
+
+void status_table::clear()
+{
+	_data.clear();
+	notify();
+}
+
 void status_table::commit()
 {
 	// Take no action unless a pathname has been specified.

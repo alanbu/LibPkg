@@ -72,6 +72,14 @@ public:
 	 */
 	void insert(const key_type& key,const mapped_type& value);
 
+	/** Set status of packages.
+	 * @param table the table from which the values are copied
+	 */
+	void insert(const status_table& table);
+
+	/** Clear status of all packages. */
+	void clear();
+
 	/** Commit changes.
 	 * Any changes since the last call to commit() or rollback() are
 	 * committed to disc.
