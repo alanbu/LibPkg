@@ -5,4 +5,5 @@
 
 Set LibPkg$Dir <Obey$Dir>
 Set LibPkg$Path <Obey$Dir>.
+<LibPkg$Dir>.!SetHelp
 IconSprites <LibPkg$Dir>.!Sprites

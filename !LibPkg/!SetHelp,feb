@@ -3,7 +3,4 @@
 | Distribution and use are subject to the GNU Lesser General Public License,
 | a copy of which may be found in the file !LibPkg.Copyright.
 
-If "<LibPkg$Dir>"="" Then Set LibPkg$Dir <Obey$Dir>
-If "<LibPkg$Path>"="" Then Set LibPkg$Path <Obey$Dir>.
-If "<LibPkg$Help>"="" Then Run <LibPkg$Dir>.!SetHelp
-IconSprites <LibPkg$Dir>.!Sprites
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html Else Set LibPkg$Help <LibPkg$Dir>.README
