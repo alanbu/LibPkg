@@ -65,12 +65,29 @@ public:
 		 * requested by the user). */
 		flag_hold
 	};
+	enum internal_flag_type
+	{
+		/** A flag to indicate that this package must be removed.
+		 * Specifically, its selection state must be state_removed
+		 * if all dependencies are to be satisfied. */
+		flag_must_remove,
+		/** A flag to indicate that this package must be installed.
+		 * Specifically, its selection state must be state_installed
+		 * if all dependencies are to be satisfied. */
+		flag_must_install,
+		/** A flag to indicate that this package must be upgraded.
+		 * Specifically, its selected version must be the latest
+		 * available version if all dependencies are to be satisfied. */
+		flag_must_upgrade
+	};
 	class parse_error;
 private:
 	/** The installation state. */
 	state_type _state;
 	/** The status flags. */
-	unsigned int _flags;
+	unsigned short _flags;
+	/** The internal flags. */
+	unsigned short _iflags;
 	/** The package version.
 	 * This field is not meaningful when the installation state
 	 * is not-present. */
@@ -104,6 +121,13 @@ public:
 	bool flag(flag_type flag) const
 		{ return (_flags>>flag)&1; }
 
+	/** Get internal flag.
+	 * @param flag the flag to be read
+	 * @return the value of the flag
+	 */
+	bool flag(internal_flag_type flag) const
+		{ return (_iflags>>flag)&1; }
+
 	/** Get status flags.
 	 * @return a bit field containing the status flags
 	 */
@@ -126,6 +150,12 @@ public:
 	 * @param value the required value
 	 */
 	void flag(flag_type flag,bool value);
+
+	/** Set internal flag.
+	 * @param flag the flag to be altered
+	 * @param value the required value
+	 */
+	void flag(internal_flag_type,bool value);
 
 	/** Set package version.
 	 * @param version the required package version

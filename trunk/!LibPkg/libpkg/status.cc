@@ -51,12 +51,14 @@ static void init_static_data()
 
 status::status():
 	_state(state_not_present),
-	_flags(0)
+	_flags(0),
+	_iflags(0)
 {}
 
 status::status(state_type state,const string& version):
 	_state(state),
 	_flags(0),
+	_iflags(0),
 	_version(version)
 {}
 
@@ -72,6 +74,12 @@ void status::flag(flag_type flag,bool value)
 {
 	if (value) _flags|=(1<<flag);
 	else _flags&=~(1<<flag);
+}
+
+void status::flag(internal_flag_type flag,bool value)
+{
+	if (value) _iflags|=(1<<flag);
+	else _iflags&=~(1<<flag);
 }
 
 void status::version(const string& version)

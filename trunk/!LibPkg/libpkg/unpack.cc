@@ -271,6 +271,7 @@ void unpack::_poll()
 			// pre-remove and pre-unpack phases have been completed).
 			curstat.state(status::state_half_unpacked);
 			curstat.version(selstat.version());
+			curstat.flag(status::flag_auto,selstat.flag(status::flag_auto));
 			_pb.curstat().insert(_pkgname,curstat);
 
 			// Check whether standards-version can be processed.
@@ -509,6 +510,7 @@ void unpack::_poll()
 
 				// Mark package as removed.
 				curstat.state(status::state_removed);
+				curstat.flag(status::flag_auto,false);
 				_pb.curstat().insert(_pkgname,curstat);
 			}
 
@@ -643,6 +645,8 @@ void unpack::_poll()
 			{
 				curstat.state(status::state_unpacked);
 				curstat.version(prevstat.version());
+				curstat.flag(status::flag_auto,
+					prevstat.flag(status::flag_auto));
 				_pb.curstat().insert(_pkgname,curstat);
 			}
 
@@ -669,6 +673,7 @@ void unpack::_poll()
 			if (prevstat.state()<=status::state_removed)
 			{
 				curstat.state(status::state_removed);
+				curstat.flag(status::flag_auto,false);
 				_pb.curstat().insert(_pkgname,curstat);
 			}
 
