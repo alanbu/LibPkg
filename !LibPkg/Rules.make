@@ -7,7 +7,7 @@ CXX = gcc
 LD = gcc
 FIXDEPS = fixdeps
 
-CPPFLAGS = -Irtk: -Ilibcurl: -Ilibpkg:
+CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg:
 CXXFLAGS = -mthrowback -munixlib -mpoke-function-name -Wall -W -Wno-unused -O2
 
 .SUFFIXES: .o .cc .d .dd
