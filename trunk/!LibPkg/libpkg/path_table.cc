@@ -24,16 +24,26 @@ path_table::~path_table()
 string path_table::operator()(const string& src_pathname,
 	const string& pkgname) const
 {
-	// Split path into source prefix and suffix.
-	unsigned int ds=src_pathname.find('.');
-	if (ds==string::npos) ds=src_pathname.length();
-	string src_prefix(src_pathname,0,ds);
-	string suffix(src_pathname,ds,string::npos);
+	// Find longest matching source prefix.
+	string::size_type ds=src_pathname.size();
+	const_iterator f=_data.end();
+	while ((f==_data.end())&&(ds!=string::npos))
+	{
+		string src_prefix(src_pathname,0,ds);
+		f=_data.find(src_prefix);
+		if (f==_data.end())
+		{
+			if (ds) ds=src_pathname.rfind('.',ds-1);
+			else ds=string::npos;
+		}
+	}
 
-	// Find destination prefix.
-	const_iterator f=_data.find(src_prefix);
+	// Extract destination prefix.
 	if (f==_data.end()) throw invalid_source_path();
 	string dst_prefix=f->second;
+
+	// Extract suffix.
+	string suffix(src_pathname,ds,string::npos);
 
 	// Replace '@' with package name.
 	string::size_type i=dst_prefix.find('@');
