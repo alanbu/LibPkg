@@ -5,6 +5,10 @@
 
 #include "libpkg/download.h"
 
+#include "unixlib/local.h"
+
+extern int __riscosify_control;
+
 extern "C" {
 
 /** A callback function for CURLOPT_WRITEFUNCTION.
@@ -52,6 +56,9 @@ download::download(const string& url,const string& pathname):
 	if (!_cmulti) _cmulti=curl_multi_init();
 	++_cmulti_refcount;
 
+	int riscosify_control=__riscosify_control;
+	__riscosify_control=0;
+
 	curl_easy_setopt(_ceasy,CURLOPT_PRIVATE,this);
 	curl_easy_setopt(_ceasy,CURLOPT_URL,_url.c_str());
 	curl_easy_setopt(_ceasy,CURLOPT_WRITEFUNCTION,&download_write);
@@ -62,10 +69,15 @@ download::download(const string& url,const string& pathname):
 	curl_easy_setopt(_ceasy,CURLOPT_FAILONERROR,true);
 	curl_easy_setopt(_ceasy,CURLOPT_ERRORBUFFER,_error_buffer);
 	curl_multi_add_handle(_cmulti,_ceasy);
+
+	__riscosify_control=riscosify_control;
 }
 
 download::~download()
 {
+	int riscosify_control=__riscosify_control;
+	__riscosify_control=0;
+
 	curl_multi_remove_handle(_cmulti,_ceasy);
 	curl_easy_cleanup(_ceasy);
 	if (!--_cmulti_refcount)
@@ -74,6 +86,8 @@ download::~download()
 		_cmulti=0;
 	}
 	delete[] _error_buffer;
+
+	__riscosify_control=riscosify_control;
 }
 
 size_t download::write_callback(char* buffer,size_t size,size_t nitems)
@@ -107,6 +121,9 @@ void download::poll_all()
 {
 	if (_cmulti)
 	{
+		int riscosify_control=__riscosify_control;
+		__riscosify_control=0;
+
 		int running_handles=0;
 		curl_multi_perform(_cmulti,&running_handles);
 
@@ -119,6 +136,8 @@ void download::poll_all()
 			reinterpret_cast<download*>(private_data)->message_callback(msg);
 			msg=curl_multi_info_read(_cmulti,&msgs_in_queue);
 		}
+
+		__riscosify_control=riscosify_control;
 	}
 }
 
