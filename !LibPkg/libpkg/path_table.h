@@ -29,16 +29,20 @@ public:
 	class parse_error;
 	class invalid_source_path;
 private:
-	/** The pathname of the underlying paths file. */
+	/** The pathname of the default paths file. */
+	string _dpathname;
+
+	/** The pathname of the configured paths file. */
 	string _pathname;
 
 	/** A map from source pathname to destination pathname. */
 	map<key_type,mapped_type> _data;
 public:
 	/** Construct path table.
-	 * @param pathname the pathname of the underlying paths file
+	 * @param dpathname the pathname of the default paths file
+	 * @param pathname the pathname of the configured paths file
 	 */
-	path_table(const string& pathname);
+	path_table(const string& dpathname,const string& pathname);
 
 	/** Destroy path table. */
 	virtual ~path_table();
@@ -62,8 +66,13 @@ public:
 	const_iterator end() const
 		{ return _data.end(); }
 
-	/** Re-read the underlying paths file. */
+	/** Re-read the default and configured paths files. */
 	void update();
+private:
+	/** Read paths file.
+	 * @param pathname the pathname
+	 */
+	void read(const string& pathname);
 };
 
 /** An exception class for reporting parse errors. */

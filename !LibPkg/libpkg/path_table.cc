@@ -11,7 +11,8 @@
 
 namespace pkg {
 
-path_table::path_table(const string& pathname):
+path_table::path_table(const string& dpathname,const string& pathname):
+	_dpathname(dpathname),
 	_pathname(pathname)
 {
 	update();
@@ -49,7 +50,13 @@ string path_table::operator()(const string& src_pathname,
 void path_table::update()
 {
 	_data.clear();
-	ifstream in(_pathname.c_str());
+	read(_dpathname);
+	read(_pathname);
+}
+
+void path_table::read(const string& pathname)
+{
+	ifstream in(pathname.c_str());
 	while (in&&!in.eof())
 	{
 		// Read line from input stream.
