@@ -22,20 +22,36 @@ public:
 
 	/** A null value for use in place of a byte count. */
 	static const size_type npos=static_cast<size_type>(-1);
+
+	// An enumeration for describing the state of the download. */
+	enum state_type
+	{
+		/** The state in which the download is in progress. */
+		state_download,
+		/** The state in which the download has been successfully
+		 * completed. */
+		state_done,
+		/** The state in which the download has failed. */
+		state_fail
+	};
 private:
+	/** The current state of the download. */
+	state_type _state;
+
 	/** The libcurl easy handle. */
 	CURL* _ceasy;
+
+	/** The libcurl result code. */
+	CURLcode _result;
+
+	/** The libcurl error buffer. */
+	char* _error_buffer;
 
 	/** The URL from which to download. */
 	string _url;
 
 	/** The stream to which the file is to be written. */
 	ofstream _out;
-
-	/** The done flag.
-	 * True if the download has finished, otherwise false.
-	 */
-	bool _done;
 
 	/** The number of bytes downloaded. */
 	size_type _bytes_done;
@@ -52,11 +68,23 @@ public:
 	/** Destroy download action. */
 	~download();
 
-	/** Get done flag.
-	 * @return true if download has finished, otherwise false.
+	/** Get current state of the download.
+	 * @return the current state
 	 */
-	bool done()
-		{ return _done; }
+	state_type state() const
+		{ return _state; }
+
+	/** Get libcurl result code.
+	 * @return the result code
+	 */
+	CURLcode result() const
+		{ return _result; }
+
+	/** Get libcurl error message.
+	 * @return the message
+	 */
+	string message() const
+		{ return _error_buffer; }
 
 	/** Get number of bytes downloaded.
 	 * @return the number of bytes downloaded
