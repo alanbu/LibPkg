@@ -3,6 +3,14 @@
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 
+Version 0.2.0 (12 Mar 2004)
+
+  Raised supported standards version from 0.0.* to 0.1.*.
+  Added MD5Sum verification.
+  Added support for central sprite pool.
+  Added support for relative URIs.
+  Added support for logical path reference variables.
+
 Version 0.1.0 (01 Jan 2004)
 
   Enhanced pkg::path_table to match longest prefix.
