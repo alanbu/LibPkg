@@ -1,12 +1,11 @@
 VERSION = 0/1/0
 
 pkg:
-	CDir Temp
+	make -C !LibPkg all
+	mkdir -p Temp
 	Wipe Temp ~CFR~V
-	CDir Temp
-	CDir Temp.RiscPkg
-	CDir Temp.Apps
-	CDir Temp.Apps.Library
+	mkdir -p Temp/RiscPkg
+	mkdir -p Temp/Apps/Library
 	Copy !LibPkg Temp.Apps.Library.!LibPkg ~CFR~V
 	Access Temp.Apps.Library.!LibPkg.* LR/R
 	Access Temp.Apps.Library.!LibPkg.a.* LR/R
