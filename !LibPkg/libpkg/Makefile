@@ -20,7 +20,8 @@ OBJ = auto_dir.o \
  pkgbase.o \
  zipfile.o \
  download.o \
- thread.o
+ thread.o \
+ update.o
 
 all: $(OBJ)
 
