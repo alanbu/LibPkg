@@ -24,7 +24,8 @@ public:
 	typedef map<key_type,mapped_type>::const_iterator const_iterator;
 	class commit_error;
 private:
-	/** The pathname of the underlying status file. */
+	/** The pathname of the underlying status file,
+	 * or the empty string if none. */
 	string _pathname;
 
 	/** A map from package name to package status. */
@@ -33,7 +34,7 @@ public:
 	/** Construct status table.
 	 * @param pathname the pathname of the underlying status file
 	 */
-	status_table(const string& pathname);
+	status_table(const string& pathname=string());
 
 	/** Destroy status table. */
 	virtual ~status_table();

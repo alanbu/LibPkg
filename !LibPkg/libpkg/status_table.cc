@@ -41,47 +41,55 @@ void status_table::insert(const key_type& key,const mapped_type& value)
 
 void status_table::commit()
 {
-	// Set pathnames.
-	string dst_pathname=_pathname;
-	string tmp_pathname=_pathname+string("++");
-	string bak_pathname=_pathname+string("--");
-
-	// Write new status file.
-	static mapped_type default_value;
-	ofstream out(tmp_pathname.c_str());
-	for (const_iterator i=_data.begin();i!=_data.end();++i)
+	// Take no action unless a pathname has been specified.
+	if (_pathname.size())
 	{
-		if (i->second!=default_value)
-			out << *i << endl;
-	}
-	out.close();
-	if (!out) throw commit_error();
-
-	try
-	{
-		// Backup existing status file if it exists.
-		if (object_type(dst_pathname)!=0)
+		// Set pathnames.
+		string dst_pathname=_pathname;
+		string tmp_pathname=_pathname+string("++");
+		string bak_pathname=_pathname+string("--");
+	
+		// Write new status file.
+		static mapped_type default_value;
+		ofstream out(tmp_pathname.c_str());
+		for (const_iterator i=_data.begin();i!=_data.end();++i)
 		{
-			force_move(dst_pathname,bak_pathname,true);
+			if (i->second!=default_value)
+				out << *i << endl;
 		}
+		out.close();
+		if (!out) throw commit_error();
 	
-		// Move new status file to destination.
-		force_move(tmp_pathname,dst_pathname,false);
-	
-		// Delete backup.
-		force_delete(bak_pathname);
-	}
-	catch (...)
-	{
-		throw commit_error();
+		try
+		{
+			// Backup existing status file if it exists.
+			if (object_type(dst_pathname)!=0)
+			{
+				force_move(dst_pathname,bak_pathname,true);
+			}
+		
+			// Move new status file to destination.
+			force_move(tmp_pathname,dst_pathname,false);
+		
+			// Delete backup.
+			force_delete(bak_pathname);
+		}
+		catch (...)
+		{
+			throw commit_error();
+		}
 	}
 }
 
 void status_table::rollback()
 {
-	_data.clear();
-	bool done=read(_pathname);
-	if (!done) read(_pathname+string("--"));
+	// Take no action unless a pathname has been specified.
+	if (_pathname.size())
+	{
+		_data.clear();
+		bool done=read(_pathname);
+		if (!done) read(_pathname+string("--"));
+	}
 }
 
 bool status_table::read(const string& pathname)
