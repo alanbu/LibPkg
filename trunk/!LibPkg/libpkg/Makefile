@@ -24,7 +24,7 @@ OBJ = auto_dir.o \
  thread.o \
  update.o \
  unpack.o \
- commit.o 
+ commit.o
 
 all: $(OBJ)
 

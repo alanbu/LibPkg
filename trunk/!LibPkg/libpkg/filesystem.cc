@@ -75,6 +75,11 @@ void write_file_info(const string& pathname,unsigned int loadaddr,
 	rtk::os::OS_File1(pathname.c_str(),loadaddr,execaddr,attr);
 }
 
+void write_filetype(const string& pathname,unsigned int filetype)
+{
+	rtk::os::OS_File18(pathname.c_str(),filetype);
+}
+
 unsigned int object_type(const string& pathname)
 {
 	// Read object type.
