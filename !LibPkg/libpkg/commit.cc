@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.            
+// Copyright © 2003-2004 Graham Shaw.            
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -14,6 +14,7 @@
 #include "libpkg/download.h"
 #include "libpkg/unpack.h"
 #include "libpkg/sysvars.h"
+#include "libpkg/sprite_pool.h"
 #include "libpkg/commit.h"
 
 namespace pkg {
@@ -252,6 +253,15 @@ void commit::poll()
 		{
 			// Update list of system variables.
 			update_sysvars(_pb);
+
+			// Progress to next state.
+			_state=state_update_sprites;
+		}
+		break;
+	case state_update_sprites:
+		{
+			// Update sprite pool.
+			update_sprite_pool(_pb);
 
 			// Progress to next state.
 			_state=state_done;

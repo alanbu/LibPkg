@@ -1,5 +1,5 @@
 # This file is part of !RiscPkg.
-# Copyright © 2003 Graham Shaw.            
+# Copyright © 2003-2004 Graham Shaw.            
 # Distribution and use are subject to the GNU General Public License,
 # a copy of which may be found in the file !RiscPkg.Copyright.
 
@@ -8,6 +8,7 @@ include ../Rules.make
 OBJ = auto_dir.o \
  filesystem.o \
  dirstream.o \
+ sprite_file.o \
  uri.o \
  version.o \
  dependency.o \
@@ -27,6 +28,7 @@ OBJ = auto_dir.o \
  update.o \
  unpack.o \
  sysvars.o \
+ sprite_pool.o \
  commit.o
 
 all: $(OBJ)
