@@ -153,14 +153,14 @@ bool pkgbase::fix_dependencies(const set<string>& seed)
 					// as it is.
 					binary_control_table::key_type
 						key(pkgname,selstat.version());
-					success=fix_dependencies(_control[key],true,true);
+					success=fix_dependencies(_control[key],true);
 				}
 				if (!success)
 				{
 					// If the previous step did not find a suitable
 					// candidate then try the latest version available.
 					const pkg::control& ctrl=_control[pkgname];
-					success=fix_dependencies(ctrl,true,true);
+					success=fix_dependencies(ctrl,true);
 					if (success)
 						ensure_installed(pkgname,ctrl.version());
 				}
@@ -228,18 +228,66 @@ bool pkgbase::fix_dependencies(const set<string>& seed)
 	return success;
 }
 
+void pkgbase::remove_auto()
+{
+	bool changed=true;
+	while (changed)
+	{
+		changed=false;
+
+		// Mark auto-installed packages for removal
+		for (status_table::const_iterator i=_selstat.begin();
+			i!=_selstat.end();++i)
+		{
+			string pkgname=i->first;
+			status selstat=i->second;
+			selstat.flag(status::flag_must_remove,false);
+			selstat.flag(status::flag_must_install,false);
+			selstat.flag(status::flag_must_upgrade,false);
+			_selstat.insert(pkgname,selstat);
+		}
+
+		// Unmark packages that are still needed
+		for (status_table::const_iterator i=_selstat.begin();
+			i!=_selstat.end();++i)
+		{
+			string pkgname=i->first;
+			const status& selstat=i->second;
+			if (selstat.state()>=status::state_installed)
+			{
+				binary_control_table::key_type key(pkgname,selstat.version());
+				fix_dependencies(_control[key],true,true);
+			}
+		}
+
+		// Remove packages no longer needed
+		for (map<string,status>::const_iterator i=_selstat.begin();
+			i!=_selstat.end();++i)
+		{
+			string pkgname=i->first;
+			status selstat=i->second;
+			if (selstat.flag(status::flag_auto)&&
+				!selstat.flag(status::flag_must_install))
+			{
+				selstat.state(status::state_removed);
+				selstat.flag(status::flag_auto,false);
+				_selstat.insert(pkgname,selstat);
+				changed=true;
+			}
+		}
+	}
+}
+
+bool pkgbase::fix_dependencies(const pkg::control& ctrl,bool allow_new)
+{
+	bool success=fix_dependencies(ctrl,allow_new,false);
+	if (success) success=fix_dependencies(ctrl,allow_new,true);
+	return success;
+}
+
 bool pkgbase::fix_dependencies(const pkg::control& ctrl,bool allow_new,
 	bool apply)
 {
-	// If apply==true then perform a preliminary run with apply==false
-	// to determine whether the operation will succeed.  Return now if
-	// it will not.
-	if (apply)
-	{
-		bool success=fix_dependencies(ctrl,allow_new,false);
-		if (!success) return success;
-	}
-
 	// Parse dependency list.
 	vector<vector<dependency> > deps;
 	string deplist=ctrl.depends();
