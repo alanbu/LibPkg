@@ -57,6 +57,13 @@ string control::version() const
 	return (f==end())?string():(*f).second;
 }
 
+string control::standards_version() const
+{
+	static const key_type key("Standards-Version");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+}
+
 string control::depends() const
 {
 	static const key_type key("Depends");

@@ -160,6 +160,12 @@ public:
 	 */
 	string version() const;
 
+	/** Get standard-version.
+	 * @return the standards-version if there is one,
+	 *  otherwise the empty string.
+	 */
+	string standards_version() const;
+
 	/** Get description.
 	 * @return the description if there is one, otherwise the empty string.
 	 */
