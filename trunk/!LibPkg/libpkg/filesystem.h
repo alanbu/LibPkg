@@ -42,6 +42,12 @@ void force_delete(const string& pathname);
 void force_move(const string& src_pathname,const string& dst_pathname,
 	bool overwrite=false);
 
+/** Recursively copy object.
+ * @param src_pathname the pathname of the object to be moved.
+ * @param dst_pathname the pathname the object is to be moved to.
+ */
+void copy_object(const string& src_pathname,const string& dst_pathname);
+
 /** Create directory.
  * @param pathname the required pathname
  */
