@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-#include "binary_control_table.h"
+#include "libpkg/binary_control_table.h"
 
 namespace pkg {
 
