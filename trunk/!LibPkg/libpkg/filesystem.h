@@ -59,6 +59,12 @@ void write_file_info(const string& pathname,unsigned int loadaddr,
  */
 unsigned int object_type(const string& pathname);
 
+/** Get object length.
+ * @param pathname the pathname
+ * @return the object length
+ */
+unsigned int object_length(const string& pathname);
+
 }; /* namespace pkg */
 
 #endif
