@@ -140,11 +140,23 @@ public:
 	 * @return true if all dependencies were fixed, otherwise false
 	 */
 	bool fix_dependencies(const set<string>& seed);
+
+	/** Remove redundant auto-installed packages.
+	 */
+	void remove_auto();
 private:
 	/** Fix dependencies for package.
-	 * Note that if dependency resolution fails then must-install/
-	 * must-upgrade flags are left unaltered regardless of the state
-	 * of the apply argument.
+	 * Flags are altered if and only if all dependencies can be satisifed.
+	 * @param ctrl the package control record
+	 * @param allow_new true to allow packages that are not currently
+	 *  installed, otherwise false
+	 * @param apply true to apply changes to must-remove, must-install
+	 *  and must-upgrade flags, otherwise false
+	 * @return true if all dependencies were satisfied, otherwise false
+	 */
+	bool fix_dependencies(const pkg::control& ctrl,bool allow_new);
+
+	/** Fix dependencies for package.
 	 * @param ctrl the package control record
 	 * @param allow_new true to allow packages that are not currently
 	 *  installed, otherwise false
