@@ -9,7 +9,8 @@ OBJ = version.o \
  dependency.o \
  control.o \
  control_binary.o \
- status.o
+ status.o \
+ thread.o
 
 all: $(OBJ)
 
