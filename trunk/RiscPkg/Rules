@@ -1,0 +1,25 @@
+VERSION = 0/0/0-0
+
+pkg:
+	CDir Temp
+	Wipe Temp ~CFR~V
+	CDir Temp
+	CDir Temp.RiscPkg
+	CDir Temp.Apps
+	CDir Temp.Apps.Library
+	Copy !LibPkg Temp.Apps.Library.!LibPkg ~CFR~V
+	Access Temp.Apps.Library.!LibPkg.* LR/R
+	Access Temp.Apps.Library.!LibPkg.a.* LR/R
+	Access Temp.Apps.Library.!LibPkg.html.* LR/R
+	Access Temp.Apps.Library.!LibPkg.libpkg.h.* LR/R
+	Copy SysVars Temp.SysVars ~CFR~V
+
+	Dir Temp
+	RiscPkg-GenControl LibPkg-Common < ../RiscPkg/Control > RiscPkg/Control
+	zip -r ^.LibPkg-Common_$(VERSION) * -i@^.RiscPkg.LibPkg-Common/inc
+	RiscPkg-GenControl LibPkg < ../RiscPkg/Control > RiscPkg/Control
+	zip -r ^.LibPkg_$(VERSION) * -i@^.RiscPkg.LibPkg/inc
+	RiscPkg-GenControl LibPkg-Doc < ../RiscPkg/Control > RiscPkg/Control
+	zip -r ^.LibPkg-Doc_$(VERSION) * -i@^.RiscPkg.LibPkg-Doc/inc
+	Dir ^
+	Wipe Temp ~CFR~V
