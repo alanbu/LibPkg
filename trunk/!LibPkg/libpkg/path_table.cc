@@ -136,4 +136,64 @@ const char* path_table::invalid_source_path::what() const
 	return "invalid source path";
 }
 
+string resolve_pathrefs(const path_table& paths,const string& in)
+{
+	// Specify prefix to logical path name variable.
+	static const string prefix("Packages$@");
+
+	// Construct output buffer.
+	string out;
+	out.reserve(in.length());
+
+	// Process input string.
+	string::size_type i=0;
+	while (i!=in.length())
+	{
+		char ch=in[i];
+		if (ch=='|')
+		{
+			// Handle escape character ('|').
+			// Pass both it and the character that follows literally.
+			out+=in[i++];
+			if (i!=in.length())
+			{
+				out+=in[i++];
+			}
+		}
+		else if (ch=='<')
+		{
+			// Handle variable start character.
+			// Look ahead to determine whether it is the start of a
+			// logical pathname variable.
+			if (in.substr(i+1,prefix.length())==prefix)
+			{
+				string::size_type f=in.find('>',i+1+prefix.length());
+				if (f!=string::npos)
+				{
+					// If a logical pathname variable has been found
+					// then isolate the pathname and convet it.
+					i+=1+prefix.length();
+					string log_pathname=in.substr(i,f-i);
+					string phy_pathname=paths(log_pathname,"");
+					i=f+1;
+					out+=phy_pathname;
+				}
+				else
+				{
+					out+=in[i++];
+				}
+			}
+			else
+			{
+				out+=in[i++];
+			}
+		}
+		else
+		{
+			out+=in[i++];
+		}
+	}
+	return out;
+}
+
 }; /* namespace pkg */
