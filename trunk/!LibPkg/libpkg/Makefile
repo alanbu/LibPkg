@@ -9,7 +9,7 @@ OBJ = auto_dir.o \
  version.o \
  dependency.o \
  control.o \
- control_binary.o \
+ binary_control.o \
  status.o \
  table.o \
  zipfile.o \
