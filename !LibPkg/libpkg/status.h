@@ -155,7 +155,7 @@ public:
 	 * @param flag the flag to be altered
 	 * @param value the required value
 	 */
-	void flag(internal_flag_type,bool value);
+	void flag(internal_flag_type flag,bool value);
 
 	/** Set package version.
 	 * @param version the required package version
