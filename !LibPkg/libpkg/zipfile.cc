@@ -209,6 +209,9 @@ void zipfile::extract(const string& src_pathname,
 		if (zs.avail_out&&(finfo->csize()==zs.total_in)) err=Z_STREAM_END;
 	}
 
+	// Finalise zlib stream.
+	inflateEnd(&zs);
+
 	// Flush output buffer.
 	if (zs.avail_out!=usize)
 	{
