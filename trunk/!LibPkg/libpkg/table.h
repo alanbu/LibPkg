@@ -61,17 +61,17 @@ public:
 	virtual ~watcher();
 
 	/** Begin watching table.
-	 * @param table the table to begin watching
+	 * @param t the table to begin watching
 	 */
 	void watch(table& t);
 
 	/** Cease watching table.
-	 * @param table the table to cease watching
+	 * @param t the table to cease watching
 	 */
 	void unwatch(table& t);
 
 	/** Handle change to table.
-	 * @param table the table that has changed
+	 * @param t the table that has changed
 	 */
 	virtual void handle_change(table& t)=0;
 };

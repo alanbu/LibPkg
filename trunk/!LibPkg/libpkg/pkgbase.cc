@@ -339,7 +339,7 @@ const pkg::control* pkgbase::resolve(const vector<dependency>& deps,
 
 const pkg::control* pkgbase::resolve(const dependency& dep,bool allow_new)
 {
-	/** Select package. */
+	// Select package.
 	string pkgname=dep.pkgname();
 	const status& selstat=_selstat[pkgname];
 

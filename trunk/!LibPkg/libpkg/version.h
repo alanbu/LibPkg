@@ -78,13 +78,13 @@ public:
 		{ return _epoch; }
 
 	/** Get upstream version.
-	 * @param the upstream version
+	 * @return the upstream version
 	 */
 	string upstream_version() const
 		{ return _upstream_version; }
 
 	/** Get package version.
-	 * @param the package version
+	 * @return the package version
 	 */
 	string package_version() const
 		{ return _package_version; }

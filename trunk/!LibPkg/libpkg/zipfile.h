@@ -180,14 +180,12 @@ public:
 		{ return _pathname; }
 
 	/** Create extra information record.
-	 * @param extra_type the type of the extra information record
 	 * @return a pointer to the extra information record
 	 */
 	template<class extra_type>
 	extra_type* create_extra();
 
 	/** Find extra information record.
-	 * @param extra_type the type of the extra information record
 	 * @return a pointer to the extra information record, or 0 if not found
 	 */
 	template<class extra_type>
