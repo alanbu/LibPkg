@@ -234,4 +234,30 @@ istream& operator>>(istream& in,pair<string,status>& pkgstat)
 	return in;
 }
 
+bool unpack_req(const status& curstat,const status& selstat)
+{
+	return (selstat.state()>=status::state_unpacked)&&
+		((curstat.state()<status::state_unpacked)||
+		(curstat.version()!=selstat.version()));
+}
+
+bool remove_req(const status& curstat,const status& selstat)
+{
+	return (curstat.state()>status::state_removed)&&
+		((selstat.state()<=status::state_removed)||
+		(curstat.version()!=selstat.version()));
+}
+
+bool config_req(const status& curstat,const status& selstat)
+{
+	return (selstat.state()>=status::state_installed)&&
+		(curstat.state()<status::state_installed);
+}
+
+bool purge_req(const status& curstat,const status& selstat)
+{
+	return (selstat.state()<=status::state_not_present)&&
+		(curstat.state()>status::state_not_present);
+}
+
 }; /* namespace pkg */
