@@ -13,6 +13,7 @@
 #include "libpkg/pkgbase.h"
 #include "libpkg/download.h"
 #include "libpkg/unpack.h"
+#include "libpkg/sysvars.h"
 #include "libpkg/commit.h"
 
 namespace pkg {
@@ -241,6 +242,15 @@ void commit::poll()
 		{
 			// Commit package status changes.
 			_pb.curstat().commit();
+
+			// Progress to next state.
+			_state=state_update_sysvars;
+		}
+		break;
+	case state_update_sysvars:
+		{
+			// Update list of system variables.
+			update_sysvars(_pb);
 
 			// Progress to next state.
 			_state=state_done;
