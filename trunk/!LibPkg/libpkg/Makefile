@@ -5,7 +5,8 @@
 
 include ../Rules.make
 
-OBJ = version.o \
+OBJ = auto_dir.o \
+ version.o \
  dependency.o \
  control.o \
  control_binary.o \
