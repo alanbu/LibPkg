@@ -171,14 +171,34 @@ public:
 	 */
 	string short_description() const;
 
+	/** Get dependencies.
+	 * @return a comma-separated list of dependencies if there are any,
+	 *  otherwise the empty string
+	 */
 	string depends() const;
 
+	/** Get recommendations.
+	 * @return a comma-separated list of recommendations if there are any,
+	 *  otherwise the empty string
+	 */
 	string recommends() const;
 
+	/** Get suggestions.
+	 * @return a comma-separated list of suggestions if there are any,
+	 *  otherwise the empty string
+	 */
 	string suggests() const;
 
+	/** Get conflicts.
+	 * @return a comma-separated list of conflicts if there are any,
+	 *  otherwise the empty string
+	 */
 	string conflicts() const;
 
+	/** Get download URL
+	 * @return a URL from which the package may be downloaded if there
+	 *  is one, otherwise the empty string
+	 */
 	string url() const;
 protected:
 	/** Get priority.
