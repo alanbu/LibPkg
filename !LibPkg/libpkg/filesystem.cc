@@ -83,4 +83,12 @@ unsigned int object_type(const string& pathname)
 	return objtype;
 }
 
+unsigned int object_length(const string& pathname)
+{
+	// Read object length.
+	unsigned int length;
+	rtk::os::OS_File17(pathname.c_str(),0,0,0,&length,0);
+	return length;
+}
+
 }; /* namespace pkg */
