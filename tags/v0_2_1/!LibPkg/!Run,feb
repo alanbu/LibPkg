@@ -1,0 +1,9 @@
+| This file is part of LibPkg.
+| Copyright © 2003 Graham Shaw.            
+| Distribution and use are subject to the GNU General Public License,
+| a copy of which may be found in the file !LibPkg.Copyright.
+
+Set LibPkg$Dir <Obey$Dir>
+Set LibPkg$Path <Obey$Dir>.
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
+IconSprites <LibPkg$Dir>.!Sprites

@@ -1,0 +1,26 @@
+VERSION = 0.2.1
+PACKAGES = \
+ LibPkg-Common_$(VERSION) \
+ LibPkg-Dev_$(VERSION) \
+ LibPkg-Doc_$(VERSION)
+
+pkg:
+	Run !LibPkg.SetPaths
+	make -C !LibPkg all
+	rm -rf Temp
+	mkdir -p Temp/RiscPkg
+	mkdir -p Temp/Apps/Library
+	cp RiscPkg/Copyright Temp/RiscPkg/
+	cp -R !LibPkg Temp/Apps/Library/
+	chmod -R 444 Temp/Apps
+
+	cp -R SysVars Temp/SysVars/
+	cp -R Sprites Temp/Sprites/
+	make -C Temp -f ../RiscPkg/Rules $(PACKAGES)
+	rm -rf Temp
+
+.PHONY: $(PACKAGES)
+$(PACKAGES): %:
+	riscpkg-gencontrol $(firstword $(subst _, ,$@)) < ../RiscPkg/Control > RiscPkg/Control
+	rm -f ../RiscPkg/$@
+	zip -r ^.RiscPkg.$(subst .,/,$@) * -i@^.RiscPkg.$(subst .,/,$(firstword $(subst _, ,$@)))/inc
