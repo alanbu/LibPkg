@@ -1,6 +1,7 @@
 VERSION = 0/2/0
 
 pkg:
+	Run !LibPkg.SetPaths
 	make -C !LibPkg all
 	mkdir -p Temp
 	Wipe Temp ~CFR~V
