@@ -9,7 +9,8 @@
 
 namespace pkg {
 
-source_table::source_table(const string& pathname):
+source_table::source_table(const string& dpathname,const string& pathname):
+	_dpathname(dpathname),
 	_pathname(pathname)
 {
 	update();
@@ -21,7 +22,15 @@ source_table::~source_table()
 void source_table::update()
 {
 	_data.clear();
-	ifstream in(_pathname.c_str());
+	bool found=read(_pathname);
+	if (!found) read(_dpathname);
+	notify();
+}
+
+bool source_table::read(const string& pathname)
+{
+	ifstream in(pathname.c_str());
+	bool found=in;
 	while (in&&!in.eof())
 	{
 		// Read line from input stream.
@@ -50,7 +59,7 @@ void source_table::update()
 		// Check for end of file.
 		in.peek();
 	}
-	notify();
+	return found;
 }
 
 }; /* namespace pkg */

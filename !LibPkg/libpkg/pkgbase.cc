@@ -23,7 +23,7 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 	_curstat(pathname+string(".Status")),
 	_selstat(pathname+string(".Selected")),
 	_control(pathname+string(".Available")),
-	_sources(cpathname+string(".Sources")),
+	_sources(dpathname+string(".Sources"),cpathname+string(".Sources")),
 	_paths(dpathname+string(".Paths"),cpathname+string(".Paths")),
 	_changed(false)
 {

@@ -28,16 +28,20 @@ public:
 	typedef string value_type;
 	typedef list<value_type>::const_iterator const_iterator;
 private:
-	/** The pathname of the underlying sources file. */
+	/** The pathname of the default soruces file. */
+	string _dpathname;
+
+	/** The pathname of the configured sources file. */
 	string _pathname;
 
 	/** A list of sources. */
 	list<string> _data;
 public:
 	/** Construct source table.
-	 * @param pathname the pathname of the underlying sources file
+	 * @param dpathname the pathname of the default sources file
+	 * @param pathname the pathname of the configured sources file
 	 */
-	source_table(const string& pathname);
+	source_table(const string& dpathname,const string& pathname);
 
 	/** Destroy source table. */
 	virtual ~source_table();
@@ -54,8 +58,14 @@ public:
 	const_iterator end() const
 		{ return _data.end(); }
 
-	/** Re-read the underlying sources file. */
+	/** Re-read the default and configured sources files. */
 	void update();
+private:
+	/** Read sources file.
+	 * @param pathname the pathname
+	 * @return true if the pathname was found, otherwise false
+	 */
+	bool read(const string& pathname);
 };
 
 }; /* namespace pkg */
