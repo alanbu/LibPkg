@@ -14,6 +14,7 @@
 
 namespace pkg {
 
+/** A class for mapping package name to package status. */
 class status_table:
 	public table
 {
