@@ -16,6 +16,7 @@ OBJ = auto_dir.o \
  status_table.o \
  binary_control_table.o \
  zipfile.o \
+ download.o \
  thread.o
 
 all: $(OBJ)
