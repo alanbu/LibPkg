@@ -114,6 +114,19 @@ public:
 	virtual const char* what() const;
 };
 
+/** Resolve logical path references.
+ * If a string is passed through this function before it is GSTransed then
+ * system variable references of the form <Packages$@x>, where x is a
+ * logical pathname, are resolved to the corresponding physical pathname.
+ *
+ * Note that the string is not GSTransed, and system variable references
+ * that are not of the above form are not expanded.
+ * @param table the path table for lookups
+ * @param in the string to be processed
+ * @return the string with logical path references resolved
+ */
+string resolve_pathrefs(const path_table& table,const string& in);
+
 }; /* namespace pkg */
 
 #endif

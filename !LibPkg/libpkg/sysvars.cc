@@ -9,6 +9,7 @@
 
 #include "libpkg/filesystem.h"
 #include "libpkg/dirstream.h"
+#include "libpkg/path_table.h"
 #include "libpkg/pkgbase.h"
 #include "libpkg/sysvars.h"
 
@@ -100,6 +101,7 @@ void update_sysvars(pkgbase& pb)
 				ifstream in(pathname.c_str());
 				string varval;
 				getline(in,varval);
+				varval=resolve_pathrefs(pb.paths(),varval);
 				out << "Set " << varname << " \"" << varval << "\"" << endl;
 				rtk::os::OS_SetVarVal(varname.c_str(),varval.c_str(),
 					varval.length(),0,0,0,0);
