@@ -15,6 +15,7 @@ OBJ = auto_dir.o \
  table.o \
  status_table.o \
  binary_control_table.o \
+ source_table.o \
  zipfile.o \
  download.o \
  thread.o
