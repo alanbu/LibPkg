@@ -1,7 +1,11 @@
 # This file is part of !LibPkg.
-# Copyright © 2003-2004 Graham Shaw.
+# Copyright © 2003-2005 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
+
+Version 0.2.1 (25 Feb 2005)
+
+  Fixed cache pathname for packages with one or more dots in name.
 
 Version 0.2.0 (12 Mar 2004)
 
