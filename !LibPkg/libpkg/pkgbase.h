@@ -28,6 +28,9 @@ private:
 	/** The selected status table. */
 	status_table _selstat;
 
+	/** The previous status table. */
+	status_table _prevstat;
+
 	/** The binary control table. */
 	binary_control_table _control;
 
@@ -56,6 +59,14 @@ public:
 	 */
 	status_table& selstat()
 		{ return _selstat; }
+
+	/** Get previous status table.
+	 * This is the state to which packages are restored when
+	 * changes are unwound after an error.
+	 * @return the previous status table
+	 */
+	status_table& prevstat()
+		{ return _prevstat; }
 
 	/** Get binary control table.
 	 * @return the binary control table
