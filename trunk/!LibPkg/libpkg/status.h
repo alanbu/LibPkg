@@ -212,8 +212,11 @@ bool remove_req(const status& curstat,const status& selstat);
 /** Determine whether a package should be configured.
  * A package should be configured if:
  * - the selected state is state_installed or higher; and
- * - the current state is lower than state_installed.
+ *   - the current state is lower than state_installed; or
+ *   - the selected version differs from the current version.
+ *   .
  * .
+ * It may be necessary for it to be unpacked before this can happen.
  * @param curstat the current status
  * @param selstat the selected status
  * @return true if the package should be configured
@@ -225,6 +228,7 @@ bool config_req(const status& curstat,const status& selstat);
  * - the selected state is state_not_present or lower; and
  * - the current state is higher than state_not_present.
  * .
+ * It may be necessary for it to be removed before this can happen.
  * @param curstat the current status
  * @param selstat the selected status
  * @return true if the package should be purged

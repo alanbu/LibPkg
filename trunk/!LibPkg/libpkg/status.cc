@@ -219,7 +219,8 @@ bool remove_req(const status& curstat,const status& selstat)
 bool config_req(const status& curstat,const status& selstat)
 {
 	return (selstat.state()>=status::state_installed)&&
-		(curstat.state()<status::state_installed);
+		((curstat.state()<status::state_installed)||
+		(curstat.version()!=selstat.version()));
 }
 
 bool purge_req(const status& curstat,const status& selstat)
