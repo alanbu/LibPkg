@@ -6,6 +6,7 @@
 #ifndef _LIBPKG_STATUS
 #define _LIBPKG_STATUS
 
+#include <utility>
 #include <string>
 #include <stdexcept>
 #include <iosfwd>
