@@ -1,8 +1,9 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2004 Graham Shaw.            
+// Copyright © 2003-2005 Graham Shaw.            
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
+#include <algorithm>
 #include <sstream>
 #include <fstream>
 
@@ -40,12 +41,11 @@ pkgbase::~pkgbase()
 
 string pkgbase::cache_pathname(const string& pkgname,const string& version)
 {
-	string _version=version;
-	for (string::iterator i=_version.begin();i!=_version.end();++i)
-	{
-		if (*i=='.') *i='/';
-	}
-	return _pathname+string(".Cache.")+pkgname+string("_")+_version;
+	string _pkgname(pkgname);
+	string _version(version);
+	std::replace(_pkgname.begin(),_pkgname.end(),'.','/');
+	std::replace(_version.begin(),_version.end(),'.','/');
+	return _pathname+string(".Cache.")+_pkgname+string("_")+_version;
 }
 
 string pkgbase::info_pathname(const string& pkgname)
