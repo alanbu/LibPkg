@@ -104,6 +104,10 @@ private:
 
 	/** A map giving the current download progress for each package. */
 	map<string,progress> _progress_table;
+
+	/** The set of destination pathnames that conflict with files
+	 * already on the system. */
+	set<string> _files_that_conflict;
 public:
 	/** Construct commit operation.
 	 * @param pb the package database
@@ -151,6 +155,15 @@ public:
 	 */
 	string message() const
 		{ return _message; }
+
+	/** Get the set of destination pathnames that conflict with files
+	 * already on the system.
+	 * When state()==state_fail, this function returns a list of files
+	 * that must be deleted before the given set of packages can be
+	 * processed.
+	 */
+	const set<string>& files_that_conflict() const
+		{ return _files_that_conflict; }
 protected:
 	virtual void poll();
 private:

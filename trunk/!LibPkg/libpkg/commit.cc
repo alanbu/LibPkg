@@ -175,6 +175,7 @@ void commit::poll()
 			case unpack::state_fail:
 				// If unpack failed then commit failed too.
 				_message=_upack->message();
+				_files_that_conflict=_upack->files_that_conflict();
 				delete _upack;
 				_upack=0;
 				_state=state_fail;
