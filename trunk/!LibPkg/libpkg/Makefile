@@ -7,7 +7,8 @@ include ../Rules.make
 
 OBJ = version.o \
  control.o \
- control_binary.o
+ control_binary.o \
+ status.o
 
 all: $(OBJ)
 
