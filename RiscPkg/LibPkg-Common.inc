@@ -1,6 +1,7 @@
 RiscPkg.*
 SysVars.LibPkg=24Dir
 SysVars.LibPkg=24Path
+Sprites.!libpkg
 Apps.Library.!LibPkg.!Boot
 Apps.Library.!LibPkg.!Help
 Apps.Library.!LibPkg.!Run
