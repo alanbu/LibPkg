@@ -5,7 +5,8 @@
 
 include ../Rules.make
 
-OBJ = version.o
+OBJ = version.o \
+ control.o
 
 all: $(OBJ)
 
