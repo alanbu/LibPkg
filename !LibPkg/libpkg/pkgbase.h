@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "libpkg/dependency.h"
 #include "libpkg/status_table.h"
 #include "libpkg/binary_control_table.h"
 #include "libpkg/source_table.h"
@@ -39,6 +40,15 @@ private:
 
 	/** The path table. */
 	path_table _paths;
+
+	/** The changed flag.
+	 * True if any of the must-remove, must-install or must-upgrade
+	 * flags have changed since the start of the current round of
+	 * dependency resolution.  Note that this flag is only meaningful
+	 * during dependency resolution, and it only captures changes
+	 * made using the functions ensure_removed() and ensure_installed().
+	 */
+	bool _changed;
 public:
 	/** Create pkgbase object.
 	 * @param pathname the pathname of the !Packages directory.
@@ -120,6 +130,73 @@ public:
 	 * @return the pathname
 	 */
 	string setvars_pathname(); 
+
+	/** Fix dependencies.
+	 * If a package is in the seed set then its selection state cannot
+	 * change from installed to removed or vice-versa.  If it is not in
+	 * the seed set then it can be installed or removed as necessary to
+	 * meet all dependencies.
+	 * @param seed the seed set
+	 * @return true if all dependencies were fixed, otherwise false
+	 */
+	bool fix_dependencies(const set<string>& seed);
+private:
+	/** Fix dependencies for package.
+	 * Note that if dependency resolution fails then must-install/
+	 * must-upgrade flags are left unaltered regardless of the state
+	 * of the apply argument.
+	 * @param ctrl the package control record
+	 * @param allow_new true to allow packages that are not currently
+	 *  installed, otherwise false
+	 * @param apply true to apply changes to must-remove, must-install
+	 *  and must-upgrade flags, otherwise false
+	 * @return true if all dependencies were satisfied, otherwise false
+	 */
+	bool fix_dependencies(const pkg::control& ctrl,bool allow_new,
+		bool apply);
+
+	/** Resolve dependency alternatives.
+	 * Preference is given to packages that are already installed
+	 * (and are not flagged for removal), followed by packages that
+	 * are flagged for installation.
+	 * If two or more equally good solutions are available, the one
+	 * chosen is the one that occurs earliest in the list.
+	 * @param deps the list of dependencies
+	 * @param allow_new true to allow packages that are not currently
+	 *  installed, otherwise false
+	 * @return the control record of a package that would satisfy one
+	 *  of the listed dependencies, or 0 if none found
+	 */
+	const pkg::control* pkgbase::resolve(const vector<dependency>& deps,
+		bool allow_new=true);
+
+	/** Resolve dependency.
+	 * Preference is given to packages that are already installed
+	 * (and are not flagged for removal), followed by packages that
+	 * are flagged for installation.
+	 * @param dep the depenency to be satisfied
+	 * @param allow_new true to allow packages that are not currently
+	 *  installed, otherwise false
+	 * @return the control record of a package that would satisfy the
+	 *  dependency, or 0 if none found
+	 */
+	const pkg::control* pkgbase::resolve(const dependency& dep,
+		bool allow_new=true);
+
+	/** Ensure that package will be removed.
+	 * The must-remove flag is set if it is not already.
+	 * @param pkgname the package name
+	 * @param pkgvrsn the package version
+	 */
+	void ensure_removed(const string& pkgname);
+
+	/** Ensure that package will be installed.
+	 * The must-install flag, and if necessary the must-upgrade flag,
+	 * are set if they are not already.
+	 * @param pkgname the package name
+	 * @param pkgvrsn the package version
+	 */
+	void ensure_installed(const string& pkgname,const string& pkgvrsn);
 };
 
 }; /* namespace pkg */
