@@ -25,7 +25,7 @@ string path_table::operator()(const string& src_pathname,
 {
 	// Split path into source prefix and suffix.
 	unsigned int ds=src_pathname.find('.');
-	if (ds==string::npos) ds=0;
+	if (ds==string::npos) ds=src_pathname.length();
 	string src_prefix(src_pathname,0,ds);
 	string suffix(src_pathname,ds,string::npos);
 
