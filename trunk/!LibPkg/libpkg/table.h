@@ -28,7 +28,7 @@ public:
 	table();
 
 	/** Destroy table. */
-	~table();
+	virtual ~table();
 protected:
 	/** Notify watchers that a change has occurred. */
 	void notify();
