@@ -20,6 +20,7 @@ OBJ = auto_dir.o \
  pkgbase.o \
  zipfile.o \
  download.o \
+ standards_version.o \
  thread.o \
  update.o
 
