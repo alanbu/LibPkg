@@ -15,13 +15,16 @@ const char hexchar[]="0123456789ABCDEF";
 
 namespace pkg {
 
-pkgbase::pkgbase(const string& pathname):
+pkgbase::pkgbase(const string& pathname,const string& dpathname,
+	const string& cpathname):
 	_pathname(pathname),
+	_dpathname(dpathname),
+	_cpathname(cpathname),
 	_curstat(pathname+string(".Status")),
 	_selstat(pathname+string(".Selected")),
 	_control(pathname+string(".Available")),
-	_sources("Choices:RiscPkg.Sources"),
-	_paths("Choices:RiscPkg.Paths"),
+	_sources(cpathname+string(".Sources")),
+	_paths(dpathname+string(".Paths"),cpathname+string(".Paths")),
 	_changed(false)
 {
 	create_directory(_pathname+string(".Cache"));

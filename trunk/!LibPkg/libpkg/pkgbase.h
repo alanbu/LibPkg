@@ -23,6 +23,12 @@ private:
 	/** The pathname of the !Packages directory. */
 	string _pathname;
 
+	/** The pathname of the default choices directory. */
+	string _dpathname;
+
+	/** The pathname of the choices directory. */
+	string _cpathname;
+
 	/** The current status table. */
 	status_table _curstat;
 
@@ -52,8 +58,11 @@ private:
 public:
 	/** Create pkgbase object.
 	 * @param pathname the pathname of the !Packages directory.
+	 * @param dpathname the pathname of the default choices directory
+	 * @param cpathname the pathname of the choices directory
 	 */
-	pkgbase(const string& pathname);
+	pkgbase(const string& pathname,const string& dpathname,
+		const string& cpathname);
 
 	/** Destroy pkgbase object. */
 	~pkgbase();
