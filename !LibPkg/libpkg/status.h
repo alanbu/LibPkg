@@ -103,6 +103,12 @@ public:
 	bool flag(flag_type flag) const
 		{ return (_flags>>flag)&1; }
 
+	/** Get status flags.
+	 * @return a bit field containing the status flags
+	 */
+	unsigned int flags() const
+		{ return _flags; }
+
 	/** Get package version.
 	 * @return the package version
 	 */
@@ -147,6 +153,20 @@ public:
 	 */
 	virtual const char* what() const;
 };
+
+/** Test whether two status records are equal.
+ * @param lhs the left hand side
+ * @param rhs the right hand side
+ * @return true if lhs==rhs, otherwise false.
+ */
+bool operator==(const status& lhs,const status& rhs);
+
+/** Test whether two status records are unequal.
+ * @param lhs the left hand side
+ * @param rhs the right hand side
+ * @return true if lhs!=rhs, otherwise false.
+ */
+bool operator!=(const status& lhs,const status& rhs);
 
 /** Write package status record to output stream.
  * @param out the output stream
