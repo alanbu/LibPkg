@@ -23,7 +23,8 @@ OBJ = auto_dir.o \
  standards_version.o \
  thread.o \
  update.o \
- unpack.o
+ unpack.o \
+ commit.o 
 
 all: $(OBJ)
 
