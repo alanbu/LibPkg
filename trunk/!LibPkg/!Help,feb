@@ -4,5 +4,5 @@
 | a copy of which may be found in the file !LibPkg.Copyright.
 
 If "<LibPkg$Dir>"="" Then Set LibPkg$Dir <Obey$Dir>
-If "<LibPkg$Help>"="" Then Run <LibPkg$Dir>.!SetHelp
-If "<Alias$@RunType_FAF>"<>"" Then Filer_Run <LibPkg$Help> Else Filer_Run <LibPkg$Dir>.README
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
+If ("<Alias$@RunType_FAF>"="") OR ("<LibPkg$Help>"="") Then Filer_Run <LibPkg$Dir>.README Else Filer_Run <LibPkg$Help>
