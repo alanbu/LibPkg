@@ -148,48 +148,6 @@ public:
 	virtual const char* what() const;
 };
 
-/** Test whether two versions are equal.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs==rhs, otherwise false.
- */
-bool operator==(const status& lhs,const status& rhs);
-
-/** Test whether two versions are unequal.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs!=rhs, otherwise false.
- */
-bool operator!=(const status& lhs,const status& rhs);
-
-/** Test whether one version is less than another.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs<rhs, otherwise false.
- */
-bool operator<(const status& lhs,const status& rhs);
-
-/** Test whether one version is greater than or equal to another.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs>=rhs, otherwise false.
- */
-bool operator>=(const status& lhs,const status& rhs);
-
-/** Test whether one version is less than or equal to another.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs<=rhs, otherwise false.
- */
-bool operator<=(const status& lhs,const status& rhs);
-
-/** Test whether one version is greater than another.
- * @param lhs the left hand side
- * @param rhs the right hand side
- * @return true if lhs>rhs, otherwise false.
- */
-bool operator>(const status& lhs,const status& rhs);
-
 /** Write package status record to output stream.
  * @param out the output stream
  * @param pkgstat the package status record
@@ -203,6 +161,54 @@ ostream& operator<<(ostream& out,const pair<string,status>& pkgstat);
  * @return the output stream
  */
 istream& operator>>(istream& in,pair<string,status>& pkgstat);
+
+/** Determine whether a package should be unpacked.
+ * The result will be true if:
+ * - the selected state is state_unpacked or higher; and
+ *   - the current state is lower than state_unpacked; or
+ *   - the selected version differs from the current version.
+ *   .
+ * .
+ * @param curstat the current status
+ * @param selstat the selected status
+ * @return true if the package should be unpacked
+ */
+bool unpack_req(const status& curstat,const status& selstat);
+
+/** Determine whether a package should be removed.
+ * A package should be removed if:
+ * - the current state is higher than state_removed; and
+ *   - the selected state is state_removed or lower; or
+ *   - the selected version differs from the current version.
+ *   .
+ * .
+ * @param curstat the current status
+ * @param selstat the selected status
+ * @return true if the package should be removed
+ */
+bool remove_req(const status& curstat,const status& selstat);
+
+/** Determine whether a package should be configured.
+ * A package should be configured if:
+ * - the selected state is state_installed or higher; and
+ * - the current state is lower than state_installed.
+ * .
+ * @param curstat the current status
+ * @param selstat the selected status
+ * @return true if the package should be configured
+ */
+bool config_req(const status& curstat,const status& selstat);
+
+/** Determine whether a package should be purged.
+ * A package should be purged if:
+ * - the selected state is state_not_present or lower; and
+ * - the current state is higher than state_not_present.
+ * .
+ * @param curstat the current status
+ * @param selstat the selected status
+ * @return true if the package should be purged
+ */
+bool purge_req(const status& curstat,const status& selstat);
 
 }; /* namespace pkg */
 
