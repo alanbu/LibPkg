@@ -6,6 +6,7 @@ pkg:
 	Wipe Temp ~CFR~V
 	mkdir -p Temp/RiscPkg
 	mkdir -p Temp/Apps/Library
+	Copy RiscPkg.Copyright Temp.RiscPkg.Copyright ~CFR~V
 	Copy !LibPkg Temp.Apps.Library.!LibPkg ~CFR~V
 	Access Temp.Apps.Library.!LibPkg.* LR/R
 	Access Temp.Apps.Library.!LibPkg.a.* LR/R
