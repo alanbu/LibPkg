@@ -20,7 +20,7 @@ Description: A package management library for RISC OS
 Package: LibPkg-Common
 Description: Common files that belong to LibPkg
 
-Package: LibPkg
+Package: LibPkg-Dev
 Depends: LibPkg-Common
 
 Package: LibPkg-Doc

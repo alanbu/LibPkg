@@ -17,8 +17,8 @@ pkg:
 	Dir Temp
 	RiscPkg-GenControl LibPkg-Common < ../RiscPkg/Control > RiscPkg/Control
 	zip -r ^.LibPkg-Common_$(VERSION) * -i@^.RiscPkg.LibPkg-Common/inc
-	RiscPkg-GenControl LibPkg < ../RiscPkg/Control > RiscPkg/Control
-	zip -r ^.LibPkg_$(VERSION) * -i@^.RiscPkg.LibPkg/inc
+	RiscPkg-GenControl LibPkg-Dev < ../RiscPkg/Control > RiscPkg/Control
+	zip -r ^.LibPkg-Dev_$(VERSION) * -i@^.RiscPkg.LibPkg-Dev/inc
 	RiscPkg-GenControl LibPkg-Doc < ../RiscPkg/Control > RiscPkg/Control
 	zip -r ^.LibPkg-Doc_$(VERSION) * -i@^.RiscPkg.LibPkg-Doc/inc
 	Dir ^
