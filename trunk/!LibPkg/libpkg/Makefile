@@ -17,6 +17,7 @@ OBJ = auto_dir.o \
  binary_control_table.o \
  source_table.o \
  path_table.o \
+ pkgbase.o \
  zipfile.o \
  download.o \
  thread.o
