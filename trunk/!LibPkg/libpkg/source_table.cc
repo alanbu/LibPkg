@@ -24,13 +24,30 @@ void source_table::update()
 	ifstream in(_pathname.c_str());
 	while (in&&!in.eof())
 	{
+		// Read line from input stream.
 		string line;
 		getline(in,line);
+
+		// Strip comments and trailing spaces.
 		string::size_type n=line.find('#');
 		if (n==string::npos) n=line.size();
 		while (n&&isspace(line[n-1])) --n;
 		line.resize(n);
-		if (n) _data.push_back(line);
+
+		// Extract source type and source path.
+		string::size_type i=0;
+		while ((i!=line.length())&&!isspace(line[i])) ++i;
+		string srctype(line,0,i);
+		while ((i!=line.length())&&isspace(line[i])) ++i;
+		string srcpath(line,i,string::npos);
+
+		// Ignore line if source type not recognised.
+		if (srctype==string("pkg"))
+		{
+			_data.push_back(srcpath);
+		}
+
+		// Check for end of file.
 		in.peek();
 	}
 	notify();
