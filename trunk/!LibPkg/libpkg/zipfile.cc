@@ -3,8 +3,6 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#include <memory>
-
 #include "zlib.h"
 
 #include "libpkg/zipfile.h"
@@ -57,6 +55,26 @@ string read_string(istream& in,int size)
 	string::size_type f=value.find(char(0));
 	if (f!=string::npos) value.resize(f);
 	return value;
+}
+
+class buffer
+{
+private:
+	Bytef* _data;
+public:
+	buffer(unsigned int size);
+	~buffer();
+	operator Bytef*()
+		{ return _data; }
+};
+
+buffer::buffer(unsigned int size):
+	_data(new Bytef[size])
+{}
+
+buffer::~buffer()
+{
+	delete[] _data;
 }
 
 }; /* anonymous namespace */
@@ -126,18 +144,18 @@ void zipfile::extract(const string& src_pathname,
 	// Allocate buffers.
 	const unsigned int csize=1024;
 	const unsigned int usize=1024;
-	auto_ptr<Bytef> cbuffer(new Bytef[csize]);
-	auto_ptr<Bytef> ubuffer(new Bytef[usize]);
+	buffer cbuffer(csize);
+	buffer ubuffer(usize);
 
 	// Create and initialise zlib stream.
 	z_stream zs;
 	zs.zalloc=Z_NULL;
 	zs.zfree=Z_NULL;
 	zs.opaque=Z_NULL;
-	zs.next_in=cbuffer.get();
+	zs.next_in=cbuffer;
 	zs.avail_in=0;
 	zs.total_in=0;
-	zs.next_out=ubuffer.get();
+	zs.next_out=ubuffer;
 	zs.avail_out=usize;
 	zs.total_out=0;
 	int err=inflateInit2(&zs,-MAX_WBITS);
@@ -149,16 +167,16 @@ void zipfile::extract(const string& src_pathname,
 		if (!zs.avail_in)
 		{
 			unsigned int count=min<int>(csize,finfo->csize()-zs.total_in);
-			_zfs.read(cbuffer.get(),count);
-			zs.next_in=cbuffer.get();
+			_zfs.read(cbuffer,count);
+			zs.next_in=cbuffer;
 			zs.avail_in=_zfs.gcount();
 		}
 
 		// If output buffer is full then empty it.
 		if (!zs.avail_out)
 		{
-			out.write(ubuffer.get(),zs.next_out-ubuffer.get());
-			zs.next_out=ubuffer.get();
+			out.write(ubuffer,zs.next_out-ubuffer);
+			zs.next_out=ubuffer;
 			zs.avail_out=usize;
 		}
 
@@ -194,7 +212,7 @@ void zipfile::extract(const string& src_pathname,
 	// Flush output buffer.
 	if (zs.avail_out!=usize)
 	{
-		out.write(ubuffer.get(),zs.next_out-ubuffer.get());
+		out.write(ubuffer,zs.next_out-ubuffer);
 	}
 }
 
