@@ -5,5 +5,5 @@
 
 Set LibPkg$Dir <Obey$Dir>
 Set LibPkg$Path <Obey$Dir>.
-<LibPkg$Dir>.!SetHelp
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
 IconSprites <LibPkg$Dir>.!Sprites
