@@ -32,6 +32,11 @@ OBJ = md5.o \
  sprite_pool.o \
  commit.o
 
-all: $(OBJ)
+.PHONY: all
+
+all: timestamp
+
+timestamp: $(OBJ)
+	touch timestamp
 
 include $(OBJ:.o=.d)
