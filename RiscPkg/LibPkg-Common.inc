@@ -1,0 +1,11 @@
+RiscPkg.*
+SysVars.LibPkg=24Dir
+SysVars.LibPkg=24Path
+Apps.Library.!LibPkg.!Boot
+Apps.Library.!LibPkg.!Help
+Apps.Library.!LibPkg.!Run
+Apps.Library.!LibPkg.!Sprites
+Apps.Library.!LibPkg.!Sprites22
+Apps.Library.!LibPkg.Copyright
+Apps.Library.!LibPkg.History
+Apps.Library.!LibPkg.README

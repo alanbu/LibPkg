@@ -1,0 +1,26 @@
+Source: LibPkg
+Priority: Extra
+Section: Library
+Maintainer: Graham Shaw <gdshaw@sagitta.demon.co.uk>
+Version: 0.0.0-0
+Description: A package management library for RISC OS
+ LibPkg includes libraries for:
+ - representing version numbers, status records and control files;
+ - accessing the content of package files; and
+ - installing and removing packages.
+ .
+ The first use of LibPkg will be as the back-end of RiscPkg, but it
+ is not tied to any particular user interface and there could be other
+ front-ends in the future.  Parts of LibPkg are likely to be useful
+ for writing package development tools and other types of package
+ management utility.
+
+Package: LibPkg-Common
+Description: Common files that belong to LibPkg
+
+Package: LibPkg
+Depends: LibPkg-Common
+
+Package: LibPkg-Doc
+Depends: LibPkg-Common
+Description: Documentation for LibPkg
