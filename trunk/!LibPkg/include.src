@@ -1,0 +1,15 @@
+*.!LibPkg.!Boot
+*.!LibPkg.!Run
+*.!LibPkg.!Sprites
+*.!LibPkg.!Sprites22
+*.!LibPkg.Copyright
+*.!LibPkg.History
+*.!LibPkg.Doxyfile
+*.!LibPkg.footer/html
+*.!LibPkg.README
+*.!LibPkg.Rules/make
+*.!LibPkg.build-32
+*.!LibPkg.include/*
+*.!LibPkg.libpkg.h.*
+*.!LibPkg.libpkg.cc.*
+*.Makefile
