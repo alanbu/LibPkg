@@ -4,6 +4,7 @@
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include "libpkg/filesystem.h"
+#include "libpkg/uri.h"
 #include "libpkg/version.h"
 #include "libpkg/status.h"
 #include "libpkg/binary_control.h"
@@ -122,6 +123,15 @@ void update::_poll()
 				// Read control record from source.
 				binary_control ctrl;
 				in >> ctrl;
+
+				// Convert relative URL to absolute.
+				if (ctrl.find("URL")!=ctrl.end())
+				{
+					uri base_url(_url);
+					uri rel_url(ctrl["URL"]);
+					uri abs_url=base_url+rel_url;
+					ctrl["URL"]=abs_url;
+				}
 
 				// Extract package name and version.
 				string pkgname=ctrl.pkgname();
