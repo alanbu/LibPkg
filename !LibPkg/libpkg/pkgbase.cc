@@ -86,4 +86,14 @@ string pkgbase::available_pathname()
 	return _pathname+string(".Available");
 }
 
+string pkgbase::sysvars_pathname()
+{
+	return _pathname+string(".SysVars");
+}
+
+string pkgbase::setvars_pathname()
+{
+	return _pathname+string(".SetVars");
+}
+
 }; /* namespace pkg */

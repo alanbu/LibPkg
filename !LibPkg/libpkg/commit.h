@@ -39,6 +39,8 @@ public:
 		state_configure,
 		/** The state in which packages are being purged. */
 		state_purge,
+		/** The state in which the list of system variables is updated. */
+		state_update_sysvars,
 		/** The state in which all operations have been successfully
 		 * completed. */
 		state_done,

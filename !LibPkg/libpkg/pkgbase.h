@@ -110,6 +110,16 @@ public:
 	 * @return the pathname
 	 */
 	string info_pathname(const string& pkgname);
+
+	/** Get pathname for sysvars directory.
+	 * @return the pathname
+	 */
+	string sysvars_pathname();
+
+	/** Get pathname for setvars file.
+	 * @return the pathname
+	 */
+	string setvars_pathname(); 
 };
 
 }; /* namespace pkg */
