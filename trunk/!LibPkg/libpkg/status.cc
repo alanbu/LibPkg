@@ -137,7 +137,7 @@ bool operator>(const status& lhs,const status& rhs)
 	return cmp_status(lhs,rhs)>0;
 }
 
-ostream& operator<<(ostream& out,pair<string,status>& pkgstat)
+ostream& operator<<(ostream& out,const pair<string,status>& pkgstat)
 {
 	// Initialise state_to_string and flag_to_string.
 	init_static_data();
