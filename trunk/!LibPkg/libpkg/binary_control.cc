@@ -21,6 +21,7 @@ static const map<string,int>& init_priorities()
 	priorities["version"]=--pr;
 	priorities["source"]=--pr;
 	priorities["architecture"]=--pr;
+	priorities["standards-version"]=--pr;
 	priorities["maintainer"]=--pr;
 	priorities["installed-size"]=--pr;
 	priorities["section"]=--pr;
