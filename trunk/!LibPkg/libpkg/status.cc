@@ -49,22 +49,6 @@ static void init_static_data()
 	}
 }
 
-static int cmp_status(const status& lhs,const status& rhs)
-{
-	if (lhs.state()!=rhs.state())
-	{
-		if (lhs.state()>rhs.state()) return +1;
-		else return -1;
-	}
-	else if ((lhs.state()>status::state_removed)&&
-		(lhs.version()!=rhs.version()))
-	{
-		if (lhs.version()>rhs.version()) return +1;
-		else return -1;
-	}
-	return 0;
-}
-
 status::status():
 	_state(state_not_present),
 	_flags(0)
@@ -109,32 +93,16 @@ const char* status::parse_error::what() const
 
 bool operator==(const status& lhs,const status& rhs)
 {
-	return cmp_status(lhs,rhs)==0;
+	return (lhs.state()==rhs.state())&&
+		(lhs.flags()==rhs.flags())&&
+		(lhs.version()==rhs.version());
 }
 
 bool operator!=(const status& lhs,const status& rhs)
 {
-	return cmp_status(lhs,rhs)!=0;
-}
-
-bool operator<(const status& lhs,const status& rhs)
-{
-	return cmp_status(lhs,rhs)<0;
-}
-
-bool operator>=(const status& lhs,const status& rhs)
-{
-	return cmp_status(lhs,rhs)>=0;
-}
-
-bool operator<=(const status& lhs,const status& rhs)
-{
-	return cmp_status(lhs,rhs)<=0;
-}
-
-bool operator>(const status& lhs,const status& rhs)
-{
-	return cmp_status(lhs,rhs)>0;
+	return (lhs.state()!=rhs.state())||
+		(lhs.flags()!=rhs.flags())||
+		(lhs.version()!=rhs.version());
 }
 
 ostream& operator<<(ostream& out,const pair<string,status>& pkgstat)
