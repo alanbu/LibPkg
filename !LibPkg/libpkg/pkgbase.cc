@@ -81,4 +81,9 @@ string pkgbase::list_pathname(const string& url)
 	return filename;
 }
 
+string pkgbase::available_pathname()
+{
+	return _pathname+string(".Available");
+}
+
 }; /* namespace pkg */

@@ -81,6 +81,11 @@ public:
 	 */
 	string list_pathname(const string& url);
 
+	/** Get pathname for available list file.
+	 * @return the pathname
+	 */
+	string available_pathname();
+
 	/** Get pathname for package in cache.
 	 * @param pkgname the package name
 	 * @param pkgvrsn the package version
