@@ -6,6 +6,7 @@
 include ../Rules.make
 
 OBJ = auto_dir.o \
+ filesystem.o \
  version.o \
  dependency.o \
  control.o \
