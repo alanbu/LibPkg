@@ -53,6 +53,12 @@ void force_move(const string& src_pathname,const string& dst_pathname,
 void write_file_info(const string& pathname,unsigned int loadaddr,
 	unsigned int execaddr,unsigned int attr);
 
+/** Write filetype.
+ * @param pathname the pathname of the file
+ * @param filetype the required filetype
+ */
+void write_filetype(const string& pathname,unsigned int filetype);
+
 /** Get object type.
  * @param pathname the pathname
  * @return the object type
