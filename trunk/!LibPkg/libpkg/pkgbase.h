@@ -19,6 +19,8 @@ namespace pkg {
 /** A class for representing the collection of package database tables. */
 class pkgbase
 {
+public:
+	class cache_error;
 private:
 	/** The pathname of the !Packages directory. */
 	string _pathname;
@@ -150,6 +152,15 @@ public:
 	 */
 	string bootsprites_pathname();
 
+	/** Verify file in cache.
+	 * This function checks first whether a suitably named file exists,
+	 * then whether it has the correct length, then whether it has the
+	 * correct MD5Sum.  If any of these tests fail then a cache error
+	 * is thrown.
+	 * @param ctrl a control record for the requested package
+	 */
+	void verify_cached_file(const binary_control& ctrl);
+
 	/** Fix dependencies.
 	 * If a package is in the seed set then its selection state cannot
 	 * change from installed to removed or vice-versa.  If it is not in
@@ -228,6 +239,29 @@ private:
 	 * @param pkgvrsn the package version
 	 */
 	void ensure_installed(const string& pkgname,const string& pkgvrsn);
+};
+
+/** An exception class for reporting cache errors. */
+class pkgbase::cache_error:
+	public runtime_error
+{
+private:
+	/** A message which describes the cache error. */
+	string _message;
+public:
+	/** Construct cache error.
+	 * @param message a message which describes the cache error
+	 * @param ctrl the control record for the relevant package
+	 */
+	cache_error(const char* message,const binary_control& ctrl);
+
+	/** Destroy cache error. */
+	virtual ~cache_error();
+
+	/** Get message.
+	 * @return a message which describes the cache error.
+	 */
+	virtual const char* what() const;
 };
 
 }; /* namespace pkg */

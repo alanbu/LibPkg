@@ -55,16 +55,9 @@ void commit::poll()
 			const status& curstat=_pb.curstat()[_pkgname];
 			const status& selstat=_pb.selstat()[_pkgname];
 
-			// Get size of package from control record.
-			size_type size=npos;
+			// Find control record.
 			binary_control_table::key_type key(_pkgname,selstat.version());
 			const binary_control& ctrl=_pb.control()[key];
-			control::const_iterator f=ctrl.find("Size");
-			if (f!=ctrl.end())
-			{
-				istringstream in(f->second);
-				in >> size;
-			}
 
 			// Determine whether a download is required.
 			// This is true if the package is to be unpacked,
@@ -72,15 +65,25 @@ void commit::poll()
 			bool download_req=unpack_req(curstat,selstat);
 			if (download_req)
 			{
-				string pathname=_pb.cache_pathname(_pkgname,
-					selstat.version());
-				download_req=(!object_type(pathname))||
-					(object_length(pathname)!=size);
+				try
+				{
+					_pb.verify_cached_file(ctrl);
+					download_req=false;
+				}
+				catch (pkgbase::cache_error& ex)
+				{}
 			}
 
 			if (download_req)
 			{
 				// Create an entry in the progress table.
+				size_type size=npos;
+				control::const_iterator f=ctrl.find("Size");
+				if (f!=ctrl.end())
+				{
+					istringstream in(f->second);
+					in >> size;
+				}
 				_progress_table[_pkgname].bytes_ctrl=size;
 
 				// Progress to next package.
@@ -115,11 +118,27 @@ void commit::poll()
 				// If download in progress then do nothing.
 				break;
 			case download::state_done:
-				// If download complete then move to next package.
-				delete _dload;
-				_dload=0;
-				_packages_to_unpack.insert(_pkgname);
-				_packages_to_download.erase(_pkgname);
+				// If download complete then verify, and if correct
+				// then move to next package.
+				{
+					delete _dload;
+					_dload=0;
+					const status& selstat=_pb.selstat()[_pkgname];
+					binary_control_table::key_type key(_pkgname,
+						selstat.version());
+					const binary_control& ctrl=_pb.control()[key];
+					try
+					{
+						_pb.verify_cached_file(ctrl);
+						_packages_to_unpack.insert(_pkgname);
+						_packages_to_download.erase(_pkgname);
+					}
+					catch (pkgbase::cache_error& ex)
+					{
+						_message=ex.what();
+						_state=state_fail;
+					}
+				}
 				break;
 			case download::state_fail:
 				// If download failed then commit failed too.

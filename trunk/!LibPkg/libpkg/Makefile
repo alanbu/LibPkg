@@ -5,7 +5,8 @@
 
 include ../Rules.make
 
-OBJ = auto_dir.o \
+OBJ = md5.o \
+ auto_dir.o \
  filesystem.o \
  dirstream.o \
  sprite_file.o \
