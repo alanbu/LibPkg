@@ -13,6 +13,7 @@ OBJ = auto_dir.o \
  binary_control.o \
  status.o \
  table.o \
+ status_table.o \
  zipfile.o \
  thread.o
 
