@@ -3,6 +3,11 @@
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 
+Version 0.0.1 (25 Dec 2003)
+
+  Released zlib resources to fix memory leak.
+  Eliminated misuse of auto_ptr in pkg::zipfile.
+
 Version 0.0.0 (24 Dec 2003)
 
   Initial revision.
