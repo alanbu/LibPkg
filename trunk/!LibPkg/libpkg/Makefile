@@ -3,7 +3,10 @@
 # Distribution and use are subject to the GNU General Public License,
 # a copy of which may be found in the file !RiscPkg.Copyright.
 
-include ../Rules.make
+CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
+CXXFLAGS = -mthrowback -munixlib -mpoke-function-name -Wall -W -Wno-unused -O2
+
+include fixdeps:Rules/make
 
 OBJ = md5.o \
  auto_dir.o \
