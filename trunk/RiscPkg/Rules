@@ -1,27 +1,26 @@
-VERSION = 0/2/0
+VERSION = 0.2.0
+PACKAGES = \
+ LibPkg-Common_$(VERSION) \
+ LibPkg-Dev_$(VERSION) \
+ LibPkg-Doc_$(VERSION)
 
 pkg:
 	Run !LibPkg.SetPaths
 	make -C !LibPkg all
-	mkdir -p Temp
-	Wipe Temp ~CFR~V
+	rm -rf Temp
 	mkdir -p Temp/RiscPkg
 	mkdir -p Temp/Apps/Library
-	Copy RiscPkg.Copyright Temp.RiscPkg.Copyright ~CFR~V
-	Copy !LibPkg Temp.Apps.Library.!LibPkg ~CFR~V
-	Access Temp.Apps.Library.!LibPkg.* LR/R
-	Access Temp.Apps.Library.!LibPkg.a.* LR/R
-	Access Temp.Apps.Library.!LibPkg.html.* LR/R
-	Access Temp.Apps.Library.!LibPkg.libpkg.h.* LR/R
-	Copy SysVars Temp.SysVars ~CFR~V
-	Copy Sprites Temp.Sprites ~CFR~V
+	cp RiscPkg/Copyright Temp/RiscPkg/
+	cp -R !LibPkg Temp/Apps/Library/
+	chmod -R 444 Temp/Apps
 
-	Dir Temp
-	RiscPkg-GenControl LibPkg-Common < ../RiscPkg/Control > RiscPkg/Control
-	zip -r ^.LibPkg-Common_$(VERSION) * -i@^.RiscPkg.LibPkg-Common/inc
-	RiscPkg-GenControl LibPkg-Dev < ../RiscPkg/Control > RiscPkg/Control
-	zip -r ^.LibPkg-Dev_$(VERSION) * -i@^.RiscPkg.LibPkg-Dev/inc
-	RiscPkg-GenControl LibPkg-Doc < ../RiscPkg/Control > RiscPkg/Control
-	zip -r ^.LibPkg-Doc_$(VERSION) * -i@^.RiscPkg.LibPkg-Doc/inc
-	Dir ^
-	Wipe Temp ~CFR~V
+	cp -R SysVars Temp/SysVars/
+	cp -R Sprites Temp/Sprites/
+	make -C Temp -f ../RiscPkg/Rules $(PACKAGES)
+	rm -rf Temp
+
+.PHONY: $(PACKAGES)
+$(PACKAGES): %:
+	riscpkg-gencontrol $(firstword $(subst _, ,$@)) < ../RiscPkg/Control > RiscPkg/Control
+	rm -f ../RiscPkg/$@
+	zip -r ^.RiscPkg.$(subst .,/,$@) * -i@^.RiscPkg.$(subst .,/,$(firstword $(subst _, ,$@)))/inc
