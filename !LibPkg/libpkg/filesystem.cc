@@ -68,6 +68,11 @@ void force_move(const string& src_pathname,const string& dst_pathname,
 	if (attr&0x08) rtk::os::OS_File4(dst_pathname.c_str(),attr);
 }
 
+void create_directory(const string& pathname)
+{
+	rtk::os::OS_File8(pathname.c_str(),0);
+}
+
 void write_file_info(const string& pathname,unsigned int loadaddr,
 	unsigned int execaddr,unsigned int attr)
 {

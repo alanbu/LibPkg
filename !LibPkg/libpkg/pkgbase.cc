@@ -3,6 +3,7 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
+#include "libpkg/filesystem.h"
 #include "libpkg/control.h"
 #include "libpkg/pkgbase.h"
 
@@ -22,7 +23,10 @@ pkgbase::pkgbase(const string& pathname):
 	_sources("Choices:RiscPkg.Sources"),
 	_paths("Choices:RiscPkg.Paths"),
 	_changed(false)
-{}
+{
+	create_directory(_pathname+string(".Cache"));
+	create_directory(_pathname+string(".Lists"));
+}
 
 pkgbase::~pkgbase()
 {}

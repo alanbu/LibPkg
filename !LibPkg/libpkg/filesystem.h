@@ -42,6 +42,11 @@ void force_delete(const string& pathname);
 void force_move(const string& src_pathname,const string& dst_pathname,
 	bool overwrite=false);
 
+/** Create directory.
+ * @param pathname the required pathname
+ */
+void create_directory(const string& pathname);
+
 /** Write file information.
  * A filetype and timestamp may be given in place of a load address and
  * execution address by encoding them in the normal way.
