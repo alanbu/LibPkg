@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_CONTROL_BINARY
-#define _LIBPKG_CONTROL_BINARY
+#ifndef _LIBPKG_BINARY_CONTROL
+#define _LIBPKG_BINARY_CONTROL
 
 #include "libpkg/control.h"
 
@@ -19,15 +19,15 @@ namespace pkg {
  * The sort order is subject to change without notice.  This should not
  * break anything, because nothing should depend on the sort order.
  */
-class control_binary:
+class binary_control:
 	public control
 {
 public:
 	/** Construct binary control file. */
-	control_binary();
+	binary_control();
 
 	/** Destroy binary control file. */
-	virtual ~control_binary();
+	virtual ~binary_control();
 protected:
 	virtual int priority(const string& value) const;
 };

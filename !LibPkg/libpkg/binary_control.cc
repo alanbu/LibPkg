@@ -3,7 +3,7 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#include "libpkg/control_binary.h"
+#include "libpkg/binary_control.h"
 
 namespace pkg {
 
@@ -31,13 +31,13 @@ static const map<string,int>& init_priorities()
 	return priorities;
 }
 
-control_binary::control_binary()
+binary_control::binary_control()
 {}
 
-control_binary::~control_binary()
+binary_control::~binary_control()
 {}
 
-int control_binary::priority(const string& value) const
+int binary_control::priority(const string& value) const
 {
 	static const map<string,int>& priorities=init_priorities();
 	map<string,int>::const_iterator f=priorities.find(value);
