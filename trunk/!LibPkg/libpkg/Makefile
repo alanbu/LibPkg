@@ -22,7 +22,8 @@ OBJ = auto_dir.o \
  download.o \
  standards_version.o \
  thread.o \
- update.o
+ update.o \
+ unpack.o
 
 all: $(OBJ)
 
