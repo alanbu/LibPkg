@@ -7,7 +7,7 @@
 
 #include "rtk/os/os.h"
 
-#include "auto_dir.h"
+#include "libpkg/auto_dir.h"
 
 namespace pkg {
 

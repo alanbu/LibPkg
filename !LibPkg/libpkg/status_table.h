@@ -9,8 +9,8 @@
 #include <map>
 #include <string>
 
-#include "status.h"
-#include "table.h"
+#include "libpkg/status.h"
+#include "libpkg/table.h"
 
 namespace pkg {
 

@@ -5,9 +5,9 @@
 
 #include <fstream>
 
-#include "filesystem.h"
-#include "status.h"
-#include "status_table.h"
+#include "libpkg/filesystem.h"
+#include "libpkg/status.h"
+#include "libpkg/status_table.h"
 
 namespace pkg {
 

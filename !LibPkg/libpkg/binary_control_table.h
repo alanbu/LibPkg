@@ -9,9 +9,9 @@
 #include <map>
 #include <string>
 
-#include "version.h"
-#include "binary_control.h"
-#include "table.h"
+#include "libpkg/version.h"
+#include "libpkg/binary_control.h"
+#include "libpkg/table.h"
 
 namespace pkg {
 

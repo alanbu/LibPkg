@@ -5,7 +5,7 @@
 
 #include <fstream>
 
-#include "source_table.h"
+#include "libpkg/source_table.h"
 
 namespace pkg {
 

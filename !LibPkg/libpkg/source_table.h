@@ -9,7 +9,7 @@
 #include <list>
 #include <string>
 
-#include "table.h"
+#include "libpkg/table.h"
 
 namespace pkg {
 
