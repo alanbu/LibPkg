@@ -138,7 +138,7 @@ public:
 	/** Set query component.
 	 * This should either be blank (meaning that there is no query
 	 * component) or begin with "?".
-	 * @param authority the required query component
+	 * @param query the required query component
 	 * @return a reference to this
 	 */
 	uri& query(const string& query);
@@ -146,7 +146,7 @@ public:
 	/** Set fragment component.
 	 * This should either be blank (meaning that there is no fragment
 	 * component) or begin with "#".
-	 * @param authority the required fragment component
+	 * @param fragment the required fragment component
 	 * @return a reference to this
 	 */
 	uri& fragment(const string& fragment);
