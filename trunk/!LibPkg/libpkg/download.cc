@@ -38,13 +38,17 @@ static int download_progress(void* dl,double dltotal,double dlnow,
 namespace pkg {
 
 download::download(const string& url,const string& pathname):
+	_state(state_download),
 	_ceasy(curl_easy_init()),
+	_result(CURLE_OK),
+	_error_buffer(new char[CURL_ERROR_SIZE]),
 	_url(url),
 	_out(pathname.c_str()),
-	_done(false),
 	_bytes_done(0),
 	_bytes_total(npos)
 {
+	_error_buffer[0]=0;
+
 	if (!_cmulti) _cmulti=curl_multi_init();
 	++_cmulti_refcount;
 
@@ -55,6 +59,8 @@ download::download(const string& url,const string& pathname):
 	curl_easy_setopt(_ceasy,CURLOPT_PROGRESSFUNCTION,&download_progress);
 	curl_easy_setopt(_ceasy,CURLOPT_PROGRESSDATA,this);
 	curl_easy_setopt(_ceasy,CURLOPT_NOPROGRESS,false);
+	curl_easy_setopt(_ceasy,CURLOPT_FAILONERROR,true);
+	curl_easy_setopt(_ceasy,CURLOPT_ERRORBUFFER,_error_buffer);
 	curl_multi_add_handle(_cmulti,_ceasy);
 }
 
@@ -67,6 +73,7 @@ download::~download()
 		curl_multi_cleanup(_cmulti);
 		_cmulti=0;
 	}
+	delete[] _error_buffer;
 }
 
 size_t download::write_callback(char* buffer,size_t size,size_t nitems)
@@ -79,13 +86,18 @@ int download::progress_callback(double dltotal,double dlnow)
 {
 	_bytes_done=static_cast<unsigned long long>(dlnow);
 	_bytes_total=static_cast<unsigned long long>(dltotal);
-	if ((_bytes_total==0)&&!_done) _bytes_total=npos;
+	if ((_bytes_total==0)&&(_state==state_download)) _bytes_total=npos;
 	return 0;
 }
 
 void download::message_callback(CURLMsg* msg)
 {
-	if (msg->msg==CURLMSG_DONE) _done=true;
+	if (msg->msg==CURLMSG_DONE)
+	{
+		if (msg->data.result==CURLE_OK) _state=state_done;
+		else _state=state_fail;
+		_result=msg->data.result;
+	}
 }
 
 CURLM* download::_cmulti=0;
