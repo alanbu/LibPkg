@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.            
+// Copyright © 2003-2004 Graham Shaw.            
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -41,6 +41,8 @@ public:
 		state_purge,
 		/** The state in which the list of system variables is updated. */
 		state_update_sysvars,
+		/** The state in which the sprite pool is updated. */
+		state_update_sprites,
 		/** The state in which all operations have been successfully
 		 * completed. */
 		state_done,

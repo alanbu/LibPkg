@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.            
+// Copyright © 2003-2004 Graham Shaw.            
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -135,10 +135,20 @@ public:
 	 */
 	string sysvars_pathname();
 
+	/** Get pathname for sprites directory.
+	 * @return the pathname
+	 */
+	string sprites_pathname();
+
 	/** Get pathname for setvars file.
 	 * @return the pathname
 	 */
 	string setvars_pathname(); 
+
+	/** Get pathname for sprites file.
+	 * @return the pathname
+	 */
+	string bootsprites_pathname();
 
 	/** Fix dependencies.
 	 * If a package is in the seed set then its selection state cannot
