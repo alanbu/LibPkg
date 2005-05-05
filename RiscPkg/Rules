@@ -7,6 +7,7 @@ PACKAGES = \
 pkg:
 	Run !LibPkg.SetPaths
 	make -C !LibPkg all
+	echo -n $(VERSION) > SysVars/LibPkg=24Version
 	rm -rf Temp
 	mkdir -p Temp/RiscPkg
 	mkdir -p Temp/Apps/Library
@@ -23,4 +24,4 @@ pkg:
 $(PACKAGES): %:
 	riscpkg-gencontrol $(firstword $(subst _, ,$@)) < ../RiscPkg/Control > RiscPkg/Control
 	rm -f ../RiscPkg/$@
-	zip -r ^.RiscPkg.$(subst .,/,$@) * -i@^.RiscPkg.$(subst .,/,$(firstword $(subst _, ,$@)))/inc
+	zip -r ../RiscPkg/$@ * -i@../RiscPkg/$(firstword $(subst _, ,$@)).inc

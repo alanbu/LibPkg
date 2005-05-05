@@ -1,9 +1,18 @@
 | This file is part of LibPkg.
-| Copyright © 2003 Graham Shaw.            
+| Copyright © 2003-2005 Graham Shaw.            
 | Distribution and use are subject to the GNU Lesser General Public License,
 | a copy of which may be found in the file !LibPkg.Copyright.
 
 If "<LibPkg$Dir>"="" Then Set LibPkg$Dir <Obey$Dir>
-If "<LibPkg$Path>"="" Then Set LibPkg$Path <Obey$Dir>.
-IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
-IconSprites <LibPkg$Dir>.!Sprites
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Path>"="" Then Set LibPkg$Path <LibPkg$Dir>.
+Unset LibPkg$Temp
+IfThere <LibPkg$Dir>.README Then Set LibPkg$Temp <LibPkg$Dir>.README
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Temp <LibPkg$Dir>.html.index/html
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Help>"="" Then Set LibPkg$Help <LibPkg$Temp>
+Unset LibPkg$Temp
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Version>"="" Then Set LibPkg$Version 0.2.1
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Web>"="" Then Set LibPkg$Web http://www.riscpkg.org/
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Title>"="" Then Set LibPkg$Title LibPkg
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Publisher>"="" Then Set LibPkg$Publisher The RISC OS Packaging Project
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Description>"="" Then Set LibPkg$Description A package management library for RISC OS
+If "<LibPkg$Dir>"="<Obey$Dir>" Then IconSprites <LibPkg$Dir>.!Sprites

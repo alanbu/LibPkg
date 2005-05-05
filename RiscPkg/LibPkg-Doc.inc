@@ -1,3 +1,3 @@
-RiscPkg.*
-SysVars.LibPkg=24Help
-Apps.Library.!LibPkg.html.*
+RiscPkg/*
+SysVars/LibPkg=24Help
+Apps/Library/!LibPkg/html/*
