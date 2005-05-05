@@ -1,9 +1,18 @@
 | This file is part of LibPkg.
-| Copyright © 2003 Graham Shaw.            
+| Copyright © 2003-2005 Graham Shaw.            
 | Distribution and use are subject to the GNU General Public License,
 | a copy of which may be found in the file !LibPkg.Copyright.
 
 Set LibPkg$Dir <Obey$Dir>
 Set LibPkg$Path <Obey$Dir>.
-IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
+Unset LibPkg$Temp
+IfThere <LibPkg$Dir>.README Then Set LibPkg$Temp <LibPkg$Dir>.README
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Temp <LibPkg$Dir>.html.index/html
+Set LibPkg$Help <LibPkg$Temp>
+Unset LibPkg$Temp
+Set LibPkg$Version 0.2.1
+Set LibPkg$Web http://www.riscpkg.org/
+Set LibPkg$Title LibPkg
+Set LibPkg$Publisher The RISC OS Packaging Project
+Set LibPkg$Description A package management library for RISC OS
 IconSprites <LibPkg$Dir>.!Sprites
