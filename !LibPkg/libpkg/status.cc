@@ -132,7 +132,6 @@ std::ostream& operator<<(std::ostream& out,
 			out << (*i).first;
 		}
 	}
-	out << std::endl;
 	return out;
 }
 
