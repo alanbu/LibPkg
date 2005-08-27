@@ -11,10 +11,10 @@
 
 namespace pkg {
 
-static vector<string> state_to_string;
-static vector<string> flag_to_string;
-static map<string,status::state_type> string_to_state;
-static map<string,status::flag_type> string_to_flag;
+static std::vector<string> state_to_string;
+static std::vector<string> flag_to_string;
+static std::map<string,status::state_type> string_to_state;
+static std::map<string,status::flag_type> string_to_flag;
 
 static void init_state_string(status::state_type state,const string& s)
 {
@@ -88,16 +88,8 @@ void status::version(const string& version)
 }
 
 status::parse_error::parse_error(const string& message):
-	_message(message)
+	runtime_error(message)
 {}
-
-status::parse_error::~parse_error()
-{}
-
-const char* status::parse_error::what() const
-{
-	return _message.c_str();
-}
 
 bool operator==(const status& lhs,const status& rhs)
 {
@@ -113,7 +105,8 @@ bool operator!=(const status& lhs,const status& rhs)
 		(lhs.version()!=rhs.version());
 }
 
-ostream& operator<<(ostream& out,const pair<string,status>& pkgstat)
+std::ostream& operator<<(std::ostream& out,
+	const std::pair<string,status>& pkgstat)
 {
 	// Initialise state_to_string and flag_to_string.
 	init_static_data();
@@ -129,7 +122,7 @@ ostream& operator<<(ostream& out,const pair<string,status>& pkgstat)
 
 	// Write flags.
 	bool firstflag=true;
-	for (map<string,status::flag_type>::const_iterator
+	for (std::map<string,status::flag_type>::const_iterator
 		i=string_to_flag.begin();i!=string_to_flag.end();++i)
 	{
 		if (pkgstat.second.flag((*i).second))
@@ -139,11 +132,11 @@ ostream& operator<<(ostream& out,const pair<string,status>& pkgstat)
 			out << (*i).first;
 		}
 	}
-	cout << endl;
+	out << std::endl;
 	return out;
 }
 
-istream& operator>>(istream& in,pair<string,status>& pkgstat)
+std::istream& operator>>(std::istream& in,std::pair<string,status>& pkgstat)
 {
 	// Initialise string_to_state and string_to_flag.
 	init_static_data();
@@ -153,7 +146,7 @@ istream& operator>>(istream& in,pair<string,status>& pkgstat)
 	getline(in,line);
 
 	// Split line into tab-separated fields.
-	vector<string> fields;
+	std::vector<string> fields;
 	string::const_iterator first=line.begin();
 	string::const_iterator last=line.end();
 	string::const_iterator p=first;
@@ -180,7 +173,7 @@ istream& operator>>(istream& in,pair<string,status>& pkgstat)
 	pkgstat.second.version(fields[1]);
 
 	// Parse installation state.
-	map<string,status::state_type>::const_iterator f=
+	std::map<string,status::state_type>::const_iterator f=
 		string_to_state.find(fields[2]);
 	if (f==string_to_state.end())
 		throw status::parse_error("unrecognised installation state");
@@ -198,7 +191,7 @@ istream& operator>>(istream& in,pair<string,status>& pkgstat)
 		{
 			string::const_iterator q=p;
 			while ((p!=last)&&(*p!=',')) ++p;
-			map<string,status::flag_type>::const_iterator f=
+			std::map<string,status::flag_type>::const_iterator f=
 				string_to_flag.find(string(q,p));
 			if (f==string_to_flag.end())
 				throw status::parse_error("unrecognised status flag");

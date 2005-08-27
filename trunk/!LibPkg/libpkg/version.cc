@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -310,15 +310,7 @@ bool operator>(const version& lhs,const version& rhs)
 }
 
 version::parse_error::parse_error(const char* message):
-	_message(message)
+	std::runtime_error(message)
 {}
-
-version::parse_error::~parse_error()
-{}
-
-const char* version::parse_error::what() const
-{
-	return _message;
-}
 
 }; /* namespace pkg */

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include <stdexcept>
 
 namespace pkg {
+
+using std::string;
 
 /** An interface class to represent a sprite file. */
 class sprite_file
@@ -39,7 +41,7 @@ private:
 	};
 
 	/** The map type. */
-	typedef map<string,sprite_info,cmp_nocase> map_type;
+	typedef std::map<string,sprite_info,cmp_nocase> map_type;
 
 	/** The constant iterator type. */
 	typedef map_type::const_iterator const_iterator;
@@ -48,7 +50,7 @@ private:
 	string _pathname;
 
 	/** The stream used to access the underlying sprite file. */
-	mutable fstream _sfs;
+	mutable std::fstream _sfs;
 
 	/** A map from sprite name to sprite information record. */
 	map_type _directory;
@@ -121,7 +123,7 @@ public:
 	/** Construct sprite information record from stream.
 	 * @param in the input stream
 	 */
-	sprite_info(istream& in);
+	sprite_info(std::istream& in);
 
 	/** Destroy sprite information record. */
 	~sprite_info();
@@ -147,63 +149,45 @@ public:
 
 /** An exception class for reporting not-found errors. */
 class sprite_file::not_found:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the not-found error. */
-	string _message;
 public:
 	/** Construct not-found error.
 	 * @param name the sprite name that was not found
 	 */
 	not_found(const string& name);
 
-	/** Destroy not-found error. */
-	virtual ~not_found();
-
-	/** Get message.
+	/** Make error message.
+	 * @param name the sprite name that was not found
 	 * @return a message which describes the not-found error.
 	 */
-	virtual const char* what() const;
+	static string make_message(const string& name);
 };
 
 /** An exception class for reporting already-exists errors. */
 class sprite_file::already_exists:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the already-exists error. */
-	string _message;
 public:
 	/** Construct already-exists error.
 	 * @param name the sprite name that already exists
 	 */
 	already_exists(const string& name);
 
-	/** Destroy already-exists error. */
-	virtual ~already_exists();
-
-	/** Get message.
-	 * @return a message which describes the already-exists error.
+	/** Make error message.
+	 * @param name the sprite name that already exists
+	 * @return a message which describes the not-found error.
 	 */
-	virtual const char* what() const;
+	static string make_message(const string& name);
 };
 
 /** An exception class for reporting corrupt-sprite-file errors. */
 class sprite_file::corrupt:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct corrupt-sprite-file error. */
 	corrupt();
-
-	/** Destroy corrupt-sprite-file error. */
-	virtual ~corrupt();
-
-	/** Get message.
-	 * @return a message which describes the corrupt-sprite-file error.
-	 */
-	virtual const char* what() const;
 };
 
 }; /* namespace pkg */

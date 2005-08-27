@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -15,6 +15,8 @@
 #include "libpkg/unpack.h"
 
 namespace {
+
+using std::string;
 
 /** The source pathname of the package control file. */
 const string ctrl_src_pathname("RiscPkg.Control");
@@ -114,76 +116,44 @@ namespace pkg {
 /** An exception class for reporting that one or more packages cannot
  * be processed. */
 class unpack::cannot_process:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct cannot-process error. */
 	cannot_process();
-
-	/** Destroy cannot-process error. */
-	virtual ~cannot_process();
-
-	/** Get message.
-	 * @return a message which describes the error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting that one or more files conflict
  * with those already on the system. */
 class unpack::file_conflict:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct file-conflict error. */
 	file_conflict();
-
-	/** Destroy file-conflict error. */
-	virtual ~file_conflict();
-
-	/** Get message.
-	 * @return a message which describes the error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting that a file information record could
  * not be found. */
 class unpack::file_info_not_found:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct file-info-not-found error. */
 	file_info_not_found();
-
-	/** Destroy file-info-not-found error. */
-	virtual ~file_info_not_found();
-
-	/** Get message.
-	 * @return a message which describes the error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting that a RISC OS file information
  * record could not be found. */
 class unpack::riscos_info_not_found:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct RISC OS file-info-not-found error. */
 	riscos_info_not_found();
-
-	/** Destroy RISC OS file-info-not-found error. */
-	virtual ~riscos_info_not_found();
-
-	/** Get message.
-	 * @return a message which describes the error.
-	 */
-	virtual const char* what() const;
 };
 
-unpack::unpack(pkgbase& pb,const set<string>& packages):
+unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 	_pb(pb),
 	_state(state_pre_unpack),
 	_zf(0),
@@ -197,7 +167,7 @@ unpack::unpack(pkgbase& pb,const set<string>& packages):
 {
 	// For each package to be processed, determine whether it should
 	// be unpacked and/or removed.
-	for (set<string>::const_iterator i=packages.begin();
+	for (std::set<string>::const_iterator i=packages.begin();
 		i!=packages.end();++i)
 	{
 		string pkgname=*i;
@@ -219,7 +189,7 @@ void unpack::poll()
 	{
 		_poll();
 	}
-	catch (exception& ex)
+	catch (std::exception& ex)
 	{
 		_message=ex.what();
 		_pb.curstat().rollback();
@@ -286,7 +256,7 @@ void unpack::_poll()
 			_zf=new zipfile(pathname);
 
 			// Build manifest from zip file (excluding package control file).
-			set<string> mf;
+			std::set<string> mf;
 			build_manifest(mf,*_zf,&_bytes_total_unpack);
 			mf.erase(ctrl_src_pathname);
 
@@ -328,13 +298,13 @@ void unpack::_poll()
 				_packages_cannot_process.insert(_pkgname);
 
 			// Read manifest from package info directory.
-			set<string> mf;
+			std::set<string> mf;
 			read_manifest(mf,_pkgname);
 
 			// Add manifest to list of files to remove, provided that
 			// the files in question do currently exist.
 			// Remove manifest from list of files that conflict.
-			for (set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
+			for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
 			{
 				string src_pathname=*i;
 				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
@@ -403,7 +373,7 @@ void unpack::_poll()
 			replace_file(ctrl_dst_pathname,overwrite);
 
 			// Build manifest from zip file (excluding package control file).
-			set<string> mf;
+			std::set<string> mf;
 			build_manifest(mf,*_zf);
 			mf.erase(ctrl_src_pathname);
 
@@ -697,13 +667,13 @@ void unpack::_poll()
 	}
 }
 
-void unpack::read_manifest(set<string>& mf,const string& pkgname)
+void unpack::read_manifest(std::set<string>& mf,const string& pkgname)
 {
 	string prefix=_pb.info_pathname(pkgname);
 	string dst_pathname=prefix+string(".")+mf_dst_filename;
 	string bak_pathname=prefix+string(".")+mf_bak_filename;
 
-	ifstream dst_in(dst_pathname.c_str());
+	std::ifstream dst_in(dst_pathname.c_str());
 	dst_in.peek();
 	while (dst_in&&!dst_in.eof())
 	{
@@ -713,7 +683,7 @@ void unpack::read_manifest(set<string>& mf,const string& pkgname)
 		dst_in.peek();
 	}
 
-	ifstream bak_in(bak_pathname.c_str());
+	std::ifstream bak_in(bak_pathname.c_str());
 	bak_in.peek();
 	while (bak_in&&!bak_in.eof())
 	{
@@ -724,7 +694,7 @@ void unpack::read_manifest(set<string>& mf,const string& pkgname)
 	}
 }
 
-void unpack::build_manifest(set<string>& mf,zipfile& zf,size_type* usize)
+void unpack::build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize)
 {
 	for (unsigned int i=0;i!=zf.size();++i)
 	{
@@ -737,14 +707,14 @@ void unpack::build_manifest(set<string>& mf,zipfile& zf,size_type* usize)
 	}
 }
 
-void unpack::prepare_manifest(set<string>& mf,const string& pkgname)
+void unpack::prepare_manifest(std::set<string>& mf,const string& pkgname)
 {
 	string prefix=_pb.info_pathname(pkgname);
 	string tmp_pathname=prefix+string(".")+mf_tmp_filename;
 	_ad(tmp_pathname);
-	ofstream out(tmp_pathname.c_str());
-	for (set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
-		out << *i << endl;
+	std::ofstream out(tmp_pathname.c_str());
+	for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
+		out << *i << std::endl;
 }
 
 void unpack::activate_manifest(const string& pkgname)
@@ -926,48 +896,20 @@ void unpack::unwind_unpack_file(const string& dst_pathname)
 	}
 }
 
-unpack::cannot_process::cannot_process()
+unpack::cannot_process::cannot_process():
+	runtime_error("cannot process package(s)")
 {}
 
-unpack::cannot_process::~cannot_process()
+unpack::file_conflict::file_conflict():
+	runtime_error("conflict with existing file(s)")
 {}
 
-const char* unpack::cannot_process::what() const
-{
-	return "cannot process package(s)";
-}
-
-unpack::file_conflict::file_conflict()
+unpack::file_info_not_found::file_info_not_found():
+	runtime_error("file information record not found")
 {}
 
-unpack::file_conflict::~file_conflict()
+unpack::riscos_info_not_found::riscos_info_not_found():
+	runtime_error("RISC OS file information record not found")
 {}
-
-const char* unpack::file_conflict::what() const
-{
-	return "conflict with existing file(s)";
-}
-
-unpack::file_info_not_found::file_info_not_found()
-{}
-
-unpack::file_info_not_found::~file_info_not_found()
-{}
-
-const char* unpack::file_info_not_found::what() const
-{
-	return "file information record not found";
-}
-
-unpack::riscos_info_not_found::riscos_info_not_found()
-{}
-
-unpack::riscos_info_not_found::~riscos_info_not_found()
-{}
-
-const char* unpack::riscos_info_not_found::what() const
-{
-	return "RISC OS file information record not found";
-}
 
 }; /* namespace pkg */

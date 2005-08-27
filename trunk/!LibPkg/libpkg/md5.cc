@@ -1,9 +1,10 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <algorithm>
+#include <iostream>
 
 #include "libpkg/md5.h"
 
@@ -128,7 +129,7 @@ md5::md5():
 
 	// Initialise buffer.
 	// (This is necessary in case a uint32 is longer than 32 bits.)
-	fill(buffer,buffer+buffer_size,0);
+	std::fill(buffer,buffer+buffer_size,0);
 }
 
 void md5::process_buffer()
@@ -234,7 +235,7 @@ void md5::operator()(const void* data,size_t length)
 	}
 }
 
-void md5::operator()(istream& in)
+void md5::operator()(std::istream& in)
 {
 	// Read data from stream in blocks of 4096 bytes.
 	char data[4096];

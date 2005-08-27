@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -13,6 +13,8 @@
 #include <stdexcept>
 
 namespace pkg {
+
+using std::string;
 
 /** An interface class to represent a zip file. */
 class zipfile
@@ -36,12 +38,12 @@ private:
 	string _pathname;
 
 	/** The stream used to access the underlying zip file. */
-	mutable fstream _zfs;
+	mutable std::fstream _zfs;
 
 	/** A vector of file information records, in the order they appear
 	 * in the underlying zip file.
 	 */
-	vector<file_info*> _directory;
+	std::vector<file_info*> _directory;
 public:
 	/** Construct zip file object.
 	 * @param pathname the pathname of the zip file.
@@ -124,7 +126,7 @@ private:
 	string _pathname;
 
 	/** A map of extra information records, indexed by tag. */
-	map<uint16,extra_info*> _extra;
+	std::map<uint16,extra_info*> _extra;
 public:
 	/** Construct file information record. */
 	file_info();
@@ -132,7 +134,7 @@ public:
 	/** Construct file information record from stream.
 	 * @param in the input stream
 	 */
-	file_info(istream& in);
+	file_info(std::istream& in);
 
 	/** Copy file information record.
 	 * This method is not currently implemented.
@@ -194,13 +196,13 @@ private:
 	/** Read local file header from stream.
 	 * @param in the input stream
 	 */
-	void read(istream& in);
+	void read(std::istream& in);
 
 	/** Read extra information record from stream.
 	 * @param in the input stream
 	 * @param length the record length
 	 */
-	void read_extra(istream& in,int length);
+	void read_extra(std::istream& in,int length);
 };
 
 /** A base class to represent an extra information record from a zip file. */
@@ -237,7 +239,7 @@ public:
 	/** Construct RISC OS extra information record from stream.
 	 * @param in the input stream
 	 */
-	riscos_info(istream& in);
+	riscos_info(std::istream& in);
 
 	/** Destroy RISC OS extra information record. */
 	virtual ~riscos_info();
@@ -270,7 +272,7 @@ private:
 	/** Read RISC OS extra information record from stream.
 	 * @param in the input stream
 	 */
-	void read(istream& in);
+	void read(std::istream& in);
 public:
 	/** Get tag.
 	 * The tag is used to identify the type of an extra information record.
@@ -291,74 +293,48 @@ extra_type* zipfile::file_info::create_extra()
 template<class extra_type>
 const extra_type* zipfile::file_info::find_extra() const
 {
-	map<uint16,extra_info*>::const_iterator f=
+	std::map<uint16,extra_info*>::const_iterator f=
 		_extra.find(extra_type::tag());
 	return (f!=_extra.end())?dynamic_cast<const extra_type*>(f->second):0;
 }
 
 /** An exception class for reporting not found errors. */
 class zipfile::not_found:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the not found error. */
-	string _message;
 public:
 	/** Construct not found error.
 	 * @param pathname the pathname that was not found
 	 */
 	not_found(const string& pathname);
-
-	/** Destroy not found error. */
-	virtual ~not_found();
-
-	/** Get message.
-	 * @return a message which describes the not found
-	 *  error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting unsupported compression method errors. */
 class zipfile::unsupported_compression_method:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct unsupported compression method error.
 	 * @param method the compression method that is unsupported
 	 */
 	unsupported_compression_method(unsigned int method);
-
-	/** Destroy unsupported compression method error. */
-	virtual ~unsupported_compression_method();
-
-	/** Get message.
-	 * @return a message which describes the unsupported compression method
-	 *  error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting errors in zlib. */
 class zipfile::zlib_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** The zlib error code. */
-	int _code;
 public:
 	/** Construct zlib error.
 	 * @param code the zlib error code
 	 */
 	zlib_error(int code);
 
-	/** Destroy zlib error. */
-	virtual ~zlib_error();
-
-	/** Get message.
-	 * @return a message which describes the zlib error.
+	/** Make error message.
+	 * @param code the zlib error code
+	 * @return the error message
 	 */
-	virtual const char* what() const;
+	static const char* make_message(int code);
 };
 
 }; /* namespace pkg */

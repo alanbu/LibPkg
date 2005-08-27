@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -9,6 +9,8 @@
 #include <string>
 
 namespace pkg {
+
+using std::string;
 
 /** A class to represent a uniform resource identifier.
  * This is a suitable representation for accessing the individual

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -29,7 +29,7 @@ void source_table::update()
 
 bool source_table::read(const string& pathname)
 {
-	ifstream in(pathname.c_str());
+	std::ifstream in(pathname.c_str());
 	bool found=in;
 	while (in&&!in.eof())
 	{

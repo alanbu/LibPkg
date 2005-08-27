@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include "curl/curl.h"
 
 namespace pkg {
+
+using std::string;
 
 /** A class for downloading a file from a URL. */
 class download
@@ -51,7 +53,7 @@ private:
 	string _url;
 
 	/** The stream to which the file is to be written. */
-	ofstream _out;
+	std::ofstream _out;
 
 	/** The number of bytes downloaded. */
 	size_type _bytes_done;

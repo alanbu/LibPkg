@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -9,6 +9,8 @@
 #include <string>
 
 namespace pkg {
+
+using std::string;
 
 /** A class for reading directories. */
 class dirstream

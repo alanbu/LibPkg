@@ -1,10 +1,11 @@
 # This file is part of !RiscPkg.
-# Copyright © 2003-2004 Graham Shaw.            
+# Copyright © 2003-2005 Graham Shaw.            
 # Distribution and use are subject to the GNU General Public License,
 # a copy of which may be found in the file !RiscPkg.Copyright.
 
 CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
-CXXFLAGS = -mthrowback -munixlib -mpoke-function-name -Wall -W -Wno-unused -O2
+CXXFLAGS = -mthrowback -munixlib -mpoke-function-name \
+ -Wall -W -Wno-unused -Wno-uninitialized -O2
 
 include fixdeps:Rules/make
 

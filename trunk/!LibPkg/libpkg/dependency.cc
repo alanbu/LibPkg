@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -204,19 +204,11 @@ void dependency::parse(string::const_iterator first,
 }
 
 dependency::parse_error::parse_error(const char* message):
-	_message(message)
+	std::runtime_error(message)
 {}
-
-dependency::parse_error::~parse_error()
-{}
-
-const char* dependency::parse_error::what() const
-{
-	return _message;
-}
 
 void parse_dependency_alt_list(string::const_iterator first,
-	string::const_iterator last,vector<dependency>* out)
+	string::const_iterator last,std::vector<dependency>* out)
 {
 	// Initialise iterator.
 	string::const_iterator p=first;
@@ -256,7 +248,7 @@ void parse_dependency_alt_list(string::const_iterator first,
 }
 
 void parse_dependency_list(string::const_iterator first,
-	string::const_iterator last,vector<vector<dependency> >* out)
+	string::const_iterator last,std::vector<std::vector<dependency> >* out)
 {
 	// Initialise iterator.
 	string::const_iterator p=first;
@@ -281,7 +273,7 @@ void parse_dependency_list(string::const_iterator first,
 
 		// Parse sub-list.
 		if (r==q) throw dependency::parse_error("dependency expected");
-		vector<dependency> out2;
+		std::vector<dependency> out2;
 		parse_dependency_alt_list(q,r,&out2);
 		if (out) out->push_back(out2);
 

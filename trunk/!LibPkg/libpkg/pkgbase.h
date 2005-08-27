@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2004 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -15,6 +15,8 @@
 #include "libpkg/path_table.h"
 
 namespace pkg {
+
+using std::string;
 
 /** A class for representing the collection of package database tables. */
 class pkgbase
@@ -169,7 +171,7 @@ public:
 	 * @param seed the seed set
 	 * @return true if all dependencies were fixed, otherwise false
 	 */
-	bool fix_dependencies(const set<string>& seed);
+	bool fix_dependencies(const std::set<string>& seed);
 
 	/** Remove redundant auto-installed packages.
 	 */
@@ -209,7 +211,7 @@ private:
 	 * @return the control record of a package that would satisfy one
 	 *  of the listed dependencies, or 0 if none found
 	 */
-	const pkg::control* pkgbase::resolve(const vector<dependency>& deps,
+	const pkg::control* pkgbase::resolve(const std::vector<dependency>& deps,
 		bool allow_new=true);
 
 	/** Resolve dependency.
@@ -243,25 +245,14 @@ private:
 
 /** An exception class for reporting cache errors. */
 class pkgbase::cache_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the cache error. */
-	string _message;
 public:
 	/** Construct cache error.
 	 * @param message a message which describes the cache error
 	 * @param ctrl the control record for the relevant package
 	 */
 	cache_error(const char* message,const binary_control& ctrl);
-
-	/** Destroy cache error. */
-	virtual ~cache_error();
-
-	/** Get message.
-	 * @return a message which describes the cache error.
-	 */
-	virtual const char* what() const;
 };
 
 }; /* namespace pkg */

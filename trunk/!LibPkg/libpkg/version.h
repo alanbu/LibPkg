@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -11,6 +11,8 @@
 #include <string>
 
 namespace pkg {
+
+using std::string;
 
 /** A class to represent a package version.
  * Syntax and semantics are as specified in version 3.5.6 of the
@@ -146,24 +148,13 @@ bool operator>(const version& lhs,const version& rhs);
 
 /** An exception class for reporting parse errors. */
 class version::parse_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the parse error. */
-	const char* _message;
 public:
 	/** Construct parse error.
 	 * @param message a message which describes the parse error.
 	 */
 	parse_error(const char* message);
-
-	/** Destroy parse error. */
-	virtual ~parse_error();
-
-	/** Get message.
-	 * @return a message which describes the parse error.
-	 */
-	virtual const char* what() const;
 };
 
 }; /* namespace pkg */

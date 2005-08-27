@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -13,6 +13,8 @@
 #include "libpkg/thread.h"
 
 namespace pkg {
+
+using std::string;
 
 class pkgbase;
 class zipfile;
@@ -116,68 +118,68 @@ private:
 
 	/** The set of packages that are to be unpacked.
 	 * Packages in this set have not yet changed state. */
-	set<string> _packages_to_unpack;
+	std::set<string> _packages_to_unpack;
 
 	/** The set of packages that have been pre-unpacked.
 	 * Packages in this set are in state_half_unpacked. */
-	set<string> _packages_pre_unpacked;
+	std::set<string> _packages_pre_unpacked;
 
 	/** The set of packages that are being unpacked.
 	 * Packages in this set are in state_half_unpacked. */
-	set<string> _packages_being_unpacked;
+	std::set<string> _packages_being_unpacked;
 
 	/** The set of packages that have been fully unpacked.
 	 * Packages in this set are in state_unpacked. */
-	set<string> _packages_unpacked;
+	std::set<string> _packages_unpacked;
 
 	/** The set of packages that are to be removed.
 	 * Packages in this set have not yet changed state. */
-	set<string> _packages_to_remove;
+	std::set<string> _packages_to_remove;
 
 	/** The set of packages that are being removed.
 	 * Packages in this set are in state_half_unpacked. */
-	set<string> _packages_being_removed;
+	std::set<string> _packages_being_removed;
 
 	/** The set of packages that have been fully removed (or upgraded).
 	 * Packages in this set are in state_removed or state_unpacked. */
-	set<string> _packages_removed;
+	std::set<string> _packages_removed;
 
 	/** The set of source pathnames (for the current package) that have
 	 * not yet been unpacked. */
-	set<string> _files_to_unpack;
+	std::set<string> _files_to_unpack;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * been unpacked to their temporary locations. */
-	set<string> _files_being_unpacked;
+	std::set<string> _files_being_unpacked;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * been unpacked to their final locations. */
-	set<string> _files_unpacked;
+	std::set<string> _files_unpacked;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * not yet been removed. */
-	set<string> _files_to_remove;
+	std::set<string> _files_to_remove;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * been backed up prior to removal, but not yet fully removed. */
-	set<string> _files_being_removed;
+	std::set<string> _files_being_removed;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * been fully removed. */
-	set<string> _files_removed;
+	std::set<string> _files_removed;
 
 	/** The set of packages that cannot be processed. */
-	set<string> _packages_cannot_process;
+	std::set<string> _packages_cannot_process;
 
 	/** The set of destination pathnames (for all packages) that conflict
 	 * with files already on the system. */
-	set<string> _files_that_conflict;
+	std::set<string> _files_that_conflict;
 public:
 	/** Construct unpack object.
 	 * @param pb the package database
 	 * @param packages the set of packages to process
 	 */
-	unpack(pkgbase& pb,const set<string>& packages);
+	unpack(pkgbase& pb,const std::set<string>& packages);
 
 	/** Destroy unpack object. */
 	virtual ~unpack();
@@ -226,7 +228,7 @@ public:
 	 * upgraded.
 	 * @return the set of packages that cannot be processed
 	 */
-	const set<string>& packages_cannot_process() const
+	const std::set<string>& packages_cannot_process() const
 		{ return _packages_cannot_process; }
 
 	/** Get the set of destination pathnames that conflict with files
@@ -235,7 +237,7 @@ public:
 	 * that must be deleted before the given set of packages can be
 	 * processed.
 	 */
-	const set<string>& files_that_conflict() const
+	const std::set<string>& files_that_conflict() const
 		{ return _files_that_conflict; }
 protected:
 	void poll();
@@ -253,7 +255,7 @@ private:
 	 * @param mf a set to hold the result
 	 * @param pkgname the package name
 	 */
-	void read_manifest(set<string>& mf,const string& pkgname);
+	void read_manifest(std::set<string>& mf,const string& pkgname);
 
 	/** Build manifest from package file.
 	 * The set passed into this function is not cleared before use,
@@ -265,7 +267,7 @@ private:
 	 * @param usize a byte count to which the rounded uncompressed size
 	 *  of each file is added, or 0 if none
 	 */
-	void build_manifest(set<string>& mf,zipfile& zf,size_type* usize=0);
+	void build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize=0);
 
 	/** Prepare manifest for activation.
 	 * The manifest is written to a file called "Files++" in the info
@@ -273,7 +275,7 @@ private:
 	 * @param mf a set holding the manifest
 	 * @param pkgname the package name
 	 */
-	void prepare_manifest(set<string>& mf,const string& pkgname);
+	void prepare_manifest(std::set<string>& mf,const string& pkgname);
 
 	/** Activate manifest.
 	 * In the info directory, "Files" is backed up to "Files--" then

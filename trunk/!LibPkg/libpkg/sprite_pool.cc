@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -75,7 +75,7 @@ void build_sprite_file(pkgbase& pb,const char** suffix_list)
 				// If file is a text file then use file content as pathname.
 				string ref_pathname=
 					pb.sprites_pathname()+string(".")+obj.name;
-				ifstream in(ref_pathname.c_str());
+				std::ifstream in(ref_pathname.c_str());
 				string base_pathname;
 				getline(in,base_pathname);
 				base_pathname=resolve_pathrefs(pb.paths(),base_pathname);

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include "libpkg/table.h"
 
 namespace pkg {
+
+using std::string;
 
 /** A class for holding a list of source URLs.
  * The underlying sources file consists of a list of source URLs,
@@ -26,7 +28,7 @@ class source_table:
 {
 public:
 	typedef string value_type;
-	typedef list<value_type>::const_iterator const_iterator;
+	typedef std::list<value_type>::const_iterator const_iterator;
 private:
 	/** The pathname of the default soruces file. */
 	string _dpathname;
@@ -35,7 +37,7 @@ private:
 	string _pathname;
 
 	/** A list of sources. */
-	list<string> _data;
+	std::list<string> _data;
 public:
 	/** Construct source table.
 	 * @param dpathname the pathname of the default sources file

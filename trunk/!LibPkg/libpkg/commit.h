@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2004 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -57,25 +57,25 @@ private:
 	state_type _state;
 
 	/** Packages to be processed. */
-	set<string> _packages_to_process;
+	std::set<string> _packages_to_process;
 
 	/** Packages for which a download is required. */
-	set<string> _packages_to_download;
+	std::set<string> _packages_to_download;
 
 	/** Packages that have not been processed by state_unpack.
 	 * Note that packages are only unpacked/removed if their current and
 	 * selected status indicates that they need to be. */
-	set<string> _packages_to_unpack;
+	std::set<string> _packages_to_unpack;
 
 	/** Packages that have not been processed by state_configure.
 	 * Note that packages are only configured if their current and
 	 * selected status indicates that they can be and need to be. */
-	set<string> _packages_to_configure;
+	std::set<string> _packages_to_configure;
 
 	/** Packages that have not been processed by state_purge.
 	 * Note that packages are only purged if their current and
 	 * selected status indicates that they can be and need to be. */
-	set<string> _packages_to_purge;
+	std::set<string> _packages_to_purge;
 
 	/** The name of the package currently being processed. */
 	string _pkgname;
@@ -105,17 +105,17 @@ private:
 	struct progress;
 
 	/** A map giving the current download progress for each package. */
-	map<string,progress> _progress_table;
+	std::map<string,progress> _progress_table;
 
 	/** The set of destination pathnames that conflict with files
 	 * already on the system. */
-	set<string> _files_that_conflict;
+	std::set<string> _files_that_conflict;
 public:
 	/** Construct commit operation.
 	 * @param pb the package database
 	 * @param packages the set of packages to process
 	 */
-	commit(pkgbase& pb,const set<string>& packages);
+	commit(pkgbase& pb,const std::set<string>& packages);
 
 	/** Destroy commit operation. */
 	virtual ~commit();
@@ -164,7 +164,7 @@ public:
 	 * that must be deleted before the given set of packages can be
 	 * processed.
 	 */
-	const set<string>& files_that_conflict() const
+	const std::set<string>& files_that_conflict() const
 		{ return _files_that_conflict; }
 protected:
 	virtual void poll();

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -14,6 +14,8 @@
 
 namespace pkg {
 
+using std::string;
+
 /** A class for mapping source paths to destination paths.
  * The source path is with respect to the root of the zip file
  * (but using '.' as the path separator, not '/').
@@ -25,7 +27,7 @@ class path_table:
 public:
 	typedef string key_type;
 	typedef string mapped_type;
-	typedef map<key_type,mapped_type>::const_iterator const_iterator;
+	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
 	class parse_error;
 	class invalid_source_path;
 private:
@@ -36,7 +38,7 @@ private:
 	string _pathname;
 
 	/** A map from source pathname to destination pathname. */
-	map<key_type,mapped_type> _data;
+	std::map<key_type,mapped_type> _data;
 public:
 	/** Construct path table.
 	 * @param dpathname the pathname of the default paths file
@@ -77,41 +79,22 @@ private:
 
 /** An exception class for reporting parse errors. */
 class path_table::parse_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the parse error. */
-	string _message;
 public:
 	/** Construct parse error.
 	 * @param message a message which describes the parse error.
 	 */
 	parse_error(const string& message);
-
-	/** Destroy parse error. */
-	virtual ~parse_error();
-
-	/** Get message.
-	 * @return a message which describes the parse error.
-	 */
-	virtual const char* what() const;
 };
 
 /** An exception class for reporting invalid source paths. */
 class path_table::invalid_source_path:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct invalid source path error. */
 	invalid_source_path();
-
-	/** Destroy invalid source path error. */
-	virtual ~invalid_source_path();
-
-	/** Get message.
-	 * @return a message which describes the invalid source path error.
-	 */
-	virtual const char* what() const;
 };
 
 /** Resolve logical path references.

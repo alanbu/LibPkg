@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -16,6 +16,8 @@
 #include "libpkg/thread.h"
 
 namespace pkg {
+
+using std::string;
 
 class pkgbase;
 class download;
@@ -67,17 +69,17 @@ private:
 	download* _dload;
 
 	/** The set of sources awaiting download. */
-	set<string> _sources_to_download;
+	std::set<string> _sources_to_download;
 
 	/** The set of sources that have been downloaded but not built. */
-	set<string> _sources_to_build;
+	std::set<string> _sources_to_build;
 
 	/** The set of packages (name and version) that have been written
 	 * to the available list. */
-	set<binary_control_table::key_type> _packages_written;
+	std::set<binary_control_table::key_type> _packages_written;
 
 	/** An output stream for writing the available list. */
-	ostream* _out;
+	std::ostream* _out;
 
 	/** The number of bytes downloaded. */
 	size_type _bytes_done;
@@ -92,7 +94,7 @@ private:
 	struct progress;
 
 	/** A map giving the current progress for each source. */
-	map<string,progress> _progress_table;
+	std::map<string,progress> _progress_table;
 public:
 	/** Construct update operation.
 	 * @param pb the package database

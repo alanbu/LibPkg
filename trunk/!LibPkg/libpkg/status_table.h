@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -14,6 +14,8 @@
 
 namespace pkg {
 
+using std::string;
+
 /** A class for mapping package name to package status. */
 class status_table:
 	public table
@@ -21,7 +23,7 @@ class status_table:
 public:
 	typedef string key_type;
 	typedef status mapped_type;
-	typedef map<key_type,mapped_type>::const_iterator const_iterator;
+	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
 	class commit_error;
 private:
 	/** The pathname of the underlying status file,
@@ -29,7 +31,7 @@ private:
 	string _pathname;
 
 	/** A map from package name to package status. */
-	map<key_type,mapped_type> _data;
+	std::map<key_type,mapped_type> _data;
 public:
 	/** Construct status table.
 	 * @param pathname the pathname of the underlying status file
@@ -101,19 +103,11 @@ private:
 
 /** An exception class for reporting failure to commit table. */
 class status_table::commit_error:
-	public runtime_error
+	public std::runtime_error
 {
 public:
 	/** Construct commit error. */
 	commit_error();
-
-	/** Destroy commit error. */
-	virtual ~commit_error();
-
-	/** Get message.
-	 * @return a message which describes the commit error.
-	 */
-	virtual const char* what() const;
 };
 
 }; /* namespace pkg */

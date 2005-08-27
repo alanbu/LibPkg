@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -22,7 +22,7 @@ const binary_control_table::mapped_type&
 	binary_control_table::operator[](const key_type& key) const
 {
 	static mapped_type default_value;
-	map<key_type,mapped_type>::const_iterator f=_data.find(key);
+	std::map<key_type,mapped_type>::const_iterator f=_data.find(key);
 	return (f!=_data.end())?f->second:default_value;
 }
 
@@ -31,7 +31,7 @@ const binary_control_table::mapped_type&
 {
 	static mapped_type default_value;
 	key_type key(pkgname,version());
-	map<key_type,mapped_type>::const_iterator f=_data.lower_bound(key);
+	std::map<key_type,mapped_type>::const_iterator f=_data.lower_bound(key);
 	if (f==_data.end()) return default_value;
 	if (f->first.pkgname!=pkgname) return default_value;
 	const mapped_type* result=&f->second;
@@ -43,7 +43,7 @@ const binary_control_table::mapped_type&
 void binary_control_table::update()
 {
 	_data.clear();
-	ifstream in(_pathname.c_str());
+	std::ifstream in(_pathname.c_str());
 	in.peek();
 	while (in&&!in.eof())
 	{
@@ -52,7 +52,7 @@ void binary_control_table::update()
 		string pkgname=ctrl.pkgname();
 		version pkgvrsn=ctrl.version();
 		key_type key(pkgname,pkgvrsn);
-		map<key_type,mapped_type>::const_iterator f=_data.find(key);
+		std::map<key_type,mapped_type>::const_iterator f=_data.find(key);
 		if (f==_data.end()) _data[key]=ctrl;
 		while (in.peek()=='\n') in.get();
 	}
