@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include <iosfwd>
 
 namespace pkg {
+
+using std::string;
 
 /** A class to represent the current or required status of a package.
  * The status consists of three components:
@@ -165,24 +167,13 @@ public:
 
 /** An exception class for reporting parse errors. */
 class status::parse_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the parse error. */
-	string _message;
 public:
 	/** Construct parse error.
 	 * @param message a message which describes the parse error.
 	 */
 	parse_error(const string& message);
-
-	/** Destroy parse error. */
-	virtual ~parse_error();
-
-	/** Get message.
-	 * @return a message which describes the parse error.
-	 */
-	virtual const char* what() const;
 };
 
 /** Test whether two status records are equal.
@@ -204,14 +195,15 @@ bool operator!=(const status& lhs,const status& rhs);
  * @param pkgstat the package status record
  * @return the output stream
  */
-ostream& operator<<(ostream& out,const pair<string,status>& pkgstat);
+std::ostream& operator<<(std::ostream& out,
+	const std::pair<string,status>& pkgstat);
 
 /** Read package status record from input stream.
  * @param in the input stream
  * @param pkgstat the package status record
  * @return the output stream
  */
-istream& operator>>(istream& in,pair<string,status>& pkgstat);
+std::istream& operator>>(std::istream& in,std::pair<string,status>& pkgstat);
 
 /** Determine whether a package should be unpacked.
  * The result will be true if:

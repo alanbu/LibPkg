@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -32,7 +32,7 @@ void update::poll()
 	{
 		_poll();
 	}
-	catch (exception& ex)
+	catch (std::exception& ex)
 	{
 		_message=ex.what();
 		delete _dload;
@@ -106,7 +106,7 @@ void update::_poll()
 		{
 			// If there are no sources awaiting download then
 			// switch to state_build_sources.
-			_out=new ofstream(_pb.available_pathname().c_str());
+			_out=new std::ofstream(_pb.available_pathname().c_str());
 			_state=state_build_sources;
 		}
 		break;
@@ -116,7 +116,7 @@ void update::_poll()
 			// Select next source.
 			_url=*_sources_to_build.begin();
 			string pathname=_pb.list_pathname(_url);
-			ifstream in(pathname.c_str());
+			std::ifstream in(pathname.c_str());
 
 			while (in&&!in.eof())
 			{
@@ -140,7 +140,7 @@ void update::_poll()
 				if (_packages_written.find(key)==_packages_written.end())
 				{
 					// If not already written then write to available list.
-					if (_packages_written.size()) (*_out) << endl;
+					if (_packages_written.size()) (*_out) << std::endl;
 					(*_out) << ctrl;
 					_packages_written.insert(key);
 				}
@@ -165,7 +165,7 @@ void update::_poll()
 			{
 				string pkgname=i->first;
 				string pathname=_pb.info_pathname(pkgname)+string(".Control");
-				ifstream in(pathname.c_str());
+				std::ifstream in(pathname.c_str());
 				binary_control ctrl;
 				in >> ctrl;
 
@@ -175,7 +175,7 @@ void update::_poll()
 				if (_packages_written.find(key)==_packages_written.end())
 				{
 					// If not already written then write to available list.
-					if (_packages_written.size()) (*_out) << endl;
+					if (_packages_written.size()) (*_out) << std::endl;
 					(*_out) << ctrl;
 					_packages_written.insert(key);
 				}
@@ -212,7 +212,7 @@ void update::update_progress()
 	_bytes_total=0;
 	unsigned int count=0;
 	unsigned int known=0;
-	for (map<string,progress>::const_iterator i=_progress_table.begin();
+	for (std::map<string,progress>::const_iterator i=_progress_table.begin();
 		i!=_progress_table.end();++i)
 	{
 		_bytes_done+=i->second.bytes_done;

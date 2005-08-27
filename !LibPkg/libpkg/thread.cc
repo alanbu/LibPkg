@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,9 +12,9 @@ namespace pkg {
 
 namespace {
 
-list<thread*>& active()
+std::list<thread*>& active()
 {
-	static list<thread*> _active;
+	static std::list<thread*> _active;
 	return _active;
 }
 
@@ -27,7 +27,7 @@ thread::thread()
 
 thread::~thread()
 {
-	list<thread*>::iterator f=find(active().begin(),active().end(),this);
+	std::list<thread*>::iterator f=find(active().begin(),active().end(),this);
 	if (f!=active().end()) active().erase(f);
 }
 
@@ -36,7 +36,7 @@ void thread::poll()
 
 void thread::poll_all()
 {
-	for (list<thread*>::const_iterator i=active().begin();
+	for (std::list<thread*>::const_iterator i=active().begin();
 		i!=active().end();++i)
 	{
 		(*i)->poll();

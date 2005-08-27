@@ -1,7 +1,9 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
+
+#include <iostream>
 
 #include "libpkg/control.h"
 
@@ -134,49 +136,41 @@ bool control::cmp_key::operator()(const key_type& lhs,
 		return lhs.priority()<rhs.priority();
 	string::const_iterator i=lhs.begin();
 	string::const_iterator j=rhs.begin();
-	string::const_iterator e=i+min(lhs.length(),rhs.length());
+	string::const_iterator e=i+std::min(lhs.length(),rhs.length());
 	while (i!=e) if (*i++!=*j++) return *--i<*--j;
 	return lhs.length()<rhs.length();
 }
 
 control::parse_error::parse_error(const char* message):
-	_message(message)
+	runtime_error(message)
 {}
 
-control::parse_error::~parse_error()
-{}
-
-const char* control::parse_error::what() const
-{
-	return _message;
-}
-
-ostream& operator<<(ostream& out,const control& ctrl)
+std::ostream& operator<<(std::ostream& out,const control& ctrl)
 {
 	for (control::const_iterator i=ctrl.begin();i!=ctrl.end();++i)
 	{
 		out << (*i).first << ':';
-		string value((*i).second);
+		std::string value((*i).second);
 		unsigned int i=0;
 		unsigned int f=value.find('\n',i);
-		while (f!=string::npos)
+		while (f!=std::string::npos)
 		{
 			if ((f==i)&&(i!=0))
-				out << " ." << endl;
+				out << " ." << std::endl;
 			else
-				out << ' ' << value.substr(i,f-i) << endl;
+				out << ' ' << value.substr(i,f-i) << std::endl;
 			i=f+1;
 			f=value.find('\n',i);
 		}
 		if ((value.length()==i)&&(i!=0))
-			out << " ." << endl;
+			out << " ." << std::endl;
 		else
-			out << ' ' << value.substr(i) << endl;
+			out << ' ' << value.substr(i) << std::endl;
 	}
 	return out;
 }
 
-istream& operator>>(istream& in,control& ctrl)
+std::istream& operator>>(std::istream& in,control& ctrl)
 {
 	string* field=0;
 	bool done=false;

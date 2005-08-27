@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -7,9 +7,9 @@
 
 namespace pkg {
 
-static const map<string,int>& init_priorities()
+static const std::map<string,int>& init_priorities()
 {
-	static map<string,int> priorities;
+	static std::map<string,int> priorities;
 	int pr=0;
 	priorities["md5sum"]=--pr;
 	priorities["size"]=--pr;
@@ -40,8 +40,8 @@ binary_control::~binary_control()
 
 int binary_control::priority(const string& value) const
 {
-	static const map<string,int>& priorities=init_priorities();
-	map<string,int>::const_iterator f=priorities.find(value);
+	static const std::map<string,int>& priorities=init_priorities();
+	std::map<string,int>::const_iterator f=priorities.find(value);
 	return (f!=priorities.end())?(*f).second:0;
 }
 

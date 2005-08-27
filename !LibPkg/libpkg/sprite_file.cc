@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -17,7 +17,7 @@ typedef sprite_file::uint32 uint32;
  * @param in the input stream
  * @return the integer
  */
-uint32 read_32(istream& in)
+uint32 read_32(std::istream& in)
 {
 	uint32 value=static_cast<uint32>(in.get());
 	value|=static_cast<uint32>(in.get())<<8;
@@ -31,7 +31,7 @@ uint32 read_32(istream& in)
  * @param out the output stream
  * @param value the integer
  */
-void write_32(ostream& out,uint32 value)
+void write_32(std::ostream& out,uint32 value)
 {
 	out.put((value>>0)&0xff);
 	out.put((value>>8)&0xff);
@@ -46,7 +46,7 @@ void write_32(ostream& out,uint32 value)
  * @param size the number of bytes to read
  * @return the string
  */
-string read_string(istream& in,int size)
+string read_string(std::istream& in,int size)
 {
 	string value(size,' ');
 	for (int i=0;i!=size;++i)
@@ -100,7 +100,7 @@ const string& auto_create(const string& pathname)
 {
 	if (!object_type(pathname))
 	{
-		ofstream out(pathname.c_str());
+		std::ofstream out(pathname.c_str());
 		write_32(out,0);
 		write_32(out,0x10);
 		write_32(out,0x10);
@@ -119,14 +119,15 @@ bool sprite_file::cmp_nocase::operator()(const string& lhs,const string& rhs)
 {
 	string::const_iterator i=lhs.begin();
 	string::const_iterator j=rhs.begin();
-	string::const_iterator e=i+min(lhs.length(),rhs.length());
+	string::const_iterator e=i+std::min(lhs.length(),rhs.length());
 	while (i!=e) if (*i++!=*j++) return *--i<*--j;
 	return (lhs.length()<rhs.length());
 }
 
 sprite_file::sprite_file(const string& pathname,bool writable):
 	_pathname(auto_create(pathname)),
-	_sfs(pathname.c_str(),ios::in|((writable)?ios::out:0)|ios::binary)
+	_sfs(pathname.c_str(),std::ios_base::binary|
+		((writable)?std::ios_base::in|std::ios_base::out:std::ios_base::in))
 {
 	// Read sprite control block.
 	_sfs.seekg(0);
@@ -178,7 +179,7 @@ void sprite_file::copy(sprite_file& src,const string& name)
 	uint32 index=0;
 	while (index!=size)
 	{
-		uint32 count=min<uint32>(bsize,size-index);
+		uint32 count=std::min<uint32>(bsize,size-index);
 		src._sfs.read(buf,count);
 		dst._sfs.write(buf,count);
 		index+=count;
@@ -208,7 +209,7 @@ sprite_file::sprite_info::sprite_info():
 	_offset(0)
 {}
 
-sprite_file::sprite_info::sprite_info(istream& in):
+sprite_file::sprite_info::sprite_info(std::istream& in):
 	_offset(in.tellg())
 {
 	_size=read_32(in);
@@ -219,47 +220,36 @@ sprite_file::sprite_info::sprite_info(istream& in):
 sprite_file::sprite_info::~sprite_info()
 {}
 
-sprite_file::not_found::not_found(const string& name)
-{
-	_message.reserve(27+name.length());
-	_message.append("\"");
-	_message.append(name);
-	_message.append("\" not found in sprite file");
-}
-
-sprite_file::not_found::~not_found()
+sprite_file::not_found::not_found(const string& name):
+	std::runtime_error(make_message(name))
 {}
 
-const char* sprite_file::not_found::what() const
+string sprite_file::not_found::make_message(const string& name)
 {
-	return _message.c_str();
+	string message;
+	message.reserve(27+name.length());
+	message.append("\"");
+	message.append(name);
+	message.append("\" not found in sprite file");
+	return message;
 }
 
-sprite_file::already_exists::already_exists(const string& name)
-{
-	_message.reserve(32+name.length());
-	_message.append("\"");
-	_message.append(name);
-	_message.append("\" already exists in sprite file");
-}
-
-sprite_file::already_exists::~already_exists()
+sprite_file::already_exists::already_exists(const string& name):
+	std::runtime_error(make_message(name))
 {}
 
-const char* sprite_file::already_exists::what() const
+string sprite_file::already_exists::make_message(const string& name)
 {
-	return _message.c_str();
+	string message;
+	message.reserve(32+name.length());
+	message.append("\"");
+	message.append(name);
+	message.append("\" already exists in sprite file");
+	return message;
 }
 
-sprite_file::corrupt::corrupt()
+sprite_file::corrupt::corrupt():
+	std::runtime_error("corrupt sprite file")
 {}
-
-sprite_file::corrupt::~corrupt()
-{}
-
-const char* sprite_file::corrupt::what() const
-{
-	return "corrupt sprite file";
-}
 
 }; /* namespace pkg */

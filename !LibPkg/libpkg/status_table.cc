@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -66,11 +66,11 @@ void status_table::commit()
 	
 		// Write new status file.
 		static mapped_type default_value;
-		ofstream out(tmp_pathname.c_str());
+		std::ofstream out(tmp_pathname.c_str());
 		for (const_iterator i=_data.begin();i!=_data.end();++i)
 		{
 			if (i->second!=default_value)
-				out << *i << endl;
+				out << *i << std::endl;
 		}
 		out.close();
 		if (!out) throw commit_error();
@@ -109,12 +109,12 @@ void status_table::rollback()
 
 bool status_table::read(const string& pathname)
 {
-	ifstream in(pathname.c_str());
+	std::ifstream in(pathname.c_str());
 	bool done=in;
 	in.peek();
 	while (in&&!in.eof())
 	{
-		pair<key_type,mapped_type> p;
+		std::pair<key_type,mapped_type> p;
 		in >> p;
 		_data[p.first]=p.second;
 		in.peek();
@@ -122,15 +122,8 @@ bool status_table::read(const string& pathname)
 	return done;
 }
 
-status_table::commit_error::commit_error()
+status_table::commit_error::commit_error():
+	runtime_error("failed to commit status table")
 {}
-
-status_table::commit_error::~commit_error()
-{}
-
-const char* status_table::commit_error::what() const
-{
-	return "failed to commit status table";
-}
 
 }; /* namespace pkg */

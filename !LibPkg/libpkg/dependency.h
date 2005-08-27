@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include "libpkg/version.h"
 
 namespace pkg {
+
+using std::string;
 
 /** A class to represent a package dependency.
  * Syntax and semantics are as specified in version 3.5.6 of the
@@ -123,24 +125,13 @@ private:
 
 /** An exception class for reporting parse errors. */
 class dependency::parse_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the parse error. */
-	const char* _message;
 public:
 	/** Construct parse error.
 	 * @param message a message which describes the parse error.
 	 */
 	parse_error(const char* message);
-
-	/** Destroy parse error. */
-	virtual ~parse_error();
-
-	/** Get message.
-	 * @return a message which describes the parse error.
-	 */
-	virtual const char* what() const;
 };
 
 /** Parse dependency alternatives list.
@@ -149,7 +140,7 @@ public:
  * @param out a vector to which the list is written
  */
 void parse_dependency_alt_list(string::const_iterator first,
-	string::const_iterator last,vector<dependency>* out);
+	string::const_iterator last,std::vector<dependency>* out);
 
 /** Parse dependency list.
  * @param first the beginning of the sequence
@@ -157,7 +148,7 @@ void parse_dependency_alt_list(string::const_iterator first,
  * @param out a vector to which the list is written
  */
 void parse_dependency_list(string::const_iterator first,
-	string::const_iterator last,vector<vector<dependency> >* out);
+	string::const_iterator last,std::vector<std::vector<dependency> >* out);
 
 }; /* namespace pkg */
 

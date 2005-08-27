@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004 Graham Shaw.
+// Copyright © 2004-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -11,6 +11,8 @@
 #include <iosfwd>
 
 namespace pkg {
+
+using std::string;
 
 /** A class for producing MD5 message digests.
  * MD5 is a message digest algorithm published by Ron Rivest in 1992.
@@ -79,7 +81,7 @@ public:
 	 * incorporated into the message digest state.
 	 * @param in the input stream from which the data is to be read
 	 */
-	void operator()(istream& in);
+	void operator()(std::istream& in);
 
 	/** Flush buffer.
 	 * The final value of the message digest is calculated by processing

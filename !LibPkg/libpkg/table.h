@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -19,10 +19,10 @@ class table
 {
 public:
 	class watcher;
-	friend watcher;
+	friend class watcher;
 private:
 	/** The set of currently registered watchers. */
-	set<watcher*> _watchers;
+	std::set<watcher*> _watchers;
 public:
 	/** Construct table. */
 	table();
@@ -52,7 +52,7 @@ class table::watcher
 {
 private:
 	/** The set of tables that are being watched. */
-	set<table*> _tables;
+	std::set<table*> _tables;
 public:
 	/** Construct watcher. */
 	watcher();

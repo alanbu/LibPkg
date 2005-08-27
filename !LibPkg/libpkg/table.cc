@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -30,7 +30,7 @@ void table::deregister_watcher(watcher& w)
 
 void table::notify()
 {
-	for (set<watcher*>::const_iterator i=_watchers.begin();
+	for (std::set<watcher*>::const_iterator i=_watchers.begin();
 		i!=_watchers.end();++i)
 	{
 		(*i)->handle_change(*this);
@@ -42,7 +42,7 @@ table::watcher::watcher()
 
 table::watcher::~watcher()
 {
-	for (set<table*>::const_iterator i=_tables.begin();
+	for (std::set<table*>::const_iterator i=_tables.begin();
 		i!=_tables.end();++i)
 	{
 		(*i)->deregister_watcher(*this);

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -66,7 +66,7 @@ void path_table::update()
 
 void path_table::read(const string& pathname)
 {
-	ifstream in(pathname.c_str());
+	std::ifstream in(pathname.c_str());
 	while (in&&!in.eof())
 	{
 		// Read line from input stream.
@@ -79,7 +79,7 @@ void path_table::read(const string& pathname)
 		line.resize(n);
 
 		// Split line into space-separated fields.
-		vector<string> fields;
+		std::vector<string> fields;
 		string::const_iterator first=line.begin();
 		string::const_iterator last=line.end();
 		string::const_iterator p=first;
@@ -114,27 +114,12 @@ void path_table::read(const string& pathname)
 }
 
 path_table::parse_error::parse_error(const string& message):
-	_message(message)
+	runtime_error(message)
 {}
 
-path_table::parse_error::~parse_error()
+path_table::invalid_source_path::invalid_source_path():
+	runtime_error("invalid source path")
 {}
-
-const char* path_table::parse_error::what() const
-{
-	return _message.c_str();
-}
-
-path_table::invalid_source_path::invalid_source_path()
-{}
-
-path_table::invalid_source_path::~invalid_source_path()
-{}
-
-const char* path_table::invalid_source_path::what() const
-{
-	return "invalid source path";
-}
 
 string resolve_pathrefs(const path_table& paths,const string& in)
 {

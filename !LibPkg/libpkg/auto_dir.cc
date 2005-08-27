@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -24,7 +24,7 @@ namespace {
 unsigned int common(const string& a,const string& b)
 {
 	unsigned int i=0;
-	unsigned int e=min(a.length(),b.length());
+	unsigned int e=std::min(a.length(),b.length());
 	while ((i<e)&&(a[i]==b[i])) ++i;
 	while ((i>0)&&(a[i-1]!='.')) --i;
 	if (i>0) --i;

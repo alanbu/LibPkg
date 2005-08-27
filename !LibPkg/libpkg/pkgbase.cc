@@ -132,7 +132,7 @@ void pkgbase::verify_cached_file(const binary_control& ctrl)
 		if (f!=ctrl.end())
 		{
 			size_t size=0;
-			istringstream in(f->second);
+			std::istringstream in(f->second);
 			in >> size;
 			if (object_length(pathname)!=size)
 				throw cache_error("incorrect size",ctrl);
@@ -144,7 +144,7 @@ void pkgbase::verify_cached_file(const binary_control& ctrl)
 		control::const_iterator f=ctrl.find("MD5Sum");
 		if (f!=ctrl.end())
 		{
-			ifstream in(pathname.c_str());
+			std::ifstream in(pathname.c_str());
 			md5 md5sum;
 			md5sum(in);
 			md5sum();
@@ -154,7 +154,7 @@ void pkgbase::verify_cached_file(const binary_control& ctrl)
 	}
 }
 
-bool pkgbase::fix_dependencies(const set<string>& seed)
+bool pkgbase::fix_dependencies(const std::set<string>& seed)
 {
 	// Initialise internal flags.
 	for (status_table::const_iterator i=_selstat.begin();
@@ -317,7 +317,7 @@ void pkgbase::remove_auto()
 		}
 
 		// Remove packages no longer needed
-		for (map<string,status>::const_iterator i=_selstat.begin();
+		for (std::map<string,status>::const_iterator i=_selstat.begin();
 			i!=_selstat.end();++i)
 		{
 			string pkgname=i->first;
@@ -345,13 +345,13 @@ bool pkgbase::fix_dependencies(const pkg::control& ctrl,bool allow_new,
 	bool apply)
 {
 	// Parse dependency list.
-	vector<vector<dependency> > deps;
+	std::vector<std::vector<dependency> > deps;
 	string deplist=ctrl.depends();
 	parse_dependency_list(deplist.begin(),deplist.end(),&deps);
 
 	// Process dependency list.
 	bool success=true;
-	for (vector<vector<dependency> >::const_iterator i=deps.begin();
+	for (std::vector<std::vector<dependency> >::const_iterator i=deps.begin();
 		i!=deps.end();++i)
 	{
 		if (const pkg::control* ctrl=resolve(*i,allow_new))
@@ -366,11 +366,11 @@ bool pkgbase::fix_dependencies(const pkg::control& ctrl,bool allow_new,
 	return success;
 }
 
-const pkg::control* pkgbase::resolve(const vector<dependency>& deps,
+const pkg::control* pkgbase::resolve(const std::vector<dependency>& deps,
 	bool allow_new)
 {
 	// First try to satisfy the dependency with an existing package.
-	for (vector<dependency>::const_iterator i=deps.begin();
+	for (std::vector<dependency>::const_iterator i=deps.begin();
 		i!=deps.end();++i)
 	{
 		const pkg::control* ctrl=resolve(*i,false);
@@ -381,7 +381,7 @@ const pkg::control* pkgbase::resolve(const vector<dependency>& deps,
 	// (if that is allowed).
 	if (allow_new)
 	{
-		for (vector<dependency>::const_iterator i=deps.begin();
+		for (std::vector<dependency>::const_iterator i=deps.begin();
 			i!=deps.end();++i)
 		{
 			const pkg::control* ctrl=resolve(*i,true);
@@ -472,16 +472,8 @@ void pkgbase::ensure_removed(const string& pkgname)
 
 pkgbase::cache_error::cache_error(const char* message,
 	const binary_control& ctrl):
-	_message(string(message)+string(" for package ")+ctrl.pkgname()+
+	runtime_error(string(message)+string(" for package ")+ctrl.pkgname()+
 		string(" (")+ctrl.version()+string(")"))
 {}
-
-pkgbase::cache_error::~cache_error()
-{}
-
-const char* pkgbase::cache_error::what() const
-{
-	return _message.c_str();
-}
 
 }; /* namespace pkg */

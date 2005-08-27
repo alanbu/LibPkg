@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2004 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -19,7 +19,7 @@
 
 namespace pkg {
 
-commit::commit(pkgbase& pb,const set<string>& packages):
+commit::commit(pkgbase& pb,const std::set<string>& packages):
 	_pb(pb),
 	_state(state_pre_download),
 	_packages_to_process(packages),
@@ -81,7 +81,7 @@ void commit::poll()
 				control::const_iterator f=ctrl.find("Size");
 				if (f!=ctrl.end())
 				{
-					istringstream in(f->second);
+					std::istringstream in(f->second);
 					in >> size;
 				}
 				_progress_table[_pkgname].bytes_ctrl=size;
@@ -311,7 +311,7 @@ void commit::update_download_progress()
 	_bytes_total=0;
 	unsigned int count=0;
 	unsigned int known=0;
-	for (map<string,progress>::const_iterator i=_progress_table.begin();
+	for (std::map<string,progress>::const_iterator i=_progress_table.begin();
 		i!=_progress_table.end();++i)
 	{
 		_bytes_done+=i->second.bytes_done;

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -14,6 +14,8 @@
 #include "libpkg/table.h"
 
 namespace pkg {
+
+using std::string;
 
 /** A class for mapping package name and version to binary control record. */
 class binary_control_table:
@@ -37,13 +39,13 @@ public:
 		key_type(const string& _pkgname,const version& _pkgvrsn);
 	};
 	typedef binary_control mapped_type;
-	typedef map<key_type,mapped_type>::const_iterator const_iterator;
+	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
 private:
 	/** The pathname of the underlying package index file. */
 	string _pathname;
 
 	/** A map from package name and version to control record. */
-	map<key_type,mapped_type> _data;
+	std::map<key_type,mapped_type> _data;
 public:
 	/** Construct binary control table.
 	 * @param pathname the pathname of the underlying package index file.

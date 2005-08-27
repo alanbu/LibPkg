@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,6 +12,8 @@
 #include <stdexcept>
 
 namespace pkg {
+
+using std::string;
 
 /** A class to represent the content of a RiscPkg control file.
  * Behaviour is that of a map<string,string>, except that:
@@ -33,7 +35,7 @@ public:
 	class key_type:
 		public string
 	{
-		friend control;
+		friend class control;
 	private:
 		/** The priority. */
 		int _priority;
@@ -59,13 +61,13 @@ public:
 	typedef string mapped_type;
 
 	/** The value type. */
-	typedef pair<const key_type,mapped_type> value_type;
+	typedef std::pair<const key_type,mapped_type> value_type;
 
 	/** The iterator type. */
-	typedef map<key_type,mapped_type>::iterator iterator;
+	typedef std::map<key_type,mapped_type>::iterator iterator;
 
 	/** The constant iterator type. */
-	typedef map<key_type,mapped_type>::const_iterator const_iterator;
+	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
 
 	class parse_error;
 private:
@@ -85,7 +87,7 @@ private:
 	};
 
 	/** A map from key to value. */
-	map<key_type,mapped_type,cmp_key> _data;
+	std::map<key_type,mapped_type,cmp_key> _data;
 public:
 	/** Construct control file. */
 	control();
@@ -222,24 +224,13 @@ protected:
 
 /** An exception class for reporting parse errors. */
 class control::parse_error:
-	public runtime_error
+	public std::runtime_error
 {
-private:
-	/** A message which describes the parse error. */
-	const char* _message;
 public:
 	/** Construct parse error.
 	 * @param message a message which describes the parse error.
 	 */
 	parse_error(const char* message);
-
-	/** Destroy parse error. */
-	virtual ~parse_error();
-
-	/** Get message.
-	 * @return a message which describes the parse error.
-	 */
-	virtual const char* what() const;
 };
 
 /** Write control file to output stream.
@@ -247,14 +238,14 @@ public:
  * @param ctrl the control file
  * @return the output stream
  */
-ostream& operator<<(ostream& out,const control& ctrl);
+std::ostream& operator<<(std::ostream& out,const control& ctrl);
 
 /** Read control file from input stream.
  * @param in the input stream
  * @param ctrl the control file
  * @return the output stream
  */
-istream& operator>>(istream& in,control& ctrl);
+std::istream& operator>>(std::istream& in,control& ctrl);
 
 }; /* namespace pkg */
 

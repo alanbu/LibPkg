@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright © 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -19,7 +19,7 @@ typedef zipfile::uint32 uint32;
  * @param in the input stream
  * @return the integer
  */
-uint16 read_16(istream& in)
+uint16 read_16(std::istream& in)
 {
 	uint16 value=static_cast<uint16>(in.get());
 	value|=static_cast<uint16>(in.get())<<8;
@@ -31,7 +31,7 @@ uint16 read_16(istream& in)
  * @param in the input stream
  * @return the integer
  */
-uint32 read_32(istream& in)
+uint32 read_32(std::istream& in)
 {
 	uint32 value=static_cast<uint32>(in.get());
 	value|=static_cast<uint32>(in.get())<<8;
@@ -47,7 +47,7 @@ uint32 read_32(istream& in)
  * @param size the number of bytes to read
  * @return the string
  */
-string read_string(istream& in,int size)
+string read_string(std::istream& in,int size)
 {
 	string value(size,' ');
 	for (int i=0;i!=size;++i)
@@ -60,16 +60,18 @@ string read_string(istream& in,int size)
 class buffer
 {
 private:
-	Bytef* _data;
+	char* _data;
 public:
 	buffer(unsigned int size);
 	~buffer();
 	operator Bytef*()
+		{ return reinterpret_cast<Bytef*>(_data); }
+	operator char*()
 		{ return _data; }
 };
 
 buffer::buffer(unsigned int size):
-	_data(new Bytef[size])
+	_data(new char[size])
 {}
 
 buffer::~buffer()
@@ -81,7 +83,8 @@ buffer::~buffer()
 
 zipfile::zipfile(const string& pathname):
 	_pathname(pathname),
-	_zfs(pathname.c_str(),ios::in|ios::out|ios::binary)
+	_zfs(pathname.c_str(),
+		std::ios_base::in|std::ios_base::out|std::ios_base::binary)
 {
 	_zfs.peek();
 	while (_zfs&&!_zfs.eof())
@@ -93,7 +96,7 @@ zipfile::zipfile(const string& pathname):
 			_directory.push_back(new file_info(_zfs));
 			break;
 		default:
-			_zfs.clear(fstream::eofbit);
+			_zfs.clear(std::fstream::eofbit);
 			break;
 		}
 		_zfs.peek();
@@ -102,7 +105,7 @@ zipfile::zipfile(const string& pathname):
 
 zipfile::~zipfile()
 {
-	for (vector<file_info*>::iterator i=_directory.begin();
+	for (std::vector<file_info*>::iterator i=_directory.begin();
 		i!=_directory.end();++i)
 	{
 		delete *i;
@@ -139,7 +142,7 @@ void zipfile::extract(const string& src_pathname,
 	_zfs.seekg(finfo->offset());
 
 	// Create output stream.
-	ofstream out(dst_pathname.c_str());
+	std::ofstream out(dst_pathname.c_str());
 
 	// Allocate buffers.
 	const unsigned int csize=1024;
@@ -166,7 +169,7 @@ void zipfile::extract(const string& src_pathname,
 		// If input buffer is empty then try to fill it.
 		if (!zs.avail_in)
 		{
-			unsigned int count=min<int>(csize,finfo->csize()-zs.total_in);
+			unsigned int count=std::min<int>(csize,finfo->csize()-zs.total_in);
 			_zfs.read(cbuffer,count);
 			zs.next_in=cbuffer;
 			zs.avail_in=_zfs.gcount();
@@ -185,7 +188,7 @@ void zipfile::extract(const string& src_pathname,
 		{
 		case 0:
 			{
-				unsigned int count=min<int>(zs.avail_in,zs.avail_out);
+				unsigned int count=std::min<int>(zs.avail_in,zs.avail_out);
 				memcpy(zs.next_out,zs.next_in,count);
 				zs.next_out+=count;
 				zs.avail_out-=count;
@@ -231,14 +234,14 @@ zipfile::file_info::file_info():
 	_usize(0)
 {}
 
-zipfile::file_info::file_info(istream& in)
+zipfile::file_info::file_info(std::istream& in)
 {
 	read(in);
 }
 
 zipfile::file_info::~file_info()
 {
-	for (map<uint16,extra_info*>::iterator i=_extra.begin();
+	for (std::map<uint16,extra_info*>::iterator i=_extra.begin();
 		i!=_extra.end();++i)
 	{
 		delete i->second;
@@ -246,7 +249,7 @@ zipfile::file_info::~file_info()
 	}
 }
 
-void zipfile::file_info::read(istream& in)
+void zipfile::file_info::read(std::istream& in)
 {
 	_xversion=read_16(in);
 	_gpbits=read_16(in);
@@ -264,7 +267,7 @@ void zipfile::file_info::read(istream& in)
 	in.seekg(_offset+_csize);
 }
 
-void zipfile::file_info::read_extra(istream& in,int length)
+void zipfile::file_info::read_extra(std::istream& in,int length)
 {
 	uint32 base=in.tellg();
 	uint32 offset=base;
@@ -300,7 +303,7 @@ zipfile::riscos_info::riscos_info():
 	_attr(0)
 {}
 
-zipfile::riscos_info::riscos_info(istream& in)
+zipfile::riscos_info::riscos_info(std::istream& in)
 {
 	read(in);
 }
@@ -308,7 +311,7 @@ zipfile::riscos_info::riscos_info(istream& in)
 zipfile::riscos_info::~riscos_info()
 {}
 
-void zipfile::riscos_info::read(istream& in)
+void zipfile::riscos_info::read(std::istream& in)
 {
 	_sig=read_32(in);
 	_loadaddr=read_32(in);
@@ -317,45 +320,23 @@ void zipfile::riscos_info::read(istream& in)
 	read_32(in);
 }
 
-zipfile::not_found::not_found(const string& pathname)
-{
-	_message.reserve(24+pathname.length());
-	_message.append("\"");
-	_message.append(pathname);
-	_message.append("\" not found in zip file");
-}
-
-zipfile::not_found::~not_found()
+zipfile::not_found::not_found(const string& pathname):
+	runtime_error(string("\"")+pathname+string("\" not found in zip file"))
 {}
-
-const char* zipfile::not_found::what() const
-{
-	return _message.c_str();
-}
 
 zipfile::unsupported_compression_method::unsupported_compression_method(
-	unsigned int method)
+	unsigned int method):
+	runtime_error("unsupported compression method")
 {}
-
-zipfile::unsupported_compression_method::~unsupported_compression_method()
-{}
-
-const char* zipfile::unsupported_compression_method::what() const
-{
-	return "unsupported compression method";
-}
 
 zipfile::zlib_error::zlib_error(int code):
-	_code(code)
+	runtime_error(make_message(code))
 {}
 
-zipfile::zlib_error::~zlib_error()
-{}
-
-const char* zipfile::zlib_error::what() const
+const char* zipfile::zlib_error::make_message(int code)
 {
 	const char* msg;
-	switch (_code)
+	switch (code)
 	{
 	case Z_VERSION_ERROR:
 		msg="version error";
@@ -385,7 +366,7 @@ const char* zipfile::zlib_error::what() const
 		msg="dictionary needed";
 		break;
 	default:
-		if (_code<0) msg="unrecognised zlib error";
+		if (code<0) msg="unrecognised zlib error";
 		else msg="unrecognised zlib return code";
 		break;
 	}
