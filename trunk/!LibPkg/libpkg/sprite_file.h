@@ -82,7 +82,8 @@ public:
 	/** Get number of sprites.
 	 * @return the number of sprites
 	 */
-	unsigned int size() const;
+	unsigned int size() const
+		{ return _directory.size(); }
 
 	/** Get const sprite information record at index.
 	 * @param index the index

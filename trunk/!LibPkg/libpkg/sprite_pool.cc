@@ -61,6 +61,7 @@ void build_sprite_file(pkgbase& pb,const char** suffix_list)
 	force_delete(tmp_pathname);
 
 	// If sprites directory exists then process each file within it.
+	bool empty=true;
 	if (object_type(pb.sprites_pathname())!=0)
 	{
 		sprite_file dst(tmp_pathname,true);
@@ -82,6 +83,7 @@ void build_sprite_file(pkgbase& pb,const char** suffix_list)
 				copy_sprite(dst,base_pathname,suffix_list,obj.name);
 			}
 		}
+		empty&=!dst.size();
 	}
 
 	// Backup existing sprites file if it exists.
@@ -90,8 +92,10 @@ void build_sprite_file(pkgbase& pb,const char** suffix_list)
 		force_move(dst_pathname,bak_pathname,true);
 	}
 
-	// Move new sprites file to destination.
-	force_move(tmp_pathname,dst_pathname,false);
+	// If new sprites file is non-empty then move it into position,
+	// otherwsie delete it.
+	if (!empty) force_move(tmp_pathname,dst_pathname,false);
+	else force_delete(tmp_pathname);
 
 	// Delete backup.
 	force_delete(bak_pathname);
