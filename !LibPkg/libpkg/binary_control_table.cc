@@ -40,6 +40,13 @@ const binary_control_table::mapped_type&
 	return *result;
 }
 
+void binary_control_table::insert(const mapped_type& ctrl)
+{
+	key_type key(ctrl.pkgname(),ctrl.version());
+	_data[key]=ctrl;
+	notify();
+}
+
 void binary_control_table::update()
 {
 	_data.clear();

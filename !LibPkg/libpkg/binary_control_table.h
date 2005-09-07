@@ -79,6 +79,13 @@ public:
 	const_iterator end() const
 		{ return _data.end(); }
 
+	/** Insert control record into table.
+	 * The inserted control record will disappear
+	 * when the table is next updated.
+	 * @param ctrl the control record
+	 */
+	void insert(const mapped_type& ctrl);
+
 	/** Re-read the underlying package index file. */
 	void update();
 };
