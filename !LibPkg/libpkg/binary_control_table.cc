@@ -5,6 +5,7 @@
 
 #include <fstream>
 
+#include "libpkg/filesystem.h"
 #include "libpkg/binary_control_table.h"
 
 namespace pkg {
@@ -66,6 +67,46 @@ void binary_control_table::update()
 	notify();
 }
 
+void binary_control_table::commit()
+{
+	// Take no action unless a pathname has been specified.
+	if (_pathname.size())
+	{
+		// Set pathnames.
+		string dst_pathname=_pathname;
+		string tmp_pathname=_pathname+string("++");
+		string bak_pathname=_pathname+string("--");
+
+		// Write new control file.
+		std::ofstream out(tmp_pathname.c_str());
+		for (const_iterator i=_data.begin();i!=_data.end();++i)
+		{
+			out << i->second << std::endl;
+		}
+		out.close();
+		if (!out) throw commit_error();
+	
+		try
+		{
+			// Backup existing control file if it exists.
+			if (object_type(dst_pathname)!=0)
+			{
+				force_move(dst_pathname,bak_pathname,true);
+			}
+		
+			// Move new control file to destination.
+			force_move(tmp_pathname,dst_pathname,false);
+		
+			// Delete backup.
+			force_delete(bak_pathname);
+		}
+		catch (...)
+		{
+			throw commit_error();
+		}
+	}
+}
+
 binary_control_table::key_type::key_type()
 {}
 
@@ -83,5 +124,9 @@ bool operator<(const binary_control_table::key_type& lhs,
 	else
 		return lhs.pkgvrsn<rhs.pkgvrsn;
 }
+
+binary_control_table::commit_error::commit_error():
+	runtime_error("failed to commit status table")
+{}
 
 }; /* namespace pkg */

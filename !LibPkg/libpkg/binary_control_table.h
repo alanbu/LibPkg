@@ -40,6 +40,7 @@ public:
 	};
 	typedef binary_control mapped_type;
 	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
+	class commit_error;
 private:
 	/** The pathname of the underlying package index file. */
 	string _pathname;
@@ -86,6 +87,13 @@ public:
 	 */
 	void insert(const mapped_type& ctrl);
 
+	/** Commit changes.
+	 * Any changes since the last call to commit() or update() are
+	 * committed to disc.  They will remain there until the next
+	 * call to update(), at which point they will be overwritten.
+	 */
+	void commit();
+
 	/** Re-read the underlying package index file. */
 	void update();
 };
@@ -97,6 +105,15 @@ public:
  */
 bool operator<(const binary_control_table::key_type& lhs,
 	const binary_control_table::key_type& rhs);
+
+/** An exception class for reporting failure to commit table. */
+class binary_control_table::commit_error:
+	public std::runtime_error
+{
+public:
+	/** Construct commit error. */
+	commit_error();
+};
 
 }; /* namespace pkg */
 
