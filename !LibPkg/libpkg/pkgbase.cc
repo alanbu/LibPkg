@@ -126,6 +126,12 @@ void pkgbase::verify_cached_file(const binary_control& ctrl)
 	if (!object_type(pathname))
 		throw cache_error("missing cache file",ctrl);
 
+	// Test whether file can be validated.
+	if ((ctrl.find("Size")==ctrl.end())&&(ctrl.find("MD5Sum")==ctrl.end()))
+	{
+		throw cache_error("cannot be validated",ctrl);
+	}
+
 	// Test whether file has expected size.
 	{
 		control::const_iterator f=ctrl.find("Size");
