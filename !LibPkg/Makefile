@@ -22,6 +22,7 @@ all: bin doc
 libpkg.a: libpkg/timestamp
 	mkdir -p a
 	$(AR) -c a.libpkg libpkg.o.*
+	$(AR) -o a.libpkg
 
 libpkg/timestamp: always
 	make -C libpkg
