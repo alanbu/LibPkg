@@ -143,16 +143,6 @@ public:
 	file_info_not_found();
 };
 
-/** An exception class for reporting that a RISC OS file information
- * record could not be found. */
-class unpack::riscos_info_not_found:
-	public std::runtime_error
-{
-public:
-	/** Construct RISC OS file-info-not-found error. */
-	riscos_info_not_found();
-};
-
 unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 	_pb(pb),
 	_state(state_pre_unpack),
@@ -763,11 +753,12 @@ void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 
 		const zipfile::file_info* finfo=_zf->find(zip_pathname);
 		if (!finfo) throw file_info_not_found();
-		const zipfile::riscos_info* rinfo=
-			finfo->find_extra<zipfile::riscos_info>();
-		if (!rinfo) throw riscos_info_not_found();
-		write_file_info(tmp_pathname,rinfo->loadaddr(),
-			rinfo->execaddr(),rinfo->attr());
+		if (const zipfile::riscos_info* rinfo=
+			finfo->find_extra<zipfile::riscos_info>())
+		{
+			write_file_info(tmp_pathname,rinfo->loadaddr(),
+				rinfo->execaddr(),rinfo->attr());
+		}
 
 		_bytes_done+=finfo->usize();
 		_files_done+=1;
@@ -906,10 +897,6 @@ unpack::file_conflict::file_conflict():
 
 unpack::file_info_not_found::file_info_not_found():
 	runtime_error("file information record not found")
-{}
-
-unpack::riscos_info_not_found::riscos_info_not_found():
-	runtime_error("RISC OS file information record not found")
 {}
 
 }; /* namespace pkg */
