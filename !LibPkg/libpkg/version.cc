@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright © 2003-2008 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -10,14 +10,27 @@
 namespace pkg {
 
 /** Compare two characters.
- * The sort order is by ASCII character code, modified so that letters
- * sort earlier than non-letters.
+ * The sort order is: tilde, then NUL, then letters, then non-letters.
+ * Within these groups, the sort order is by ASCII character code.
  * @param lhs the left hand side
  * @param rhs the right hand side
  * @return 0 if lhs==rhs, +1 if lhs>rhs or -1 if lhs<rhs
  */
 static inline int cmp_char(char lhs,char rhs)
 {
+	// If codes are the same then they sort as equal.
+	if (lhs==rhs) return 0;
+
+	// Otherwise, if (only) one side is a tilde then it sorts first.
+	if (lhs=='~') return -1;
+	else if (rhs=='~') return +1;
+
+	// Otherwise, if (only) one side is the empty string then
+	// it sorts first.
+	if (lhs==0) return -1;
+	else if (rhs==0) return +1;
+
+	// Otherwise, if (only) one side is a letter then it sorts first.
 	bool lalpha=isalpha(lhs);
 	bool ralpha=isalpha(rhs);
 	if (lalpha!=ralpha)
@@ -25,17 +38,16 @@ static inline int cmp_char(char lhs,char rhs)
 		if (lalpha) return -1;
 		else return +1;
 	}
-	else if (lhs!=rhs)
-	{
-		if (lhs<rhs) return -1;
-		else return +1;
-	}
-	else return 0;
+
+	// Otherwise, sort by ASCII code.
+	if (lhs<rhs) return -1;
+	else return +1;
 }
 
 /** Lexicographically compare two character sequences.
  * The sort order is by ASCII character code, modified so that letters
- * sort earlier than non-letters.
+ * sort earlier than non-letters, and so that a tilde sorts earlier than
+ * anything (including the empty string).
  * @param lfirst the start of the left hand side
  * @param llast the end of the left hand side
  * @param rfirst the start of the right hand side
@@ -56,18 +68,11 @@ static int cmp_lex(string::const_iterator lfirst,string::const_iterator llast,
 		++rp;
 	}
 
-	// Compare by first non-matching character if there is one,
-	// otherwise compare by length.
-	if (lp!=llast)
-	{
-		if (rp!=rlast) return cmp_char(*lp,*rp);
-		else return +1;
-	}
-	else
-	{
-		if (rp!=rlast) return -1;
-		else return 0;
-	}
+	// Compare by first non-matching character.
+	// Use NUL to represent the end of the string.
+	char lc=(lp!=llast)?*lp:0;
+	char rc=(rp!=rlast)?*rp:0;
+	return cmp_char(lc,rc);
 }
 
 /** Numerically compare two character sequences.
@@ -266,7 +271,7 @@ void version::validate() const
 		i!=_upstream_version.end();++i)
 	{
 		char ch=*i;
-		if (!isalnum(ch)&&(ch!='+')&&(ch!='-')&&(ch!='.')&&(ch!=':'))
+		if (!isalnum(ch)&&(ch!='+')&&(ch!='-')&&(ch!='.')&&(ch!='~')&&(ch!=':'))
 			throw parse_error("illegal character in upstream version");
 	}
 
@@ -274,7 +279,7 @@ void version::validate() const
 		i!=_package_version.end();++i)
 	{
 		char ch=*i;
-		if (!isalnum(ch)&&(ch!='+')&&(ch!='.'))
+		if (!isalnum(ch)&&(ch!='+')&&(ch!='.')&&(ch!='~'))
 			throw parse_error("illegal character in package version");
 	}
 }

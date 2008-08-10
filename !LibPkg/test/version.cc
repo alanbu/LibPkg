@@ -1,9 +1,17 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.            
+// Copyright © 2003-2008 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
+#include <iostream>
+#include <stdexcept>
+
 #include "libpkg/version.h"
+
+using std::string;
+using std::cout;
+using std::endl;
+using std::exception;
 
 using pkg::version;
 
@@ -25,14 +33,19 @@ const char* eq_table_b[]={
 	"a0000-a0000"};
 
 const char* ineq_table_a[]={
+	"~~",
+	"~",
 	"",
 	"-1",
+	"-9~A",
 	"-9",
 	"-9A",
 	"-10",
 	"-A",
 	"-A1",
+	"-A9~A",
 	"-A9",
+	"-A9A~10",
 	"-A9A",
 	"-A9A10",
 	"-A10",
@@ -48,6 +61,7 @@ const char* ineq_table_a[]={
 	"10-1",
 	"A-A10",
 	"A1-A10",
+	"A9~A-10",
 	"A9-A10",
 	"A9A-10",
 	"A9A10",
@@ -65,6 +79,9 @@ const char* ineq_table_a[]={
 
 const char* ineq_table_b[]={
 	"0.0.0",
+	"0.0.1-0~pre9",
+	"0.0.1-0~pre10",
+	"0.0.1-0",
 	"0.0.1-0.pre9",
 	"0.0.1-0.pre10",
 	"0.0.1-1",
@@ -145,9 +162,9 @@ void test_version(unsigned int* errors)
 		test_eq(eq_table_b,sizeof(eq_table_b)/sizeof(const char*),
 			"equality test B",errors);
 		test_ineq(ineq_table_a,sizeof(ineq_table_a)/sizeof(const char*),
-			"inequality test a",errors);
+			"inequality test A",errors);
 		test_ineq(ineq_table_b,sizeof(ineq_table_b)/sizeof(const char*),
-			"inequality test b",errors);
+			"inequality test B",errors);
 		test_ineq(conv_table,sizeof(conv_table)/sizeof(const char*),
 			"conversion test",errors);
 		if (!errors) cout << "No errors" << endl;
@@ -156,4 +173,12 @@ void test_version(unsigned int* errors)
 	{
 		cout << "Exception: " << ex.what() << endl;
 	}
+}
+
+int main(void)
+{
+	unsigned int errors=0;
+	test_version(&errors);
+	cout << "Errors: " << errors << endl;
+	return (errors)?1:0;
 }

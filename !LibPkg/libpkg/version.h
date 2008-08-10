@@ -15,7 +15,7 @@ namespace pkg {
 using std::string;
 
 /** A class to represent a package version.
- * Syntax and semantics are as specified in version 3.5.6 of the
+ * Syntax and semantics are as specified in version 3.8.0 of the
  * Debian Policy Manual.
  */
 class version
