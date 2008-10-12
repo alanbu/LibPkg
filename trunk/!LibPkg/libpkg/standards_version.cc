@@ -11,7 +11,7 @@ namespace pkg {
 namespace {
 
 /** The earliest standards version that cannot be processed by this library. */
-const version bad_standards_version("0.2");
+const version bad_standards_version("0.3");
 
 }; /* anonymous namespace */
 
