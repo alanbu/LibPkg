@@ -211,7 +211,7 @@ private:
 	 * @return the control record of a package that would satisfy one
 	 *  of the listed dependencies, or 0 if none found
 	 */
-	const pkg::control* pkgbase::resolve(const std::vector<dependency>& deps,
+	const pkg::control* resolve(const std::vector<dependency>& deps,
 		bool allow_new=true);
 
 	/** Resolve dependency.
@@ -224,7 +224,7 @@ private:
 	 * @return the control record of a package that would satisfy the
 	 *  dependency, or 0 if none found
 	 */
-	const pkg::control* pkgbase::resolve(const dependency& dep,
+	const pkg::control* resolve(const dependency& dep,
 		bool allow_new=true);
 
 	/** Ensure that package will be removed.
