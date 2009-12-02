@@ -77,7 +77,7 @@ private:
 	 * This method is private (and not implemented), therefore
 	 * sprite file objects cannot be assigned.
 	 */
-	sprite_file& sprite_file::operator=(const sprite_file&);
+	sprite_file& operator=(const sprite_file&);
 public:
 	/** Get number of sprites.
 	 * @return the number of sprites
