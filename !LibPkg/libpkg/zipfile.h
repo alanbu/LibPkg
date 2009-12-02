@@ -63,7 +63,7 @@ private:
 	 * This method is private (and not implemented), therefore
 	 * zip file objects cannot be assigned.
 	 */
-	zipfile& zipfile::operator=(const zipfile&);
+	zipfile& operator=(const zipfile&);
 public:
 	/** Get number of file information records.
 	 * @return the number of file information records
