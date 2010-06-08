@@ -88,7 +88,7 @@ void path_table::commit()
 		for (std::map<key_type,mapped_type>::const_iterator i=_data.begin();
 			i!=_data.end();++i)
 		{
-			out << i->first << "=" << i->second << std::endl;
+			out << i->first << " = " << i->second << std::endl;
 		}
 		out.close();
 		if (!out) throw commit_error();
