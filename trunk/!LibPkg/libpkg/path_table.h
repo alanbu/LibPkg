@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright © 2003-2010 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -30,21 +30,19 @@ public:
 	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;
 	class parse_error;
 	class invalid_source_path;
+	class commit_error;
 private:
-	/** The pathname of the default paths file. */
-	string _dpathname;
-
-	/** The pathname of the configured paths file. */
+	/** The pathname of the underlying paths file,
+	 * or the empty string if none. */
 	string _pathname;
 
 	/** A map from source pathname to destination pathname. */
 	std::map<key_type,mapped_type> _data;
 public:
 	/** Construct path table.
-	 * @param dpathname the pathname of the default paths file
-	 * @param pathname the pathname of the configured paths file
+	 * @param pathname the pathname of the underlying paths file
 	 */
-	path_table(const string& dpathname,const string& pathname);
+	path_table(const string& pathname);
 
 	/** Destroy path table. */
 	virtual ~path_table();
@@ -68,13 +66,37 @@ public:
 	const_iterator end() const
 		{ return _data.end(); }
 
-	/** Re-read the default and configured paths files. */
-	void update();
+	/** Find table entry.
+	 * @param src_pathname the required source pathname
+	 * @return a matching const iterator, or end() if not found
+	 */
+	const_iterator find(const string& src_pathname);
+
+	/** Erase table entry.
+	 * @param src_pathname the source pathname to be erased
+	 */
+	void erase(const string& src_pathname);
+
+	/** Clear all paths. */
+	void clear();
+
+	/** Commit changes.
+	 * Any changes since the last call to commit() or rollback() are
+	 * committed to disc.
+	 */
+	void commit();
+
+	/** Roll back changes.
+	 * Any changes since the last call to commit() or rollback() are
+	 * discarded.
+	 */
+	void rollback();
 private:
 	/** Read paths file.
 	 * @param pathname the pathname
+	 * @return true if the file was found, otherwise false
 	 */
-	void read(const string& pathname);
+	bool read(const string& pathname);
 };
 
 /** An exception class for reporting parse errors. */
@@ -95,6 +117,15 @@ class path_table::invalid_source_path:
 public:
 	/** Construct invalid source path error. */
 	invalid_source_path();
+};
+
+/** An exception class for reporting failure to commit table. */
+class path_table::commit_error:
+	public std::runtime_error
+{
+public:
+	/** Construct commit error. */
+	commit_error();
 };
 
 /** Resolve logical path references.

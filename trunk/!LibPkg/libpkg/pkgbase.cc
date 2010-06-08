@@ -29,7 +29,7 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 	_selstat(pathname+string(".Selected")),
 	_control(pathname+string(".Available")),
 	_sources(dpathname+string(".Sources"),cpathname+string(".Sources")),
-	_paths(dpathname+string(".Paths"),cpathname+string(".Paths")),
+	_paths(pathname+string(".Paths")),
 	_changed(false)
 {
 	create_directory(_pathname+string(".Cache"));
