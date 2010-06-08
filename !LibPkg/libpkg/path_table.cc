@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright © 2003-2010 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -11,11 +11,10 @@
 
 namespace pkg {
 
-path_table::path_table(const string& dpathname,const string& pathname):
-	_dpathname(dpathname),
+path_table::path_table(const string& pathname):
 	_pathname(pathname)
 {
-	update();
+	rollback();
 }
 
 path_table::~path_table()
@@ -57,16 +56,80 @@ string path_table::operator()(const string& src_pathname,
 	return canonicalise(dst_prefix+suffix);
 }
 
-void path_table::update()
+path_table::const_iterator path_table::find(const string& src_pathname)
 {
-	_data.clear();
-	read(_dpathname);
-	read(_pathname);
+	return _data.find(src_pathname);
 }
 
-void path_table::read(const string& pathname)
+void path_table::erase(const string& src_pathname)
+{
+	_data.erase(src_pathname);
+	notify();
+}
+
+void path_table::clear()
+{
+	_data.clear();
+	notify();
+}
+
+void path_table::commit()
+{
+	// Take no action unless a pathname has been specified.
+	if (_pathname.size())
+	{
+		// Set pathnames.
+		string dst_pathname=_pathname;
+		string tmp_pathname=_pathname+string("++");
+		string bak_pathname=_pathname+string("--");
+
+		// Write new paths file.
+		std::ofstream out(tmp_pathname.c_str());
+		for (std::map<key_type,mapped_type>::const_iterator i=_data.begin();
+			i!=_data.end();++i)
+		{
+			out << i->first << "=" << i->second << std::endl;
+		}
+		out.close();
+		if (!out) throw commit_error();
+
+		try
+		{
+			// Backup existing paths file if it exists.
+			if (object_type(dst_pathname)!=0)
+			{
+				force_move(dst_pathname,bak_pathname,true);
+			}
+		
+			// Move new status file to destination.
+			force_move(tmp_pathname,dst_pathname,false);
+		
+			// Delete backup.
+			force_delete(bak_pathname);
+		}
+		catch (...)
+		{
+			throw commit_error();
+		}
+	}
+}
+
+void path_table::rollback()
+{
+	// Take no action unless a pathname has been specified.
+	if (_pathname.size())
+	{
+		_data.clear();
+		bool done=read(_pathname);
+		if (!done) read(_pathname+string("--"));
+	}
+}
+
+bool path_table::read(const string& pathname)
 {
 	std::ifstream in(pathname.c_str());
+	bool done=in;
+	in.peek();
 	while (in&&!in.eof())
 	{
 		// Read line from input stream.
@@ -111,6 +174,7 @@ void path_table::read(const string& pathname)
 		in.peek();
 	}
 	notify();
+	return done;
 }
 
 path_table::parse_error::parse_error(const string& message):
@@ -119,6 +183,10 @@ path_table::parse_error::parse_error(const string& message):
 
 path_table::invalid_source_path::invalid_source_path():
 	runtime_error("invalid source path")
+{}
+
+path_table::commit_error::commit_error():
+	runtime_error("failed to commit path table")
 {}
 
 string resolve_pathrefs(const path_table& paths,const string& in)
