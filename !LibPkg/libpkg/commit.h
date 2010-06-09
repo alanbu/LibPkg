@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_COMMIT
-#define _LIBPKG_COMMIT
+#ifndef LIBPKG_COMMIT
+#define LIBPKG_COMMIT
 
 #include "libpkg/thread.h"
 

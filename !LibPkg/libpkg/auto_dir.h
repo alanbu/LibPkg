@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_AUTO_DIR
-#define _LIBPKG_AUTO_DIR
+#ifndef LIBPKG_AUTO_DIR
+#define LIBPKG_AUTO_DIR
 
 #include <string>
 

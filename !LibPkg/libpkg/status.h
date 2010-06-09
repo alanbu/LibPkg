@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_STATUS
-#define _LIBPKG_STATUS
+#ifndef LIBPKG_STATUS
+#define LIBPKG_STATUS
 
 #include <utility>
 #include <string>

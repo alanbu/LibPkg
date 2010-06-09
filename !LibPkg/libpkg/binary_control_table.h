@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_BINARY_CONTROL_TABLE
-#define _LIBPKG_BINARY_CONTROL_TABLE
+#ifndef LIBPKG_BINARY_CONTROL_TABLE
+#define LIBPKG_BINARY_CONTROL_TABLE
 
 #include <map>
 #include <string>

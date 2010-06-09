@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_SYSVARS
-#define _LIBPKG_SYSVARS
+#ifndef LIBPKG_SYSVARS
+#define LIBPKG_SYSVARS
 
 namespace pkg {
 
