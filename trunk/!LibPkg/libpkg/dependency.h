@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_DEPENDENCY
-#define _LIBPKG_DEPENDENCY
+#ifndef LIBPKG_DEPENDENCY
+#define LIBPKG_DEPENDENCY
 
 #include <vector>
 #include <string>

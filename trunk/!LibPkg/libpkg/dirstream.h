@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_DIRSTREAM
-#define _LIBPKG_DIRSTREAM
+#ifndef LIBPKG_DIRSTREAM
+#define LIBPKG_DIRSTREAM
 
 #include <string>
 

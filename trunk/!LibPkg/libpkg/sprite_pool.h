@@ -3,8 +3,8 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#ifndef _LIBPKG_SPRITE_POOL
-#define _LIBPKG_SPRITE_POOL
+#ifndef LIBPKG_SPRITE_POOL
+#define LIBPKG_SPRITE_POOL
 
 namespace pkg {
 
