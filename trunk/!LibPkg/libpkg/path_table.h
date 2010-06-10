@@ -36,7 +36,10 @@ private:
 	 * or the empty string if none. */
 	string _pathname;
 
-	/** A map from source pathname to destination pathname. */
+	/** A map from source pathname to destination pathname.
+	 * Entries with an empty destination pathname have no effect
+	 * on how pathnames are mapped.
+	 */
 	std::map<key_type,mapped_type> _data;
 public:
 	/** Construct path table.

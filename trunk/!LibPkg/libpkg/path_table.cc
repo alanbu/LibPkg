@@ -30,7 +30,7 @@ string path_table::operator()(const string& src_pathname,
 	{
 		string src_prefix(src_pathname,0,ds);
 		f=_data.find(src_prefix);
-		if (f==_data.end())
+		if ((f==_data.end())||(f->second.size()==0))
 		{
 			if (ds) ds=src_pathname.rfind('.',ds-1);
 			else ds=string::npos;
@@ -160,14 +160,12 @@ bool path_table::read(const string& pathname)
 			// Check syntax.
 			if ((fields.size()<2)||(fields[1]!="="))
 				throw parse_error("= expected");
-			if (fields.size()<3)
-				throw parse_error("destination path expected");
 			if (fields.size()>3)
 				throw parse_error("end of line expected");
 
 			// Insert path into table.
 			string src_path=fields[0];
-			string dst_path=fields[2];
+			string dst_path=(fields.size()>=3)?fields[2]:"";
 			_data[src_path]=dst_path;
 		}
 
