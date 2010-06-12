@@ -61,6 +61,11 @@ path_table::const_iterator path_table::find(const string& src_pathname)
 	return _data.find(src_pathname);
 }
 
+void path_table::alter(const string& src_pathname,const string& dst_pathname)
+{
+	_data[src_pathname]=dst_pathname;
+}
+
 void path_table::erase(const string& src_pathname)
 {
 	_data.erase(src_pathname);
