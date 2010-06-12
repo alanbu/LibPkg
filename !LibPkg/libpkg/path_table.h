@@ -75,6 +75,12 @@ public:
 	 */
 	const_iterator find(const string& src_pathname);
 
+	/** Alter table entry.
+	 * @param src_pathname the required source pathname
+	 * @param dst_pathname the required destination pathname
+	 */
+	void alter(const string& src_pathname,const string& dst_pathname);
+
 	/** Erase table entry.
 	 * @param src_pathname the source pathname to be erased
 	 */
