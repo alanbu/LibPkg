@@ -64,6 +64,7 @@ path_table::const_iterator path_table::find(const string& src_pathname)
 void path_table::alter(const string& src_pathname,const string& dst_pathname)
 {
 	_data[src_pathname]=dst_pathname;
+	notify();
 }
 
 void path_table::erase(const string& src_pathname)
