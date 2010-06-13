@@ -42,7 +42,10 @@ private:
 	 */
 	std::map<key_type,mapped_type> _data;
 public:
-	/** Construct path table.
+	/** Construct empty path table. */
+	path_table();
+
+	/** Construct path table from file.
 	 * @param pathname the pathname of the underlying paths file
 	 */
 	path_table(const string& pathname);
@@ -89,6 +92,12 @@ public:
 	/** Clear all paths. */
 	void clear();
 
+	/** Get number of paths in table.
+	 * @return the number of paths
+	 */
+	size_t size() const
+		{ return _data.size(); }
+
 	/** Commit changes.
 	 * Any changes since the last call to commit() or rollback() are
 	 * committed to disc.
@@ -100,6 +109,12 @@ public:
 	 * discarded.
 	 */
 	void rollback();
+
+	/** Ensure that default paths are present in the table.
+	 * Any changes made to the table are not committed by this function.
+	 * @return true if any paths were added, otherwise false
+	 */
+	bool ensure_defaults();
 private:
 	/** Read paths file.
 	 * @param pathname the pathname

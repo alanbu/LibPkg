@@ -11,6 +11,34 @@
 
 namespace pkg {
 
+namespace {
+
+struct default_path
+{
+	const char* src_pathname;
+	const char* dst_pathname;
+};
+
+const default_path default_paths[]={
+	{"RiscPkg","<Packages$Dir>.Info.@"},
+	{"Apps","<Boot$Dir>.^.Apps"},
+	{"Library","<Boot$Dir>.Library"},
+	{"Manuals","<Boot$Dir>.^.Manuals"},
+	{"Printing","<Boot$Dir>.^.Printing"},
+	{"Resources","<BootResources$Dir>"},
+	{"RO500Hook","<Boot$Dir>.RO500Hook"},
+	{"Sprites","<Packages$Dir>.Sprites"},
+	{"System","<System$Dir>"},
+	{"SysVars","<Packages$Dir>.SysVars"},
+	{"Utilities","<Boot$Dir>.^.Utilities"},
+	{"Utils","<Boot$Dir>.Utils"},
+	{0,0}};
+
+}; /* anonymous namespace */
+
+path_table::path_table()
+{}
+
 path_table::path_table(const string& pathname):
 	_pathname(pathname)
 {
@@ -69,7 +97,7 @@ void path_table::alter(const string& src_pathname,const string& dst_pathname)
 
 void path_table::erase(const string& src_pathname)
 {
-	_data.erase(src_pathname);
+	_data[src_pathname]=string();
 	notify();
 }
 
@@ -129,6 +157,31 @@ void path_table::rollback()
 		bool done=read(_pathname);
 		if (!done) read(_pathname+string("--"));
 	}
+}
+
+bool path_table::ensure_defaults()
+{
+	bool changed=false;
+
+	// Iterate through the list of default paths.
+	const default_path* p=default_paths;
+	while ((p->src_pathname)&&(p->dst_pathname))
+	{
+		// Add a path only if the source path is not currently listed
+		// in the table.  Do not override existing entries (even if the
+		// destination path is empty).
+		if (_data.find(p->src_pathname)==_data.end())
+		{
+			_data[p->src_pathname]=p->dst_pathname;
+			changed=true;
+		}
+
+		// Advance to next default path.
+		++p;
+	}
+
+	// Return true if any paths were added, otherwise false.
+	return changed;
 }
 
 bool path_table::read(const string& pathname)
