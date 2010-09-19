@@ -4,7 +4,7 @@ Priority: Extra
 Licence: Free
 Maintainer: Graham Shaw <gdshaw@sagitta.demon.co.uk>
 Standards-Version: 0.1.0
-Version: 0.3.0
+Version: 0.4.0
 Description: A package management library for RISC OS
  LibPkg includes libraries for:
  - representing version numbers, status records and control files;
