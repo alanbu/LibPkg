@@ -1,4 +1,4 @@
-VERSION = 0.3.0
+VERSION = 0.4.0
 PACKAGES = \
  LibPkg-Common_$(VERSION) \
  LibPkg-Dev_$(VERSION) \
