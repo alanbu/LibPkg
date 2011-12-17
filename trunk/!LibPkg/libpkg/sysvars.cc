@@ -194,9 +194,15 @@ void update_sysvars(pkgbase& pb)
 	{
 		string varname=i->first;
 		string varval=i->second;
-		out << "Set " << varname << " \"" << varval << "\"" << std::endl;
 		rtk::os::OS_SetVarVal(varname.c_str(),varval.c_str(),varval.length(),
 			0,0,0,0);
+		string::size_type j=varval.find('%',0);
+		while (j!=string::npos)
+		{
+			varval.insert(j,1,'%');
+			j=varval.find('%',j+2);
+		}
+		out << "Set " << varname << " \"" << varval << "\"" << std::endl;
 	}
 	out.close();
 	write_filetype(tmp_pathname,filetype_Obey);
