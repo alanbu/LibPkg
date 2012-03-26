@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2004-2005 Graham Shaw.
+// Copyright © 2004-2012 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -80,7 +80,16 @@ void build_sprite_file(pkgbase& pb,const char** suffix_list)
 				string base_pathname;
 				getline(in,base_pathname);
 				base_pathname=resolve_pathrefs(pb.paths(),base_pathname);
-				copy_sprite(dst,base_pathname,suffix_list,obj.name);
+				try
+				{
+					copy_sprite(dst,base_pathname,suffix_list,obj.name);
+				}
+				catch (...)
+				{
+					// Ignore error if sprite failed to copy.
+					// (A file containing some of the sprites
+					// is better than no sprite file.)
+				}
 			}
 		}
 		empty&=!dst.size();
