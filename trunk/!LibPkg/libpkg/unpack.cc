@@ -4,6 +4,7 @@
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <stdexcept>
+#include <iostream>
 
 #include "libpkg/filesystem.h"
 #include "libpkg/version.h"
@@ -340,6 +341,8 @@ void unpack::_poll()
 			// Unpack file to temporary location.
 			string src_pathname=*_files_to_unpack.begin();
 			string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+			// Make a note that we're trying to unpack this file,
+			// so can revert it later if necessary
 			unpack_file(src_pathname,dst_pathname);
 			_files_being_unpacked.insert(dst_pathname);
 			_files_to_unpack.erase(src_pathname);
@@ -743,6 +746,7 @@ void unpack::remove_manifest(const string& pkgname)
 
 void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 {
+	//std::cout << "unpack::unpack_file " << src_pathname << " to " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string zip_pathname=src_to_zip(src_pathname);
@@ -767,6 +771,7 @@ void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 
 void unpack::replace_file(const string& dst_pathname,bool overwrite)
 {
+	//std::cout << "unpack::replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
 	if (dst_pathname.size())
 	{
 		string tmp_pathname=dst_to_tmp(dst_pathname);
@@ -776,6 +781,7 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 		// From this point on, if the backup pathname exists
 		// then it is a usable backup.
 		_ad(bak_pathname);
+		//std::cout << "unpack::replace_file: delete " << bak_pathname << std::endl;
 		force_delete(bak_pathname);
 
 		if (overwrite)
@@ -785,6 +791,7 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 			// file does not exist.
 			try
 			{
+				//std::cout << "unpack::replace_file: try move " << dst_pathname << " to "<< bak_pathname << std::endl;
 				force_move(dst_pathname,bak_pathname);
 			}
 			catch (...) {}
@@ -794,6 +801,7 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 		// Move file regardless of file attributes, but not regardless
 		// of whether destination is present.
 		_ad(tmp_pathname);
+		//std::cout << "unpack::replace_file: force move "<<tmp_pathname << " to "<< dst_pathname << std::endl;
 		force_move(tmp_pathname,dst_pathname);
 		_files_done+=1;
 	}
@@ -801,6 +809,7 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 
 void unpack::remove_file(const string& dst_pathname)
 {
+	//std::cout << "unpack::remove_file " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -818,12 +827,15 @@ void unpack::remove_file(const string& dst_pathname)
 			force_move(dst_pathname,bak_pathname);
 		}
 		catch (...) {}
+		//catch (...) {std::cout << "unpack::remove_file: backup failed" << std::endl;}
 		_files_done+=1;
+		//std::cout << "unpack::remove_file: done" << std::endl;
 	}
 }
 
 void unpack::remove_backup(const string& dst_pathname)
 {
+	//std::cout << "unpack::remove_backup " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -839,6 +851,7 @@ void unpack::remove_backup(const string& dst_pathname)
 
 void unpack::unwind_remove_file(const string& dst_pathname)
 {
+	//std::cout << "unpack::unwind_remove_file "<< dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -854,6 +867,7 @@ void unpack::unwind_remove_file(const string& dst_pathname)
 
 void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 {
+	//std::cout << "unpack::unwind_replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -865,7 +879,11 @@ void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 		{
 			_files_done-=1;
 			_ad(bak_pathname);
-			force_move(bak_pathname,dst_pathname,true);
+			
+			// try to unwind, but if the file isn't there we can't restore it
+			// eg if Control file never got written due to an error
+			if (object_type(bak_pathname) != 0)
+				force_move(bak_pathname,dst_pathname,true);
 		}
 		else
 		{
@@ -877,6 +895,7 @@ void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 
 void unpack::unwind_unpack_file(const string& dst_pathname)
 {
+	//std::cout << "unpack::unwind_unpack_file " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string tmp_pathname=dst_to_tmp(dst_pathname);
@@ -887,8 +906,9 @@ void unpack::unwind_unpack_file(const string& dst_pathname)
 	}
 }
 
+/* currently the only reason packages cannot be processed is a standards-version mismatch, so make the error descriptive */
 unpack::cannot_process::cannot_process():
-	runtime_error("cannot process package(s)")
+	runtime_error("A newer version of the package manager is required to install a package. Try finding PackMan in the package list, click the upgrade button, quit and restart it, and try again")
 {}
 
 unpack::file_conflict::file_conflict():

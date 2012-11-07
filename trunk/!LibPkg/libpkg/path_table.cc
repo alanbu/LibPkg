@@ -22,6 +22,8 @@ struct default_path
 const default_path default_paths[]={
 	{"RiscPkg","<Packages$Dir>.Info.@"},
 	{"Apps","<Boot$Dir>.^.Apps"},
+	{"!Boot","<Boot$Dir>"},
+	{"Bootloader","<Boot$Dir>.Loader"},
 	{"Library","<Boot$Dir>.Library"},
 	{"Manuals","<Boot$Dir>.^.Manuals"},
 	{"Printing","<Boot$Dir>.^.Printing"},
@@ -66,7 +68,7 @@ string path_table::operator()(const string& src_pathname,
 	}
 
 	// Extract destination prefix.
-	if (f==_data.end()) throw invalid_source_path();
+	if (f==_data.end()) throw invalid_source_path(src_pathname);
 	string dst_prefix=f->second;
 
 	// Extract suffix.
@@ -238,8 +240,8 @@ path_table::parse_error::parse_error(const string& message):
 	runtime_error(message)
 {}
 
-path_table::invalid_source_path::invalid_source_path():
-	runtime_error("invalid source path")
+path_table::invalid_source_path::invalid_source_path(const string& path):
+	runtime_error("we don't have a mapping in the Paths table for where this package should be installed on disc. Try upgrading PackMan? (problem path: "+path+")")
 {}
 
 path_table::commit_error::commit_error():
