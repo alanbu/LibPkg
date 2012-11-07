@@ -141,7 +141,7 @@ void pkgbase::verify_cached_file(const binary_control& ctrl)
 			std::istringstream in(f->second);
 			in >> size;
 			if (object_length(pathname)!=size)
-				throw cache_error("incorrect size",ctrl);
+				throw cache_error("incorrect size (do you need to 'Update lists'?)",ctrl);
 		}
 	}
 

@@ -140,7 +140,7 @@ class path_table::invalid_source_path:
 {
 public:
 	/** Construct invalid source path error. */
-	invalid_source_path();
+	invalid_source_path(const string& path);
 };
 
 /** An exception class for reporting failure to commit table. */

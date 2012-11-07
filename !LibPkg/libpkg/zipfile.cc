@@ -6,6 +6,11 @@
 #include "zlib.h"
 
 #include "libpkg/zipfile.h"
+#include "libpkg/filesystem.h"
+#include <cstring>
+#include <iostream>
+
+#define UNZIP_BUFFER_SIZE (128*1024)
 
 namespace pkg {
 
@@ -133,6 +138,7 @@ unsigned int zipfile::size() const
 void zipfile::extract(const string& src_pathname,
 	const string& dst_pathname) const
 {
+	//std::cout << "Unpacking " << src_pathname << " to " << dst_pathname << std::endl;
 	// Find file information record, report error if it does not exist.
 	const file_info* finfo=find(src_pathname);
 	if (!finfo) throw not_found(src_pathname);
@@ -143,10 +149,12 @@ void zipfile::extract(const string& src_pathname,
 
 	// Create output stream.
 	std::ofstream out(dst_pathname.c_str());
+	// raise exceptions if the file didn't write OK
+	out.exceptions ( std::ofstream::failbit | std::ofstream::badbit );
 
 	// Allocate buffers.
-	const unsigned int csize=1024;
-	const unsigned int usize=1024;
+	const unsigned int csize=UNZIP_BUFFER_SIZE;
+	const unsigned int usize=UNZIP_BUFFER_SIZE;
 	buffer cbuffer(csize);
 	buffer ubuffer(usize);
 
@@ -178,7 +186,16 @@ void zipfile::extract(const string& src_pathname,
 		// If output buffer is full then empty it.
 		if (!zs.avail_out)
 		{
-			out.write(ubuffer,zs.next_out-ubuffer);
+			try {
+				out.write(ubuffer,zs.next_out-ubuffer);
+			} catch (...) {
+				// we failed, so remove the file and raise an error
+				// don't use force_delete here, because if the file is locked
+				// we don't want to kill a pre-existing file
+				out.close();
+				soft_delete(dst_pathname);
+				throw std::runtime_error(string("Error when writing \"")+dst_pathname+string("\" (disc full?)"));
+			}
 			zs.next_out=ubuffer;
 			zs.avail_out=usize;
 		}
@@ -218,7 +235,16 @@ void zipfile::extract(const string& src_pathname,
 	// Flush output buffer.
 	if (zs.avail_out!=usize)
 	{
-		out.write(ubuffer,zs.next_out-ubuffer);
+		try {
+			out.write(ubuffer,zs.next_out-ubuffer);
+		} catch (...) {
+			// we failed, so remove the file and raise an error
+			// don't use force_delete here, because if the file is locked
+			// we don't want to kill a pre-existing file
+			out.close();
+			soft_delete(dst_pathname);
+			throw std::runtime_error(string("Error when writing \"")+dst_pathname+string("\" (disc full?)"));
+		}
 	}
 }
 

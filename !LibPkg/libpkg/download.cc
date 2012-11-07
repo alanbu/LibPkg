@@ -68,6 +68,8 @@ download::download(const string& url,const string& pathname):
 	curl_easy_setopt(_ceasy,CURLOPT_NOPROGRESS,false);
 	curl_easy_setopt(_ceasy,CURLOPT_FAILONERROR,true);
 	curl_easy_setopt(_ceasy,CURLOPT_ERRORBUFFER,_error_buffer);
+	// follow 301 Moved Permanently and similar redirects
+	curl_easy_setopt(_ceasy,CURLOPT_FOLLOWLOCATION,1);
 	curl_multi_add_handle(_cmulti,_ceasy);
 
 	__riscosify_control=riscosify_control;

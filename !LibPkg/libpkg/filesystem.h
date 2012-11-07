@@ -27,6 +27,14 @@ string canonicalise(const string& pathname);
  */
 void force_delete(const string& pathname);
 
+/** Delete file without changing file attributes
+ * It is not an error if the file does not exist.
+ * It is not an error if the file cannot be deleted (due to attributes
+ * or other reasons).
+ * @param pathname the pathname of the file to be deleted
+ */
+void soft_delete(const string& pathname);
+
 /** Move file without regard for file attributes.
  * If the file attributes prevent movement then they are changed for the
  * duration of the operation then restored afterwards.
