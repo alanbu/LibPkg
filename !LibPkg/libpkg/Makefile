@@ -1,9 +1,9 @@
 # This file is part of !RiscPkg.
-# Copyright © 2003-2005 Graham Shaw.            
+# Copyright © 2003-2012 Graham Shaw.            
 # Distribution and use are subject to the GNU General Public License,
 # a copy of which may be found in the file !RiscPkg.Copyright.
 
-CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
+CPPFLAGS = -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
 CXXFLAGS = -mthrowback -munixlib -mpoke-function-name \
  -Wall -W -Wno-unused -Wno-uninitialized -O2
 
@@ -34,7 +34,9 @@ OBJ = md5.o \
  unpack.o \
  sysvars.o \
  sprite_pool.o \
- commit.o
+ commit.o \
+ os/exception.o \
+ os/os.o
 
 .PHONY: all
 
