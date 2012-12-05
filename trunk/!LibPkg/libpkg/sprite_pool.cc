@@ -5,8 +5,6 @@
 
 #include <fstream>
 
-#include "rtk/os/os.h"
-
 #include "libpkg/filesystem.h"
 #include "libpkg/dirstream.h"
 #include "libpkg/sprite_file.h"

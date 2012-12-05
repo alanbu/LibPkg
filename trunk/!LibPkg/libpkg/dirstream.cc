@@ -3,7 +3,7 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
-#include "rtk/os/os.h"
+#include "libpkg/os/os.h"
 
 #include "libpkg/dirstream.h"
 
@@ -35,8 +35,8 @@ dirstream& dirstream::operator>>(object& obj)
 
 	if (_buffer_full)
 	{
-		rtk::os::file_info& info=
-			*reinterpret_cast<rtk::os::file_info*>(_buffer);
+		libpkg::os::file_info& info=
+			*reinterpret_cast<libpkg::os::file_info*>(_buffer);
 		obj.loadaddr=info.loadaddr;
 		obj.execaddr=info.execaddr;
 		obj.length=info.length;
@@ -64,7 +64,7 @@ void dirstream::fill_buffer()
 	if (!_buffer_full)
 	{
 		unsigned int count=0;
-		rtk::os::OS_GBPB12(_pathname.c_str(),_buffer,1,_offset,_buffer_size,
+		libpkg::os::OS_GBPB12(_pathname.c_str(),_buffer,1,_offset,_buffer_size,
 			_pattern.c_str(),&count,&_offset);
 		_buffer_full=count;
 	}

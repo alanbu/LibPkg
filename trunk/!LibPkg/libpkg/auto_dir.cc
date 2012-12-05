@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "rtk/os/os.h"
+#include "libpkg/os/os.h"
 
 #include "libpkg/auto_dir.h"
 
@@ -62,9 +62,9 @@ void auto_dir::operator()(const string& pathname)
 			{
 				// only try and delete the directory if it is a directory,
 				// not an image file
-				rtk::os::OS_File17(dirname.c_str(),&type,0,0,0,0);
+				libpkg::os::OS_File17(dirname.c_str(),&type,0,0,0,0);
 				if (type==2)
-					rtk::os::OS_File6(dirname.c_str(),0,0,0,0,0);
+					libpkg::os::OS_File6(dirname.c_str(),0,0,0,0,0);
  			}
 			catch (...) {}
 		}
@@ -81,7 +81,7 @@ void auto_dir::operator()(const string& pathname)
 			string dirname(pathname,0,i);
 			try
 			{
-				rtk::os::OS_File8(dirname.c_str(),0);
+				libpkg::os::OS_File8(dirname.c_str(),0);
 			}
 			catch (...) {}
 		}
