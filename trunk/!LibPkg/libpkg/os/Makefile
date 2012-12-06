@@ -9,32 +9,8 @@ CXXFLAGS = -mthrowback -munixlib -mpoke-function-name \
 
 include fixdeps:Rules/make
 
-OBJ = md5.o \
- auto_dir.o \
- filesystem.o \
- dirstream.o \
- sprite_file.o \
- uri.o \
- version.o \
- dependency.o \
- control.o \
- binary_control.o \
- status.o \
- table.o \
- status_table.o \
- binary_control_table.o \
- source_table.o \
- path_table.o \
- pkgbase.o \
- zipfile.o \
- download.o \
- standards_version.o \
- thread.o \
- update.o \
- unpack.o \
- sysvars.o \
- sprite_pool.o \
- commit.o
+OBJ = exception.o \
+      os.o
 
 .PHONY: all clean
 
