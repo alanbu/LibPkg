@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2010 Graham Shaw.
+// Copyright © 2003-2012 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -24,7 +24,6 @@ const default_path default_paths[]={
 	{"Apps","<Boot$Dir>.^.Apps"},
 	{"Boot","<Boot$Dir>"},
 	{"Bootloader","<Boot$Dir>.Loader"},
-	{"Library","<Boot$Dir>.Library"},
 	{"Manuals","<Boot$Dir>.^.Manuals"},
 	{"Printing","<Boot$Dir>.^.Printing"},
 	{"Resources","<BootResources$Dir>"},
@@ -32,10 +31,20 @@ const default_path default_paths[]={
 	{"System","<System$Dir>"},
 	{"SysVars","<Packages$Dir>.SysVars"},
 	{"Utilities","<Boot$Dir>.^.Utilities"},
-	{"Utils","<Boot$Dir>.Utils"},
 	{0,0}};
 
 }; /* anonymous namespace */
+
+/* Check is source pathname is an alias */
+inline bool is_alias(const std::string &src_pathname)
+{
+    return (src_pathname.size()
+        && src_pathname[0] == '!'
+        && (src_pathname.compare(1,4,"Boot") == 0
+            || src_pathname.compare(1,6,"System") == 0
+           )
+       );
+}
 
 path_table::path_table()
 {}
@@ -52,16 +61,19 @@ path_table::~path_table()
 string path_table::operator()(const string& src_pathname,
 	const string& pkgname) const
 {
+    std::string src_usepathname(src_pathname);
+    if (is_alias(src_usepathname)) src_usepathname.erase(0,1);
+
 	// Find longest matching source prefix.
-	string::size_type ds=src_pathname.size();
+	string::size_type ds=src_usepathname.size();
 	const_iterator f=_data.end();
 	while ((f==_data.end())&&(ds!=string::npos))
 	{
-		string src_prefix(src_pathname,0,ds);
+		string src_prefix(src_usepathname,0,ds);
 		f=_data.find(src_prefix);
 		if ((f==_data.end())||(f->second.size()==0))
 		{
-			if (ds) ds=src_pathname.rfind('.',ds-1);
+			if (ds) ds=src_usepathname.rfind('.',ds-1);
 			else ds=string::npos;
 		}
 	}
@@ -71,7 +83,7 @@ string path_table::operator()(const string& src_pathname,
 	string dst_prefix=f->second;
 
 	// Extract suffix.
-	string suffix(src_pathname,ds,string::npos);
+	string suffix(src_usepathname,ds,string::npos);
 
 	// Replace '@' with package name.
 	string::size_type i=dst_prefix.find('@');
@@ -87,6 +99,12 @@ string path_table::operator()(const string& src_pathname,
 
 path_table::const_iterator path_table::find(const string& src_pathname)
 {
+    if (is_alias(src_pathname))
+    {
+       // !Boot and !System are alias for Boot and System respectively
+       return _data.find(src_pathname.substr(1));
+    }
+
 	return _data.find(src_pathname);
 }
 
@@ -163,6 +181,15 @@ void path_table::rollback()
 bool path_table::ensure_defaults()
 {
 	bool changed=false;
+
+    // PackMan 0.7 on the Raspberry Pi added a !Boot path that
+    // is now just Boot so fix it here
+    const_iterator boot_i = _data.find("!Boot");
+    if (boot_i != _data.end())
+    {
+        _data["Boot"] = boot_i->second;
+        _data.erase("!Boot");
+    }
 
 	// Iterate through the list of default paths.
 	const default_path* p=default_paths;
