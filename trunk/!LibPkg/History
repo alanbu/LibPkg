@@ -1,7 +1,18 @@
 # This file is part of !LibPkg.
-# Copyright © 2003-2010 Graham Shaw.
+# Copyright © 2003-2012 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
+
+Version 0.5.0 (7 Dec 2012)
+
+  Raised supported standards version from 0.2.* to 0.3.*
+  Robustness improvements for Raspberry Pi.
+  Don't delete image file directories.
+  Added Boot path. Should be used for OS components only.
+  Removed RO500Hook, Library and Utils paths. Use Boot.RO500Hook, Boot.Library and Boot.Utils instead. Again these should only be used for OS components.
+  Can use !Boot or !System as an alias for Boot or System respectively in a package file. This allows SysMerge or BootMerge to be used to install the Payload if required.
+  ToBeLoaded, ToBeTasks path variables added. These are set up when the packaging manager front end is first run to be the location for PreDesk and Tasks. In multi-user OS's they are set to the path for all users.
+  Added BootLoaded path to allow RaspberryPi system images to be installed.
 
 Version 0.4.0 (19 Sep 2010)
 
