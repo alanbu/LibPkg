@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <fstream>
+#include <stdlib.h>
 
 #include "libpkg/filesystem.h"
 #include "libpkg/path_table.h"
@@ -207,6 +208,22 @@ bool path_table::ensure_defaults()
 		// Advance to next default path.
 		++p;
 	}
+
+    // Add paths that vary depending on the OS
+    if (_data.find("ToBeLoaded") == _data.end())
+    {
+       if (getenv("Boot$Default$ToBeLoaded") != 0)
+       {
+          // RISC OS 6 all users paths
+          _data["ToBeLoaded"] = "<Boot$Default$ToBeLoaded>";
+          _data["ToBeTasks"] = "<Boot$Default$ToBeTasks>";
+       } else
+       {
+          // Non RISC OS 6 only has one choice
+          _data["ToBeLoaded"] = "<Boot$ToBeLoaded>";
+          _data["ToBeTasks"] = "<Boot$ToBeTasks>";
+       }
+    }
 
 	// Return true if any paths were added, otherwise false.
 	return changed;
