@@ -22,13 +22,12 @@ struct default_path
 const default_path default_paths[]={
 	{"RiscPkg","<Packages$Dir>.Info.@"},
 	{"Apps","<Boot$Dir>.^.Apps"},
-	{"!Boot","<Boot$Dir>"},
+	{"Boot","<Boot$Dir>"},
 	{"Bootloader","<Boot$Dir>.Loader"},
 	{"Library","<Boot$Dir>.Library"},
 	{"Manuals","<Boot$Dir>.^.Manuals"},
 	{"Printing","<Boot$Dir>.^.Printing"},
 	{"Resources","<BootResources$Dir>"},
-	{"RO500Hook","<Boot$Dir>.RO500Hook"},
 	{"Sprites","<Packages$Dir>.Sprites"},
 	{"System","<System$Dir>"},
 	{"SysVars","<Packages$Dir>.SysVars"},
@@ -136,10 +135,10 @@ void path_table::commit()
 			{
 				force_move(dst_pathname,bak_pathname,true);
 			}
-		
+
 			// Move new status file to destination.
 			force_move(tmp_pathname,dst_pathname,false);
-		
+
 			// Delete backup.
 			force_delete(bak_pathname);
 		}
