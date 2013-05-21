@@ -1,0 +1,19 @@
+This is part of the RISC OS Packaging Project distribution of LibPkg.
+
+LibPkg was written by Graham Shaw <gdshaw@sagitta.demon.co.uk>.
+
+The source package has been incorporated into the upstream sources.
+
+There is a homepage for the RISC OS Packaging Project, including
+RiscPkg and LibPkg, at:
+
+http://www.riscpkg.org/
+
+Distribution and use are subject to the GNU Lesser General Public License,
+a copy of which may be found in the file:
+
+<Common_Licences$Dir>.LGPL-2/1
+
+or downloaded from the URL:
+
+http://www.riscpkg.org/licences/LGPL-2.1.txt
