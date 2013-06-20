@@ -21,6 +21,7 @@ using std::string;
 
 class pkgbase;
 class download;
+class log;
 
 /** A class for updating the package database.
  * Control files from remote sources take precedence over local packages
@@ -95,6 +96,9 @@ private:
 
 	/** A map giving the current progress for each source. */
 	std::map<string,progress> _progress_table;
+
+	/** Optional log of update */
+	log *_log;
 public:
 	/** Construct update operation.
 	 * @param pb the package database
@@ -129,6 +133,12 @@ public:
 	 */
 	string message() const
 		{ return _message; }
+
+	/** Set the log to add to
+	 * @param use_log log to use or 0 to stop logging
+	 */
+	void log_to(log *use_log);
+
 protected:
 	void poll();
 private:

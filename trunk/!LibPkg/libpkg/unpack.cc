@@ -1,5 +1,6 @@
 // This file is part of LibPkg.
 // Copyright © 2003-2005 Graham Shaw.
+// Copyright © 2013 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -14,6 +15,7 @@
 #include "libpkg/zipfile.h"
 #include "libpkg/standards_version.h"
 #include "libpkg/unpack.h"
+#include "libpkg/log.h"
 
 namespace {
 
@@ -154,7 +156,8 @@ unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 	_bytes_total(npos),
 	_files_total_unpack(0),
 	_files_total_remove(0),
-	_bytes_total_unpack(0)
+	_bytes_total_unpack(0),
+	_log(0)
 {
 	// For each package to be processed, determine whether it should
 	// be unpacked and/or removed.
@@ -174,6 +177,11 @@ unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 unpack::~unpack()
 {}
 
+void unpack::log_to(pkg::log *use_log)
+{
+   _log = use_log;
+}
+
 void unpack::poll()
 {
 	try
@@ -186,6 +194,7 @@ void unpack::poll()
 		_pb.curstat().rollback();
 		delete _zf;
 		_zf=0;
+		if (_log) _log->message(LOG_ERROR_UNPACK_EXCEPTION, _message);
 		switch (_state)
 		{
 		case state_pre_unpack:
@@ -194,10 +203,13 @@ void unpack::poll()
 			break;
 		case state_unpack:
 			_state=state_unwind_unpack;
+			if (_log && !_files_being_unpacked.empty())
+			    _log->message(LOG_INFO_UNWIND_UNPACK_FILES);
 			break;
 		case state_replace:
 		case state_remove:
 			_state=state_unwind_replace;
+			if (_log && !_files_unpacked.empty()) _log->message(LOG_INFO_UNWIND_REPLACED_FILES);
 			break;
 		default:
 			_state=state_fail;
@@ -227,6 +239,8 @@ void unpack::_poll()
 			status curstat=_pb.curstat()[_pkgname];
 			const status& selstat=_pb.selstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
+
+            if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
 
 			// Mark package as half-unpacked (but do not commit until
 			// pre-remove and pre-unpack phases have been completed).
@@ -276,6 +290,7 @@ void unpack::_poll()
 			_pkgname=*_packages_to_remove.begin();
 			status curstat=_pb.curstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
+			if (_log) _log->message(LOG_INFO_PREREMOVE, _pkgname);
 
 			// Mark package as half-unpacked (but do not commit until
 			// pre-remove and pre-unpack phases have been completed).
@@ -354,6 +369,8 @@ void unpack::_poll()
 			const status& selstat=_pb.selstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
 
+            if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
+
 			// Open zip file.
 			string pathname=_pb.cache_pathname(_pkgname,selstat.version());
 			delete _zf;
@@ -384,6 +401,8 @@ void unpack::_poll()
 			// Progress to next package.
 			_packages_being_unpacked.insert(_pkgname);
 			_packages_pre_unpacked.erase(_pkgname);
+
+           if (_log) _log->message(LOG_INFO_UNPACK_FILES, _pkgname);
 		}
 		else
 		{
@@ -392,6 +411,7 @@ void unpack::_poll()
 			delete _zf;
 			_zf=0;
 			_state=state_replace;
+			if (_log && !_files_being_unpacked.empty()) _log->message(LOG_INFO_UNPACK_REPLACE);
 		}
 		break;
 	case state_replace:
@@ -420,6 +440,7 @@ void unpack::_poll()
 			// Progress to next state.
 			_ad("");
 			_state=state_remove;
+			if (_log && !_files_to_remove.empty()) _log->message(LOG_INFO_UNPACK_REMOVE);
 		}
 		break;
 	case state_remove:
@@ -458,7 +479,7 @@ void unpack::_poll()
 			_pkgname=*_packages_being_removed.begin();
 			status curstat=_pb.curstat()[_pkgname];
 
-			// If package is not also being unpacked:
+ 			// If package is not also being unpacked:
 			if (_packages_being_unpacked.find(_pkgname)==
 				_packages_being_unpacked.end())
 			{
@@ -480,6 +501,9 @@ void unpack::_poll()
 			// Progress to next package.
 			_packages_removed.insert(_pkgname);
 			_packages_being_removed.erase(_pkgname);
+
+            if (_log) _log->message(LOG_INFO_UNPACK_REMOVED, _pkgname);
+
 		}
 		else
 		{
@@ -512,6 +536,8 @@ void unpack::_poll()
 			// Progress to next package.
 			_packages_unpacked.insert(_pkgname);
 			_packages_being_unpacked.erase(_pkgname);
+
+            if (_log) _log->message(LOG_INFO_UNPACKED_PACKAGE, _pkgname);
 		}
 		else
 		{
@@ -522,6 +548,7 @@ void unpack::_poll()
 
 			// Progress to next state.
 			_state=state_done;
+			if (_log) _log->message(LOG_INFO_UNPACK_DONE);
 		}
 		break;
 	case state_done:
@@ -545,6 +572,8 @@ void unpack::_poll()
 			// Progress to next state.
 			_ad("");
 			_state=state_unwind_remove;
+			if (_log && !_files_being_removed.empty())
+			  _log->message(LOG_INFO_UNWIND_REMOVED);
 		}
 		break;
 	case state_unwind_remove:
@@ -560,6 +589,8 @@ void unpack::_poll()
 			// Progress to next state.
 			_ad("");
 			_state=state_unwind_unpack;
+			if (_log && !_files_being_unpacked.empty())
+			    _log->message(LOG_INFO_UNWIND_UNPACK_FILES);
 		}
 		break;
 	case state_unwind_unpack:
@@ -585,6 +616,8 @@ void unpack::_poll()
 			// Progress to next package.
 			_packages_pre_unpacked.insert(_pkgname);
 			_packages_being_unpacked.erase(_pkgname);
+
+            if (_log) _log->message(LOG_INFO_RESTORE_CONTROL, _pkgname);
 		}
 		else
 		{
@@ -611,6 +644,7 @@ void unpack::_poll()
 				curstat.flag(status::flag_auto,
 					prevstat.flag(status::flag_auto));
 				_pb.curstat().insert(_pkgname,curstat);
+				if (_log) _log->message(LOG_INFO_UNWIND_STATE, _pkgname);
 			}
 
 			// Progress to next package.
@@ -638,6 +672,7 @@ void unpack::_poll()
 				curstat.state(status::state_removed);
 				curstat.flag(status::flag_auto,false);
 				_pb.curstat().insert(_pkgname,curstat);
+				if (_log) _log->message(LOG_INFO_UNWIND_STATE_REMOVED,_pkgname);
 			}
 
 			// Progress to next package.
@@ -649,6 +684,7 @@ void unpack::_poll()
 			// removed or unpacked should by now have been marked
 			// as half-unpacked.
 			_pb.curstat().commit();
+			if (_log) _log->message(LOG_INFO_UNWIND_DONE);
 
 			// Progress to next state.
 			_state=state_fail;
@@ -879,7 +915,7 @@ void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 		{
 			_files_done-=1;
 			_ad(bak_pathname);
-			
+
 			// try to unwind, but if the file isn't there we can't restore it
 			// eg if Control file never got written due to an error
 			if (object_type(bak_pathname) != 0)

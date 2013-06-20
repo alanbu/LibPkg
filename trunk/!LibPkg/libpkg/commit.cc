@@ -16,6 +16,7 @@
 #include "libpkg/sysvars.h"
 #include "libpkg/sprite_pool.h"
 #include "libpkg/commit.h"
+#include "libpkg/log.h"
 
 namespace pkg {
 
@@ -28,7 +29,8 @@ commit::commit(pkgbase& pb,const std::set<string>& packages):
 	_files_done(0),
 	_files_total(npos),
 	_bytes_done(0),
-	_bytes_total(npos)
+	_bytes_total(npos),
+	_log(0)
 {
 	// Commit selected state to disc.
 	_pb.selstat().commit();
@@ -57,6 +59,7 @@ void commit::poll()
 
 			// Find control record.
 			binary_control_table::key_type key(_pkgname,selstat.version());
+			if (_log) _log->message(LOG_INFO_PREPROCESS_PACKAGE, _pkgname, selstat.version());
 			const binary_control& ctrl=_pb.control()[key];
 
 			// Determine whether a download is required.
@@ -69,9 +72,11 @@ void commit::poll()
 				{
 					_pb.verify_cached_file(ctrl);
 					download_req=false;
+					if (_log) _log->message(LOG_INFO_CACHE_USED, _pkgname);
 				}
 				catch (pkgbase::cache_error& ex)
-				{}
+				{
+				}
 			}
 
 			if (download_req)
@@ -123,6 +128,7 @@ void commit::poll()
 				{
 					delete _dload;
 					_dload=0;
+					if (_log) _log->message(LOG_INFO_DOWNLOADED_PACKAGE, _pkgname);
 					const status& selstat=_pb.selstat()[_pkgname];
 					binary_control_table::key_type key(_pkgname,
 						selstat.version());
@@ -137,6 +143,7 @@ void commit::poll()
 					{
 						_message=ex.what();
 						_state=state_fail;
+						if (_log) _log->message(LOG_ERROR_CACHE_INSERT, _pkgname, ex.what());
 					}
 				}
 				break;
@@ -146,6 +153,7 @@ void commit::poll()
 				delete _dload;
 				_dload=0;
 				_state=state_fail;
+				if (_log) _log->message(LOG_ERROR_PACKAGE_DOWNLOAD_FAILED, _pkgname, _message);
 				break;
 			}
 		}
@@ -162,6 +170,8 @@ void commit::poll()
 			string url=ctrl.url();
 			string pathname=_pb.cache_pathname(_pkgname,selstat.version());
 			_dload=new download(url,pathname);
+
+			if (_log) _log->message(LOG_INFO_DOWNLOADING_PACKAGE, _pkgname, url);
 		}
 		else
 		{
@@ -191,6 +201,7 @@ void commit::poll()
 				_upack=0;
 				_packages_to_configure.swap(_packages_to_unpack);
 				_state=state_configure;
+				if (_log) _log->message(LOG_INFO_UNPACKED);
 				break;
 			case unpack::state_fail:
 				// If unpack failed then commit failed too.
@@ -199,6 +210,7 @@ void commit::poll()
 				delete _upack;
 				_upack=0;
 				_state=state_fail;
+				if (_log) _log->message(LOG_ERROR_UNPACK_FAILED, _message);
 				break;
 			default:
 				// If unpack operation in progress then do nothing.
@@ -208,7 +220,9 @@ void commit::poll()
 		else
 		{
 			// Begin unpack operation.
+			if (_log) _log->message(LOG_INFO_UNPACKING);
 			_upack=new unpack(_pb,_packages_to_unpack);
+			_upack->log_to(_log);
 		}
 		break;
 	case state_configure:
@@ -225,6 +239,7 @@ void commit::poll()
 				status st=_pb.curstat()[_pkgname];
 				st.state(status::state_installed);
 				_pb.curstat().insert(_pkgname,st);
+				if (_log) _log->message(LOG_INFO_INSTALLED, _pkgname);
 			}
 
 			// Move to next package.
@@ -235,6 +250,7 @@ void commit::poll()
 		{
 			// Commit package status changes.
 			_pb.curstat().commit();
+			if (_log) _log->message(LOG_INFO_STATE_UPDATE);
 
 			// Progress to next state.
 			_state=state_purge;
@@ -254,6 +270,7 @@ void commit::poll()
 				status st=_pb.curstat()[_pkgname];
 				st.state(status::state_not_present);
 				_pb.curstat().insert(_pkgname,st);
+				if (_log) _log->message(LOG_INFO_PURGED, _pkgname);
 			}
 
 			// Move to next package.
@@ -263,7 +280,7 @@ void commit::poll()
 		{
 			// Commit package status changes.
 			_pb.curstat().commit();
-
+			if (_log) _log->message(LOG_INFO_STATE_UPDATE);
 			// Progress to next state.
 			_state=state_update_sysvars;
 		}
@@ -271,7 +288,10 @@ void commit::poll()
 	case state_update_sysvars:
 		{
 			// Update list of system variables.
+
+			if (_log) _log->message(LOG_INFO_UPDATING_SYSVARS);
 			update_sysvars(_pb);
+			if (_log) _log->message(LOG_INFO_SYSVARS_UPDATED);
 
 			// Progress to next state.
 			_state=state_update_sprites;
@@ -280,10 +300,13 @@ void commit::poll()
 	case state_update_sprites:
 		{
 			// Update sprite pool.
+			if (_log) _log->message(LOG_INFO_UPDATING_SPRITES);
 			update_sprite_pool(_pb);
+			if (_log) _log->message(LOG_INFO_SPRITES_UPDATED);
 
 			// Progress to next state.
 			_state=state_done;
+			if (_log) _log->message(LOG_INFO_COMMIT_DONE);
 		}
 		break;
 	case state_done:
@@ -335,6 +358,12 @@ void commit::update_download_progress()
 	// information is available (provided there is at least one total
 	// or estimated total from which to extrapolate).
 	if (known) _bytes_total+=(_bytes_total*(count-known))/known;
+}
+
+void commit::log_to(log *use_log)
+{
+	_log = use_log;
+	if (_log) _log->message(LOG_INFO_START_COMMIT);
 }
 
 commit::progress::progress():
