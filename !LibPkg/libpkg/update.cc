@@ -11,6 +11,7 @@
 #include "libpkg/pkgbase.h"
 #include "libpkg/download.h"
 #include "libpkg/update.h"
+#include "libpkg/log.h"
 
 namespace pkg {
 
@@ -20,7 +21,8 @@ update::update(pkgbase& pb):
 	_dload(0),
 	_out(0),
 	_bytes_done(0),
-	_bytes_total(npos)
+	_bytes_total(npos),
+	_log(0)
 {}
 
 update::~update()
@@ -40,6 +42,7 @@ void update::poll()
 		delete _out;
 		_out=0;
 		_state=state_fail;
+		if (_log) _log->message(LOG_ERROR_UPDATE_EXCEPTION, _message);
 	}
 }
 
@@ -48,6 +51,7 @@ void update::_poll()
 	switch (_state)
 	{
 	case state_srclist:
+		if (_log) _log->message(LOG_INFO_READ_SOURCES);
 		// Re-read sources list from disc.
 		_pb.sources().update();
 
@@ -67,6 +71,7 @@ void update::_poll()
 
 		// Switch to state_download.
 		_state=state_download;
+		if (_log) _log->message(LOG_INFO_DOWNLOADING_SOURCES);
 		break;
 	case state_download:
 		if (_dload)
@@ -84,6 +89,7 @@ void update::_poll()
 				_dload=0;
 				_sources_to_build.insert(_url);
 				_sources_to_download.erase(_url);
+				if (_log) _log->message(LOG_INFO_DOWNLOADED_SOURCE, _url);
 				break;
 			case download::state_fail:
 				// If download failed then update failed too.
@@ -91,6 +97,7 @@ void update::_poll()
 				delete _dload;
 				_dload=0;
 				_state=state_fail;
+				if (_log) _log->message(LOG_ERROR_SOURCE_DOWNLOAD_FAILED, _url, _message);
 				break;
 			}
 		}
@@ -101,6 +108,7 @@ void update::_poll()
 			_url=*_sources_to_download.begin();
 			string pathname=_pb.list_pathname(_url);
 			_dload=new download(_url,pathname);
+			if (_log) _log->message(LOG_INFO_DOWNLOADING_SOURCE, _url);
 		}
 		else
 		{
@@ -108,6 +116,7 @@ void update::_poll()
 			// switch to state_build_sources.
 			_out=new std::ofstream(_pb.available_pathname().c_str());
 			_state=state_build_sources;
+			if (_log) _log->message(LOG_INFO_DOWNLOADED_SOURCES);
 		}
 		break;
 	case state_build_sources:
@@ -115,6 +124,7 @@ void update::_poll()
 		{
 			// Select next source.
 			_url=*_sources_to_build.begin();
+			if (_log) _log->message(LOG_INFO_ADDING_AVAILABLE, _url);
 			string pathname=_pb.list_pathname(_url);
 			std::ifstream in(pathname.c_str());
 
@@ -155,10 +165,12 @@ void update::_poll()
 			// If there are no more sources waiting to be built
 			// then switch to state_build_local.
 			_state=state_build_local;
+		    if (_log) _log->message(LOG_INFO_AVAILABLE_ADDED);
 		}
 		break;
 	case state_build_local:
 		{
+		    if (_log) _log->message(LOG_INFO_ADD_LOCAL);
 			status_table& curstat=_pb.curstat();
 			for (status_table::const_iterator i=curstat.begin();
 				i!=curstat.end();++i)
@@ -181,12 +193,15 @@ void update::_poll()
 				}
 			}
 
+		    if (_log) _log->message(LOG_INFO_UPDATING_DATABASE);
+
 			// Close output stream, update package database
 			// from available file, and switch to state_done.
 			delete _out;
 			_out=0;
 			_pb.control().update();
 			_state=state_done;
+		    if (_log) _log->message(LOG_INFO_UPDATE_DONE);
 		}
 		break;
 	case state_done:
@@ -243,5 +258,10 @@ update::progress::progress():
 	bytes_total(npos),
 	bytes_prev(npos)
 {}
+
+void update::log_to(log *use_log)
+{
+	_log = use_log;
+}
 
 }; /* namespace pkg */

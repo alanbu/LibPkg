@@ -1,5 +1,6 @@
 // This file is part of LibPkg.
 // Copyright © 2003-2005 Graham Shaw.
+// Copyright © 2013 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -18,6 +19,7 @@ using std::string;
 
 class pkgbase;
 class zipfile;
+class log;
 
 /** A class for unpacking and removing sets of packages. */
 class unpack:
@@ -174,6 +176,9 @@ private:
 	/** The set of destination pathnames (for all packages) that conflict
 	 * with files already on the system. */
 	std::set<string> _files_that_conflict;
+
+	/** The log to use. Can be 0 for no logging  */
+	pkg::log *_log;
 public:
 	/** Construct unpack object.
 	 * @param pb the package database
@@ -239,6 +244,9 @@ public:
 	 */
 	const std::set<string>& files_that_conflict() const
 		{ return _files_that_conflict; }
+
+       /** Set the log to add the unpack messages to */
+       void log_to(pkg::log *use_log);
 protected:
 	void poll();
 private:

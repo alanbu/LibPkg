@@ -14,6 +14,7 @@ class control_binary;
 class pkgbase;
 class download;
 class unpack;
+class log;
 
 /** A class for installing, removing and purging packages. */
 class commit:
@@ -110,6 +111,10 @@ private:
 	/** The set of destination pathnames that conflict with files
 	 * already on the system. */
 	std::set<string> _files_that_conflict;
+
+	/** Optional commit log */
+	log *_log;
+
 public:
 	/** Construct commit operation.
 	 * @param pb the package database
@@ -166,6 +171,12 @@ public:
 	 */
 	const std::set<string>& files_that_conflict() const
 		{ return _files_that_conflict; }
+
+	/** Set the log to add to
+	 * @param use_log log to use or 0 to stop logging
+	 */
+	void log_to(log *use_log);
+
 protected:
 	virtual void poll();
 private:
