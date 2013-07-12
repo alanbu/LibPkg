@@ -35,7 +35,9 @@ OBJ = md5.o \
  sysvars.o \
  sprite_pool.o \
  commit.o \
- log.o
+ log.o \
+ component.o
+
 
 .PHONY: all clean
 
