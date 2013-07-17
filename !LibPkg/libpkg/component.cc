@@ -41,7 +41,7 @@ bool component::operator==(const component &other) const
 
 bool component::operator!=(const component &other) const
 {
-	return (_name != other._name && _flags != other._flags && _path != other._path);
+	return (_name != other._name || _flags != other._flags || _path != other._path);
 }
 
 
@@ -81,7 +81,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 	while ((p!=last)&&(*p!=' ')&&(*p!='('))
 	{
 		char ch=*p++;
-		if (!std::isalnum(ch)&&(ch!='+')&&(ch!='-')&&(ch!='.'))
+		if (!std::isalnum(ch)&&(ch!='!')&&(ch!='_')&&(ch!='+')&&(ch!='-')&&(ch!='.'))
 			throw parse_error("illegal character in component name");
 	}
 	if (p==q) throw parse_error("component name expected");
@@ -111,7 +111,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 			{
 				if (flag_name == ComponentFlagNames[f]) flag((flag_type)f, true);
 			}
-			if (old_flags == _flags) parse_error(std::string("invalid component flag '" + flag_name + "'").c_str());
+			if (old_flags == _flags) throw parse_error(std::string("invalid component flag '" + flag_name + "'").c_str());
 
 			// Skip whitespace.
 			while ((p!=last)&&(*p==' ')) ++p;
@@ -120,12 +120,12 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 		if (_flags)
 		{
 			if ((p==last)||(*p!=')')) throw parse_error("')' missing from end of component flags");
-			p++;
+			if (p!=last) p++;
 		}
 	}
 
 	// There should now be no characters remaining.
-	if (p!=last) throw parse_error("end of component expected");
+	if (p!=last) throw parse_error((std::string("end of component expected, got '") + *p + "'").c_str());
 }
 
 component::parse_error::parse_error(const char* message):
