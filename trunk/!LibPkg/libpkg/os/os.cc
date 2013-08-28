@@ -11,7 +11,7 @@
 #include "os.h"
 #include "osswi.h"
 
-namespace libpkg {
+namespace pkg {
 namespace os {
 
 void OS_Byte161(int address,int* _value)
@@ -230,5 +230,12 @@ void OS_ReadMonotonicTime(unsigned int* _time)
 	if (_time) *_time=regs.r[0];
 }
 
+void OS_CLI(const char* command)
+{
+	_kernel_swi_regs regs;
+	regs.r[0]=(int)command;
+	call_swi(swi::OS_CLI,&regs);
+}
+
 } /* namespace os */
-} /* namespace libpkg */
+} /* namespace pkg */

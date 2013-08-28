@@ -14,7 +14,7 @@
 
 #include "exception.h"
 
-namespace libpkg {
+namespace pkg {
 namespace os {
 
 exception::exception(_kernel_oserror* err)
@@ -38,4 +38,4 @@ const char* exception::what() const throw()
 }
 
 } /* namespace os */
-} /* namespace libpkg */
+} /* namespace pkg */

@@ -208,6 +208,14 @@ public:
 	 *  is one, otherwise the empty string
 	 */
 	string url() const;
+
+	/** Get components
+	 * @return a comma separated list of components to configure
+	 *  with any associated options, if there are any otherwise
+	 *  the empty string
+	 */
+	string components() const;
+
 protected:
 	/** Get priority.
 	 * This function may be overridden to modify the sort order.

@@ -114,6 +114,13 @@ string control::url() const
 	return (f==end())?string():(*f).second;
 }
 
+string control::components() const
+{
+	static const key_type key("Components");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+}
+
 int control::priority(const string& value) const
 {
 	return 0;

@@ -12,7 +12,7 @@ namespace pkg
 
 const char*ComponentFlagNames[] = 
 {
-	"Moveable",
+	"Movable",
 	"LookAt",
 	"Run",
 	"AddToApps"
@@ -52,7 +52,7 @@ component::operator std::string() const
 	{
 		out += " (";
 		bool add_space = false;
-		for (int f = (int)moveable; f <= (int)add_to_apps; ++f)
+		for (int f = (int)movable; f <= (int)add_to_apps; ++f)
 		{
 			if (add_space) out += " ";
 			else add_space = true;
@@ -107,7 +107,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 			while ((p!=last)&&(*p!=' ')&&(*p!=')')) ++p;
 			std::string flag_name(flag_start, p);
 			unsigned int old_flags = _flags;
-			for(int f = (int)moveable; f <= (int)add_to_apps; ++f)
+			for(int f = (int)movable; f <= (int)add_to_apps; ++f)
 			{
 				if (flag_name == ComponentFlagNames[f]) flag((flag_type)f, true);
 			}
@@ -176,7 +176,7 @@ std::ostream& operator<<(std::ostream& out,
 	const component &comp)
 {
 	out << ((std::string)comp) << "\t";
-	out << comp.path() << std::endl;
+	out << comp.path();
 
 	return out;
 }

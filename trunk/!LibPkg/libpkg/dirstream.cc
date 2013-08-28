@@ -35,8 +35,8 @@ dirstream& dirstream::operator>>(object& obj)
 
 	if (_buffer_full)
 	{
-		libpkg::os::file_info& info=
-			*reinterpret_cast<libpkg::os::file_info*>(_buffer);
+		pkg::os::file_info& info=
+			*reinterpret_cast<pkg::os::file_info*>(_buffer);
 		obj.loadaddr=info.loadaddr;
 		obj.execaddr=info.execaddr;
 		obj.length=info.length;
@@ -64,7 +64,7 @@ void dirstream::fill_buffer()
 	if (!_buffer_full)
 	{
 		unsigned int count=0;
-		libpkg::os::OS_GBPB12(_pathname.c_str(),_buffer,1,_offset,_buffer_size,
+		pkg::os::OS_GBPB12(_pathname.c_str(),_buffer,1,_offset,_buffer_size,
 			_pattern.c_str(),&count,&_offset);
 		_buffer_full=count;
 	}

@@ -194,7 +194,7 @@ void update_sysvars(pkgbase& pb)
 	{
 		string varname=i->first;
 		string varval=i->second;
-		libpkg::os::OS_SetVarVal(varname.c_str(),varval.c_str(),varval.length(),
+		pkg::os::OS_SetVarVal(varname.c_str(),varval.c_str(),varval.length(),
 			0,0,0,0);
 		string::size_type j=varval.find('%',0);
 		while (j!=string::npos)

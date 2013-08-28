@@ -20,13 +20,22 @@ const char *error_text[] =
 	"Failed to insert package '%0' into cache, error: %1",
 	"Failed to download package '%0', error: %1",
 	"Failed to unpack the packages, error: %0",
-	"Error during unpacking '%0'"
+	"Error during unpacking '%0'",
+	"Failed to update paths for the components, error: %0",
+	"Failed to rollback paths after an error, rollback error: %0"
 };
 const char *warning_text[] = 
 {
 	"Missing log entry: ", // Special entry to trap undefined log text messages
-	"first warning %0 %1"
+	"Unable to parse components for removal for package '%0', error: %1",
+	"Failed to update '%0 boot options', error: %1",
+	"Component '%0' has not been installed'",
+	"Failed to Filer_Boot '%0', error: %1",
+	"Failed to Filer_Run '%0', error: %1",
+	"Failed to AddApp '%0', error: %1",
+	"Failed to mark component updates as done"
 };
+
 const char *trace_text[] =
 {
 	"Trace: %0",
@@ -74,7 +83,21 @@ const char *info_text[] =
 	"Restoring control file for '%0'",
 	"Restoring status of previously installed package '%0'",
 	"Restoring status of previously removed package '%0'",
-	"Unwinding from failed unpack completed"
+	"Unwinding from failed unpack completed",
+	"Updating component paths",
+	"Marking path '%0' from package '%1' for removal from boot options",
+	"Updating logical path '%0' to '%1'",
+	"Component paths updated",
+	"Updating boot option files",
+	"Boot option files updated",
+	"Booting files",
+	"Booting file '%0'",
+	"Running files",
+	"Running file '%0'",
+	"Adding files to apps",
+	"Adding file '%0' to apps",
+	"The files for the packages have been installed correctly, but",
+	"the following warnings occurred during configuration."
 };
 
 // Array putting it all together

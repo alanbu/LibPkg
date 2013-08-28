@@ -119,6 +119,11 @@ string pkgbase::bootsprites_pathname()
 	return _pathname+string(".!BootSprites");
 }
 
+string pkgbase::component_update_pathname()
+{
+	return _pathname + string(".CompUpdate");
+}
+
 void pkgbase::verify_cached_file(const binary_control& ctrl)
 {
 	// Test whether file exists.
