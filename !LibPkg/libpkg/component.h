@@ -33,7 +33,7 @@ public:
 	{
 		/** A flag to indicate this component can have it's install location
 		 *  changed and it may be moved after install. */
-		moveable,
+		movable,
 		/** A flag to indicate this component should be added to the RISC OS
 		 *  boot look at file, so it is booted when the desktop starts. */
 		look_at,

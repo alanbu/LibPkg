@@ -6,6 +6,9 @@
 Version 0.6.0 ???
 
   Added optional logging of update lists and commit
+  Added components field to specify options for parts of the installed package. e.g. If it is moveable, should be booted etc.
+  Add new commit stages for components to allow their paths to be set and them to be added to desktop look at, run and add to apps files
+  Raised supported standards version from 0.3.* to 0.4.* (to support components)
 
 Version 0.5.0 (7 Dec 2012)
 

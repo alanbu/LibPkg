@@ -36,7 +36,9 @@ OBJ = md5.o \
  sprite_pool.o \
  commit.o \
  log.o \
- component.o
+ component.o \
+ component_update.o \
+ boot_options_file.o
 
 
 .PHONY: all clean

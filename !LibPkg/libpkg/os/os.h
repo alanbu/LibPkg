@@ -8,7 +8,7 @@
 
 #ifndef _LPPKG_OS_OS
 
-namespace libpkg {
+namespace pkg {
 namespace os {
 
 struct file_info
@@ -183,7 +183,13 @@ void OS_ReadModeVariable(int index,int* _value);
  */
 void OS_ReadMonotonicTime(unsigned int* _time);
 
+/** Execute a command line
+ *
+ * @param command line to execute ( < 256 characters)
+ */
+void OS_CLI(const char *command);
+
 } /* namespace os */
-} /* namespace libpkg */
+} /* namespace pkg */
 
 #endif

@@ -92,6 +92,12 @@ unsigned int object_type(const string& pathname);
  */
 unsigned int object_length(const string& pathname);
 
+/** Get version of pathname made relative the the boot drive
+ * @param pathname the pathname
+ * @return boot relative pathname or original if not on the boot drive
+ */
+std::string boot_drive_relative(const string& pathname);
+
 }; /* namespace pkg */
 
 #endif

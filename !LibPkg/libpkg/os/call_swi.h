@@ -13,7 +13,7 @@
 
 #include "exception.h"
 
-namespace libpkg {
+namespace pkg {
 namespace os {
 
 /** Call a RISC OS software interrupt.
@@ -29,6 +29,6 @@ inline void call_swi(unsigned int number,_kernel_swi_regs* regs)
 }
 
 } /* namespace os */
-} /* namespace libpkg */
+} /* namespace pkg */
 
 #endif

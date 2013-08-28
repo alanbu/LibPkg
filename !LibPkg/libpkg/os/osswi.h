@@ -9,7 +9,7 @@
 // Cut down version to use with LibPkg created by Alan Buckley
 // to remove the RTK dependency.
 
-namespace libpkg {
+namespace pkg {
 namespace swi {
 
 const int OS_WriteC             =0x00;
@@ -175,6 +175,6 @@ const int XWindLimit    =11;
 const int YWindLimit    =12;
 
 } /* namespace swi */
-} /* namespace libpkg */
+} /* namespace pkg */
 
 #endif

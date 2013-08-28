@@ -14,7 +14,7 @@
 #include <exception>
 #include "kernel.h"
 
-namespace libpkg {
+namespace pkg {
 namespace os {
 
 /** An exception class to represent a RISC OS error block.
@@ -50,6 +50,6 @@ public:
 };
 
 } /* namespace os */
-} /* namespace rtk */
+} /* namespace pkg */
 
 #endif

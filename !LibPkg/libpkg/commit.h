@@ -7,6 +7,7 @@
 #define LIBPKG_COMMIT
 
 #include "libpkg/thread.h"
+#include "libpkg/log.h"
 
 namespace pkg {
 
@@ -14,7 +15,6 @@ class control_binary;
 class pkgbase;
 class download;
 class unpack;
-class log;
 
 /** A class for installing, removing and purging packages. */
 class commit:
@@ -30,6 +30,8 @@ public:
 	// An enumeration for describing the state of the commit operation. */
 	enum state_type
 	{
+		/** The state in which paths for components are set */
+		state_paths,
 		/** The state in which packages are being considered for download. */
 		state_pre_download,
 		/** The state in which packages are being downloaded. */
@@ -44,6 +46,14 @@ public:
 		state_update_sysvars,
 		/** The state in which the sprite pool is updated. */
 		state_update_sprites,
+		/** The state in which the RISC OS boot option files are updated */
+		state_update_boot_options,
+		/** The state in which files added to the boot look at and boot run files are booted */
+		state_boot_files,
+		/** The state in which files added to the boot run files are run */
+		state_run_files,
+		/** The state in which files are added to the current apps virtual directory */
+		state_add_files_to_apps,
 		/** The state in which all operations have been successfully
 		 * completed. */
 		state_done,
@@ -77,6 +87,16 @@ private:
 	 * Note that packages are only purged if their current and
 	 * selected status indicates that they can be and need to be. */
 	std::set<string> _packages_to_purge;
+
+	/** Components that should be removed */
+	std::set<string> _components_to_remove;
+
+	/** Files to be booted */
+	std::set<string> _files_to_boot;
+	/** Files to be run */
+	std::set<string> _files_to_run;
+	/** Files to add to apps */
+	std::set<string> _files_to_add_to_apps;
 
 	/** The name of the package currently being processed. */
 	string _pkgname;
@@ -114,6 +134,9 @@ private:
 
 	/** Optional commit log */
 	log *_log;
+
+	/** Log created for any warnings */
+	log *_warnings;
 
 public:
 	/** Construct commit operation.
@@ -177,6 +200,18 @@ public:
 	 */
 	void log_to(log *use_log);
 
+	/** Return warnings log.
+	 * @returns warnings log or 0 if there were no warnings
+	 */
+	log *warnings() const {return _warnings;}
+    /** Detach warnings log.
+	 * Detach the warnings log so it doesn't get destroyed
+	 * with the commit object. It is then the responsibility
+	 * of the object that detached the log to delete it.
+	 * @returns warnings log or 0 if there were no warnings
+	 */
+	log *detach_warnings() {log *w = _warnings; _warnings = 0; return w;}
+
 protected:
 	virtual void poll();
 private:
@@ -185,6 +220,14 @@ private:
 	 * the total number of bytes to download.
 	 */
 	void update_download_progress();
+
+	/**
+	 * Log/Report non-fatal configuration failures.
+	 * @param code Log error code for logging
+	 * @param item item error occurred upon
+	 * @param what additional error details.
+	 */
+	void warning(LogCode code, const std::string &item, const std::string &what);
 };
 
 /** A structure for monitoring the download progress of one source. */

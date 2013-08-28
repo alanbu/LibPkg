@@ -154,6 +154,11 @@ public:
 	 */
 	string bootsprites_pathname();
 
+	/** Get pathname for component update file
+	 * @return the pathname
+	 */
+	string component_update_pathname();
+
 	/** Verify file in cache.
 	 * This function checks first whether a suitably named file exists,
 	 * then whether it has the correct length, then whether it has the
