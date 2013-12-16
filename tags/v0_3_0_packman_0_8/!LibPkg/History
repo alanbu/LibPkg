@@ -1,0 +1,57 @@
+# This file is part of !LibPkg.
+# Copyright © 2003-2012 Graham Shaw.
+# Distribution and use are subject to the GNU Lesser General Public License,
+# a copy of which may be found in the file !LibPkg.Copyright.
+
+Version 0.6.0 ???
+
+  Added optional logging of update lists and commit
+  Added components field to specify options for parts of the installed package. e.g. If it is moveable, should be booted etc.
+  Add new commit stages for components to allow their paths to be set and them to be added to desktop look at, run and add to apps files
+  Raised supported standards version from 0.3.* to 0.4.* (to support components)
+
+Version 0.5.0 (7 Dec 2012)
+
+  Raised supported standards version from 0.2.* to 0.3.*
+  Robustness improvements for Raspberry Pi.
+  Don't delete image file directories.
+  Added Boot path. Should be used for OS components only.
+  Removed RO500Hook, Library and Utils paths. Use Boot.RO500Hook, Boot.Library and Boot.Utils instead. Again these should only be used for OS components.
+  Can use !Boot or !System as an alias for Boot or System respectively in a package file. This allows SysMerge or BootMerge to be used to install the Payload if required.
+  ToBeLoaded, ToBeTasks path variables added. These are set up when the packaging manager front end is first run to be the location for PreDesk and Tasks. In multi-user OS's they are set to the path for all users.
+  Added BootLoaded path to allow RaspberryPi system images to be installed.
+
+Version 0.4.0 (19 Sep 2010)
+
+  Made paths file part of the package database.
+
+Version 0.3.0 (05 Dec 2008)
+
+  Raised supported standards version from 0.1.* to 0.2.*.
+  Removed requirement that files have a RISC OS file information record.
+  Use cached files only if they can be verified.
+
+Version 0.2.1 (25 Feb 2005)
+
+  Fixed cache pathname for packages with one or more dots in name.
+
+Version 0.2.0 (12 Mar 2004)
+
+  Raised supported standards version from 0.0.* to 0.1.*.
+  Added MD5Sum verification.
+  Added support for central sprite pool.
+  Added support for relative URIs.
+  Added support for logical path reference variables.
+
+Version 0.1.0 (01 Jan 2004)
+
+  Enhanced pkg::path_table to match longest prefix.
+
+Version 0.0.1 (25 Dec 2003)
+
+  Released zlib resources to fix memory leak.
+  Eliminated misuse of auto_ptr in pkg::zipfile.
+
+Version 0.0.0 (24 Dec 2003)
+
+  Initial revision.
