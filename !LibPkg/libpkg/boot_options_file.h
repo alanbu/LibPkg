@@ -23,7 +23,8 @@ public:
 	class commit_error;
 
 private:
-	std::string _pathname;
+	std::string _read_pathname;
+	std::string _write_pathname;
 	const char *_section_prefix;
 	const char *_section_version;
 	const char *_section_suffix;
@@ -50,9 +51,14 @@ public:
 
 	/**
 	 * The path name to the location of the PreDesk file that
-	 * contains the look at declarations
+	 * contains the look at declarations for reading
 	 */
-	const std::string &pathname() const {return _pathname;}
+	const std::string &read_pathname() const {return _read_pathname;}
+	/**
+	 * The path name to the location of the PreDesk file that
+	 * any changes to the look at declarations will be written to
+	 */
+	const std::string &write_pathname() const {return _write_pathname;}
 	
 	void use_test_pathname(const std::string &pathname);
 	bool has_section() const;

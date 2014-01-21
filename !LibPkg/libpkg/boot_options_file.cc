@@ -100,8 +100,10 @@ boot_options_file::boot_options_file(const char *file_name, const char *section_
    _end_section(0),
    _modified(false)
 {
-	_pathname = "<Choices$Write>.Boot.";
-	_pathname += file_name;
+	_read_pathname = "Choices:Boot.";
+	_read_pathname += file_name;
+	_write_pathname = "<Choices$Write>.Boot.";
+	_write_pathname += file_name;
 	rollback();
 }
 
@@ -122,7 +124,7 @@ void boot_options_file::rollback()
 	_section = 0;
 	_modified = false;
 
-	std::ifstream desktop_stream(_pathname.c_str());
+	std::ifstream desktop_stream(_read_pathname.c_str());
 	if (!desktop_stream) throw std::runtime_error("Unable to open Boot Desktop file");
 	int length;
 	desktop_stream.seekg(0, std::ios::end);
@@ -150,9 +152,25 @@ void boot_options_file::commit()
 	if (_modified)
 	{
 		// Set pathnames.
-		string dst_pathname=_pathname;
-		string tmp_pathname=_pathname+string("++");
-		string bak_pathname=_pathname+string("--");
+		string dst_pathname=_write_pathname;
+		string tmp_pathname=_write_pathname+string("++");
+		string bak_pathname=_write_pathname+string("--");
+		
+		// Try to create the directory
+		string dirname(_write_pathname);
+		string::size_type last_dot = dirname.rfind('.');
+		if (last_dot != std::string::npos)
+		{
+				dirname.erase(last_dot);
+				if (object_type(dirname)==0)
+				{
+		       try
+		       {
+		 	        create_directory(dirname);
+		       }
+		       catch (...) {}
+		    }
+		}
 
 		std::ofstream file;
 		file.exceptions ( std::ofstream::failbit | std::ofstream::badbit );
@@ -241,7 +259,8 @@ void boot_options_file::commit()
  */
 void boot_options_file::use_test_pathname(const std::string &pathname)
 {
-	_pathname = pathname;
+	_read_pathname = pathname;
+	_write_pathname = pathname;
 }
 
 /**
