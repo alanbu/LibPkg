@@ -38,7 +38,8 @@ OBJ = md5.o \
  log.o \
  component.o \
  component_update.o \
- boot_options_file.o
+ boot_options_file.o \
+ module_info.o
 
 
 .PHONY: all clean
