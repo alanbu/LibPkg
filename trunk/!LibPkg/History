@@ -1,9 +1,13 @@
 # This file is part of !LibPkg.
-# Copyright © 2003-2012 Graham Shaw.
+# Copyright © 2003-2014 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 
-Version 0.6.0 ???
+Version 0.6.1 ???
+
+  Fixed read to boot options file to use the Choices path
+
+Version 0.6.0 (Dec 2013)
 
   Added optional logging of update lists and commit
   Added components field to specify options for parts of the installed package. e.g. If it is moveable, should be booted etc.
