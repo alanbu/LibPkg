@@ -16,6 +16,7 @@
 #include "libpkg/standards_version.h"
 #include "libpkg/unpack.h"
 #include "libpkg/log.h"
+#include "libpkg/module_info.h"
 
 namespace {
 
@@ -265,14 +266,19 @@ void unpack::_poll()
 			build_manifest(mf,*_zf,&_bytes_total_unpack);
 			mf.erase(ctrl_src_pathname);
 
-			// Copy manifest to list of files to be unpacked.
-			_files_to_unpack=mf;
-			_files_total_unpack+=mf.size()+1;
-			bool overwrite_removed=prevstat.state()==status::state_removed;
-			if (overwrite_removed) _files_total_remove+=1;
-
-			// Progress to next package.
-			_packages_pre_unpacked.insert(_pkgname);
+      // Check if it's a module already on the system in which case
+      // we don't need to reinstall it
+      if (!already_installed(ctrl, mf))
+      {
+				// Copy manifest to list of files to be unpacked.
+				_files_to_unpack=mf;
+				_files_total_unpack+=mf.size()+1;
+				bool overwrite_removed=prevstat.state()==status::state_removed;
+				if (overwrite_removed) _files_total_remove+=1;
+	
+				// Progress to next package.
+			  _packages_pre_unpacked.insert(_pkgname);
+			}
 			_packages_to_unpack.erase(_pkgname);
 		}
 		else
@@ -940,6 +946,146 @@ void unpack::unwind_unpack_file(const string& dst_pathname)
 		_ad(tmp_pathname);
 		force_delete(tmp_pathname);
 	}
+}
+
+bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
+{
+	// Check if the package is a RISC OS module only package
+	string module;
+	for (std::set<string>::const_iterator lp = mf.begin(); lp != mf.end(); ++lp)
+	{
+		const string &check = *lp;
+		string::size_type dir_pos = check.find('.');
+		if (dir_pos != string::npos)
+		{
+			string base_dir = check.substr(0, dir_pos);
+			if (base_dir[0] == '!') base_dir.erase(0,1); // remove "!" alias
+			// Convert to lower case for easier comparison
+			for (string::iterator i = base_dir.begin(); i != base_dir.end(); ++i)
+			{
+				*i = tolower(*i);
+			}
+			if (base_dir == "system")
+			{
+				 if (module.empty()) module = check;
+				 else
+				 {
+				   // Can only have one module in a package 
+				 	 return false; 
+				 }
+			} else if (base_dir != "riscpkg" && base_dir != "manuals")
+			{
+				// Package must only be the module, control files and optionally manuals
+				return false;
+		  }
+		}
+	}
+	
+	if (module.empty()) return false;
+	
+	string module_pathname = _pb.paths()(module,_pkgname);
+
+	// We have a module file name at this point
+	module_info mod(module_pathname);
+	if (!mod.read_ok()) return false; // Not a module or not installed
+	
+	if (_log) _log->message(LOG_INFO_MODULE_CHECK, mod.title(), mod.version());
+	
+	std::string chk_version(mod.version());
+	chk_version += "-1"; // Always check against package version 1
+
+  version curr_version(chk_version), inst_version(ctrl.version());
+  if (curr_version < inst_version)
+  {
+  	 // Need to upgrade current version
+		 status curstat=_pb.curstat()[_pkgname];
+
+		 // Proceed as normal if we have a previous version installed
+		 // as it will automatically overwrite the existing module
+		 if (curstat.state() == status::state_installed) return false;
+
+		 if (_log) _log->message(LOG_INFO_MODULE_REPLACE, _pkgname);
+		 // Pretend package is already installed and needs removing
+		 _packages_to_remove.insert(_pkgname);
+		 // Build manifest so remove processing can pick up files to remove
+		 string prefix = _pb.info_pathname(_pkgname);
+	   string mf_pathname = prefix + ".Files";
+	   pkg::create_directory(prefix);
+	   std::ofstream mfs(mf_pathname.c_str(), std::ios_base::trunc);
+	   if (mfs)
+	   {
+    	 for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
+		     mfs << *i << std::endl;
+	  	 mfs.close();
+	   }
+
+		 return false;
+  } else
+  {	
+  	if (_log) _log->message(LOG_INFO_MODULE_USE, _pkgname);
+		_files_that_conflict.erase(module_pathname);
+		_packages_to_remove.erase(_pkgname);
+		
+  	// Current version provides module we need so mark as already installed
+		status curstat=_pb.curstat()[_pkgname];
+		curstat.state(status::state_installed);
+		curstat.version(chk_version);
+		curstat.flag(status::flag_auto,false);
+		_pb.curstat().insert(_pkgname,curstat);
+		
+		// Make new control record with new version
+		binary_control new_control;
+		for (control::const_iterator f = ctrl.begin(); f != ctrl.end(); ++f)
+		{
+			new_control[f->first] = f->second;
+	  }
+	  new_control["Version"] = chk_version;
+	  new_control["Description"] = ctrl.description() + "\n* Using already installed version";
+	  
+	  // Update main list
+	  _pb.control().insert(new_control);
+	  _pb.control().commit();
+	  
+	  // Update Info files
+	  string prefix = _pb.info_pathname(_pkgname);
+	  string ctrl_pathname = prefix + ".Control";
+	  string mf_pathname = prefix + ".Files";
+	  string cpy_pathname = prefix + ".Copyright";
+	  string ctrl_tmp_pathname = ctrl_pathname+"++";
+	  string mf_tmp_pathname = mf_pathname+"++";
+	  string cpy_tmp_pathname = cpy_pathname+"++";
+	  pkg::create_directory(prefix);
+	  
+	  std::ofstream ncs(ctrl_tmp_pathname.c_str(), std::ios_base::trunc);
+	  if (ncs)
+	  {
+	  		ncs << new_control;	
+	  		ncs.close();
+	  		if (ncs) force_move(ctrl_tmp_pathname, ctrl_pathname, true);
+	  }
+	  std::ofstream mfs(mf_tmp_pathname.c_str(), std::ios_base::trunc);
+	  if (mfs)
+	  {
+    	for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
+		    mfs << *i << std::endl;
+	  	mfs.close();
+	  	if (mfs) force_move(mf_tmp_pathname, mf_pathname, true);
+	  }
+	  std::ofstream cs(cpy_tmp_pathname.c_str(), std::ios_base::trunc);
+	  if (cs)
+	  {
+	  	cs << "This package is using an existing version of the module found on" << std::endl;
+	  	cs << "the machine." << std::endl << std::endl;
+	  	string help_string = mod.help_string();
+	  	string::size_type cr_pos =  help_string.find('\x0d');
+	  	if (cr_pos != string::npos) help_string[cr_pos] = '\n';
+	  	cs << "Module help string: " << mod.help_string() << std::endl;
+	  	cs.close();
+	  	if (cs) force_move(cpy_tmp_pathname, cpy_pathname);
+	  }
+  	
+  	return true;	
+  }
 }
 
 /* currently the only reason packages cannot be processed is a standards-version mismatch, so make the error descriptive */
