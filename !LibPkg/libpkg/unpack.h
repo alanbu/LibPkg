@@ -351,7 +351,20 @@ private:
 	 * @param dst_pathname the pathname wrt the filesystem
 	 */
 	void unwind_unpack_file(const string& dst_pathname);
-
+	
+	/** Check if a module is already installed and use
+	 * existing version if it is
+	 * If it is an existing module, this will update the package
+	 * status files and the database with the version found if
+	 * it was not installed by the package manager
+	 *
+	 * @param ctrl package control record
+	 * @param mf Manifest of package to install
+	 * @returns true if the package has already been installed of
+	 * the correct or better version.
+	 */
+	 bool already_installed(const control& ctrl, const std::set<string> &mf);
+	 
 	class cannot_process;
 	class file_conflict;
 	class file_info_not_found;

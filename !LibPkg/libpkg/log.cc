@@ -97,7 +97,10 @@ const char *info_text[] =
 	"Adding files to apps",
 	"Adding file '%0' to apps",
 	"The files for the packages have been installed correctly, but",
-	"the following warnings occurred during configuration."
+	"the following warnings occurred during configuration.",
+	"Module version check for '%0' version '%1'",
+	"Using existing module to fulfill installation of package '%0'",
+	"Replacing existing module with packaged version from package '%0'"
 };
 
 // Array putting it all together
