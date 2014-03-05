@@ -1010,7 +1010,8 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 		 // Build manifest so remove processing can pick up files to remove
 		 string prefix = _pb.info_pathname(_pkgname);
 	   string mf_pathname = prefix + ".Files";
-	   pkg::create_directory(prefix);
+	   pkg::auto_dir ad;
+	   ad(mf_pathname);
 	   std::ofstream mfs(mf_pathname.c_str(), std::ios_base::trunc);
 	   if (mfs)
 	   {
