@@ -1082,7 +1082,7 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  	if (cr_pos != string::npos) help_string[cr_pos] = '\n';
 	  	cs << "Module help string: " << mod.help_string() << std::endl;
 	  	cs.close();
-	  	if (cs) force_move(cpy_tmp_pathname, cpy_pathname);
+	  	if (cs) force_move(cpy_tmp_pathname, cpy_pathname, true);
 	  }
   	
   	return true;	
