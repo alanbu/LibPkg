@@ -200,6 +200,7 @@ void unpack::poll()
 		{
 		case state_pre_unpack:
 		case state_pre_remove:
+			if (!_existing_module_packages.empty()) unwind_existing_modules();
 			_state=state_fail;
 			break;
 		case state_unpack:
@@ -241,7 +242,7 @@ void unpack::_poll()
 			const status& selstat=_pb.selstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
 
-            if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
+      if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
 
 			// Mark package as half-unpacked (but do not commit until
 			// pre-remove and pre-unpack phases have been completed).
@@ -543,10 +544,13 @@ void unpack::_poll()
 			_packages_unpacked.insert(_pkgname);
 			_packages_being_unpacked.erase(_pkgname);
 
-            if (_log) _log->message(LOG_INFO_UNPACKED_PACKAGE, _pkgname);
+       if (_log) _log->message(LOG_INFO_UNPACKED_PACKAGE, _pkgname);
 		}
 		else
 		{
+			// If existing modules were used update the package database
+			if (!_existing_module_packages.empty()) update_existing_modules();
+				
 			// Commit package status changes.  All packages to be
 			// removed or unpacked should by now have been marked
 			// as state_removed or state_unpacked respectively.
@@ -1023,17 +1027,13 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 		 return false;
   } else
   {	
+  	printf("Gets here existing found\n");
   	if (_log) _log->message(LOG_INFO_MODULE_USE, _pkgname);
 		_files_that_conflict.erase(module_pathname);
 		_packages_to_remove.erase(_pkgname);
-		
-  	// Current version provides module we need so mark as already installed
-		status curstat=_pb.curstat()[_pkgname];
-		curstat.state(status::state_installed);
-		curstat.version(chk_version);
-		curstat.flag(status::flag_auto,false);
-		_pb.curstat().insert(_pkgname,curstat);
-		
+		_existing_module_packages.insert(_pkgname);		
+			
+		// Write details to temporary files to update real files if commit succeeds
 		// Make new control record with new version
 		binary_control new_control;
 		for (control::const_iterator f = ctrl.begin(); f != ctrl.end(); ++f)
@@ -1042,10 +1042,6 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  }
 	  new_control["Version"] = chk_version;
 	  new_control["Description"] = ctrl.description() + "\n* Using already installed version";
-	  
-	  // Update main list
-	  _pb.control().insert(new_control);
-	  _pb.control().commit();
 	  
 	  // Update Info files
 	  string prefix = _pb.info_pathname(_pkgname);
@@ -1062,7 +1058,6 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  {
 	  		ncs << new_control;	
 	  		ncs.close();
-	  		if (ncs) force_move(ctrl_tmp_pathname, ctrl_pathname, true);
 	  }
 	  std::ofstream mfs(mf_tmp_pathname.c_str(), std::ios_base::trunc);
 	  if (mfs)
@@ -1070,7 +1065,6 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
     	for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
 		    mfs << *i << std::endl;
 	  	mfs.close();
-	  	if (mfs) force_move(mf_tmp_pathname, mf_pathname, true);
 	  }
 	  std::ofstream cs(cpy_tmp_pathname.c_str(), std::ios_base::trunc);
 	  if (cs)
@@ -1082,11 +1076,91 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  	if (cr_pos != string::npos) help_string[cr_pos] = '\n';
 	  	cs << "Module help string: " << mod.help_string() << std::endl;
 	  	cs.close();
-	  	if (cs) force_move(cpy_tmp_pathname, cpy_pathname, true);
-	  }
-  	
-  	return true;	
-  }
+	  }			
+	  
+	  return true;
+	}
+}
+
+void unpack::update_existing_modules()
+{
+ 	for (std::set<string>::iterator i = _existing_module_packages.begin();
+ 		   i != _existing_module_packages.end(); ++i)
+ 	{
+ 	  try
+ 		{
+ 			string pkgname = *i;
+ 			if (_log) _log->message(LOG_INFO_MODULE_UPDATE, pkgname);
+			string prefix = _pb.info_pathname(pkgname);
+			string ctrl_pathname = prefix + ".Control";
+			string mf_pathname = prefix + ".Files";
+			string cpy_pathname = prefix + ".Copyright";
+			string ctrl_tmp_pathname = ctrl_pathname+"++";
+			string mf_tmp_pathname = mf_pathname+"++";
+			string cpy_tmp_pathname = cpy_pathname+"++";
+	  	
+	  	// Copy temp files to correct place
+	 	  force_move(ctrl_tmp_pathname, ctrl_pathname, true);
+	  	force_move(mf_tmp_pathname, mf_pathname, true);
+	  	force_move(cpy_tmp_pathname, cpy_pathname, true);
+
+			binary_control new_control;
+			std::ifstream is(ctrl_pathname.c_str());
+			is >> new_control;
+			is.close();
+			
+			string chk_version = new_control.version();
+			if (!chk_version.empty())
+			{
+			  // Update main list
+			  _pb.control().insert(new_control);
+			  _pb.control().commit();
+						
+			 	// Mark package as installed with the module version
+				status curstat=_pb.curstat()[pkgname];
+				curstat.state(status::state_installed);
+				curstat.version(chk_version);
+				curstat.flag(status::flag_auto,false);
+				_pb.curstat().insert(pkgname,curstat);
+			} else
+			{
+				if (_log) _log->message(LOG_WARNING_MODULE_PACKAGE_UPDATE_FAILED, "version missing from new Control file");
+			}
+		} catch(std::exception &e)
+		{
+			// Just report errors to the log as it should not effect following installs
+		  if (_log) _log->message(LOG_WARNING_MODULE_PACKAGE_UPDATE_FAILED, e.what());				
+		}		
+	}
+	_existing_module_packages.clear();
+}
+
+void unpack::unwind_existing_modules()
+{
+ 	for (std::set<string>::iterator i = _existing_module_packages.begin();
+ 		   i != _existing_module_packages.end(); ++i)
+ 	{
+ 	  try
+ 		{
+ 			string pkgname = *i;
+ 			if (_log) _log->message(LOG_INFO_MODULE_UNWIND, pkgname);
+			string prefix = _pb.info_pathname(pkgname);
+			string ctrl_pathname = prefix + ".Control";
+			string mf_pathname = prefix + ".Files";
+			string cpy_pathname = prefix + ".Copyright";
+			string ctrl_tmp_pathname = ctrl_pathname+"++";
+			string mf_tmp_pathname = mf_pathname+"++";
+			string cpy_tmp_pathname = cpy_pathname+"++";
+			
+			force_delete(ctrl_tmp_pathname);
+			force_delete(mf_tmp_pathname);
+			force_delete(cpy_tmp_pathname); 			
+ 		} catch(...)
+ 		{
+ 			// Ignore errors
+ 		}
+ 	}
+ 	_existing_module_packages.clear();
 }
 
 /* currently the only reason packages cannot be processed is a standards-version mismatch, so make the error descriptive */

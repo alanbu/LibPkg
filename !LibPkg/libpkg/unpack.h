@@ -176,6 +176,10 @@ private:
 	/** The set of destination pathnames (for all packages) that conflict
 	 * with files already on the system. */
 	std::set<string> _files_that_conflict;
+		
+	/** The set of module packages where an existing module fulfills
+	 * the requirement for the package */
+	std::set<string> _existing_module_packages;
 
 	/** The log to use. Can be 0 for no logging  */
 	pkg::log *_log;
@@ -364,6 +368,13 @@ private:
 	 * the correct or better version.
 	 */
 	 bool already_installed(const control& ctrl, const std::set<string> &mf);
+	 
+	 /** Update the database with any existing modules which meant
+	  * a package did not have to be installed. */
+	 void update_existing_modules();
+
+   /** Clear up temporary files for existing modules on error */	 
+	 void unwind_existing_modules();
 	 
 	class cannot_process;
 	class file_conflict;
