@@ -33,7 +33,8 @@ const char *warning_text[] =
 	"Failed to Filer_Boot '%0', error: %1",
 	"Failed to Filer_Run '%0', error: %1",
 	"Failed to AddApp '%0', error: %1",
-	"Failed to mark component updates as done"
+	"Failed to mark component updates as done",
+	"Failed to update database to reflect existing module, error: %0"
 };
 
 const char *trace_text[] =
@@ -100,7 +101,9 @@ const char *info_text[] =
 	"the following warnings occurred during configuration.",
 	"Module version check for '%0' version '%1'",
 	"Using existing module to fulfill installation of package '%0'",
-	"Replacing existing module with packaged version from package '%0'"
+	"Replacing existing module with packaged version from package '%0'",
+	"Updating database for existing module in package '%0'",
+	"Unwinding files for existing module in package '%0'"
 };
 
 // Array putting it all together
