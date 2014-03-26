@@ -1,0 +1,8 @@
+| This file is part of LibPkg.
+| Copyright © 2004 Graham Shaw.            
+| Distribution and use are subject to the GNU General Public License,
+| a copy of which may be found in the file !LibPkg.Copyright.
+
+Set LibPkg_Build$Dir <Obey$Dir>
+Set LibPkg_Build$Path <Obey$Dir>.
+Set Sys$ReturnCode 0
