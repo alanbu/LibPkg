@@ -276,7 +276,7 @@ void unpack::_poll()
 				_files_total_unpack+=mf.size()+1;
 				bool overwrite_removed=prevstat.state()==status::state_removed;
 				if (overwrite_removed) _files_total_remove+=1;
-	
+
 				// Progress to next package.
 			  _packages_pre_unpacked.insert(_pkgname);
 			}
@@ -550,7 +550,7 @@ void unpack::_poll()
 		{
 			// If existing modules were used update the package database
 			if (!_existing_module_packages.empty()) update_existing_modules();
-				
+
 			// Commit package status changes.  All packages to be
 			// removed or unpacked should by now have been marked
 			// as state_removed or state_unpacked respectively.
@@ -974,8 +974,8 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 				 if (module.empty()) module = check;
 				 else
 				 {
-				   // Can only have one module in a package 
-				 	 return false; 
+				   // Can only have one module in a package
+				 	 return false;
 				 }
 			} else if (base_dir != "riscpkg" && base_dir != "manuals")
 			{
@@ -984,17 +984,17 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 		  }
 		}
 	}
-	
+
 	if (module.empty()) return false;
-	
+
 	string module_pathname = _pb.paths()(module,_pkgname);
 
 	// We have a module file name at this point
 	module_info mod(module_pathname);
 	if (!mod.read_ok()) return false; // Not a module or not installed
-	
+
 	if (_log) _log->message(LOG_INFO_MODULE_CHECK, mod.title(), mod.version());
-	
+
 	std::string chk_version(mod.version());
 	chk_version += "-1"; // Always check against package version 1
 
@@ -1026,13 +1026,12 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 
 		 return false;
   } else
-  {	
-  	printf("Gets here existing found\n");
+  {
   	if (_log) _log->message(LOG_INFO_MODULE_USE, _pkgname);
 		_files_that_conflict.erase(module_pathname);
 		_packages_to_remove.erase(_pkgname);
-		_existing_module_packages.insert(_pkgname);		
-			
+		_existing_module_packages.insert(_pkgname);
+
 		// Write details to temporary files to update real files if commit succeeds
 		// Make new control record with new version
 		binary_control new_control;
@@ -1042,7 +1041,7 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  }
 	  new_control["Version"] = chk_version;
 	  new_control["Description"] = ctrl.description() + "\n* Using already installed version";
-	  
+
 	  // Update Info files
 	  string prefix = _pb.info_pathname(_pkgname);
 	  string ctrl_pathname = prefix + ".Control";
@@ -1052,11 +1051,11 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  string mf_tmp_pathname = mf_pathname+"++";
 	  string cpy_tmp_pathname = cpy_pathname+"++";
 	  pkg::create_directory(prefix);
-	  
+
 	  std::ofstream ncs(ctrl_tmp_pathname.c_str(), std::ios_base::trunc);
 	  if (ncs)
 	  {
-	  		ncs << new_control;	
+	  		ncs << new_control;
 	  		ncs.close();
 	  }
 	  std::ofstream mfs(mf_tmp_pathname.c_str(), std::ios_base::trunc);
@@ -1076,8 +1075,8 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	  	if (cr_pos != string::npos) help_string[cr_pos] = '\n';
 	  	cs << "Module help string: " << mod.help_string() << std::endl;
 	  	cs.close();
-	  }			
-	  
+	  }
+
 	  return true;
 	}
 }
@@ -1098,7 +1097,7 @@ void unpack::update_existing_modules()
 			string ctrl_tmp_pathname = ctrl_pathname+"++";
 			string mf_tmp_pathname = mf_pathname+"++";
 			string cpy_tmp_pathname = cpy_pathname+"++";
-	  	
+
 	  	// Copy temp files to correct place
 	 	  force_move(ctrl_tmp_pathname, ctrl_pathname, true);
 	  	force_move(mf_tmp_pathname, mf_pathname, true);
@@ -1108,14 +1107,14 @@ void unpack::update_existing_modules()
 			std::ifstream is(ctrl_pathname.c_str());
 			is >> new_control;
 			is.close();
-			
+
 			string chk_version = new_control.version();
 			if (!chk_version.empty())
 			{
 			  // Update main list
 			  _pb.control().insert(new_control);
 			  _pb.control().commit();
-						
+
 			 	// Mark package as installed with the module version
 				status curstat=_pb.curstat()[pkgname];
 				curstat.state(status::state_installed);
@@ -1129,8 +1128,8 @@ void unpack::update_existing_modules()
 		} catch(std::exception &e)
 		{
 			// Just report errors to the log as it should not effect following installs
-		  if (_log) _log->message(LOG_WARNING_MODULE_PACKAGE_UPDATE_FAILED, e.what());				
-		}		
+		  if (_log) _log->message(LOG_WARNING_MODULE_PACKAGE_UPDATE_FAILED, e.what());
+		}
 	}
 	_existing_module_packages.clear();
 }
@@ -1151,10 +1150,10 @@ void unpack::unwind_existing_modules()
 			string ctrl_tmp_pathname = ctrl_pathname+"++";
 			string mf_tmp_pathname = mf_pathname+"++";
 			string cpy_tmp_pathname = cpy_pathname+"++";
-			
+
 			force_delete(ctrl_tmp_pathname);
 			force_delete(mf_tmp_pathname);
-			force_delete(cpy_tmp_pathname); 			
+			force_delete(cpy_tmp_pathname);
  		} catch(...)
  		{
  			// Ignore errors
