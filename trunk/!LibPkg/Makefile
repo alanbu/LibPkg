@@ -34,3 +34,11 @@ html/index.html: libpkg/timestamp $(DOXYFILES)
 clean:
 	make -C libpkg clean
 	make -C libpkg/os clean
+
+# Install for GCCSDK cross compiler
+install:
+	cp libpkg.a $(GCCSDK_INSTALL_ENV)/lib/
+	mkdir -p $(GCCSDK_INSTALL_ENV)/include/libpkg/os
+	cp libpkg/*.h libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg
+	cp libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg/os
+

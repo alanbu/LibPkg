@@ -11,6 +11,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
 #include "exception.h"
 
