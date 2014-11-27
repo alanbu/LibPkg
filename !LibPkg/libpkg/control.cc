@@ -154,10 +154,10 @@ control::parse_error::parse_error(const char* message):
 
 std::ostream& operator<<(std::ostream& out,const control& ctrl)
 {
-	for (control::const_iterator i=ctrl.begin();i!=ctrl.end();++i)
+	for (control::const_iterator ci=ctrl.begin();ci!=ctrl.end();++ci)
 	{
-		out << (*i).first << ':';
-		std::string value((*i).second);
+		out << (*ci).first << ':';
+		std::string value((*ci).second);
 		unsigned int i=0;
 		unsigned int f=value.find('\n',i);
 		while (f!=std::string::npos)
