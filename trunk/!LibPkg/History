@@ -7,6 +7,7 @@ Version 0.6.1 ???
 
   Fixed read to boot options file to use the Choices path
   Added RISC OS module checking so that existing modules that satisfy a dependency are not overwritten.
+  File conflicts are no longer case sensitive
 
 Version 0.6.0 (Dec 2013)
 
