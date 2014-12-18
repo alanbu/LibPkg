@@ -315,7 +315,13 @@ void commit::poll()
 			case unpack::state_fail:
 				// If unpack failed then commit failed too.
 				_message=_upack->message();
-				_files_that_conflict=_upack->files_that_conflict();
+				_files_that_conflict.clear();
+				if (!_upack->files_that_conflict().empty())
+				{
+					_files_that_conflict.insert(
+						_upack->files_that_conflict().begin(), 
+						_upack->files_that_conflict().end());
+				}
 				delete _upack;
 				_upack=0;
 				_state=state_fail;

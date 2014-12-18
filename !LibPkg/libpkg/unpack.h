@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
 // Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013 Alan Buckley.
+// Copyright © 2013-2014 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -9,6 +9,7 @@
 
 #include <string>
 #include <set>
+#include "string.h"
 
 #include "libpkg/auto_dir.h"
 #include "libpkg/thread.h"
@@ -20,6 +21,13 @@ using std::string;
 class pkgbase;
 class zipfile;
 class log;
+
+/** Comparison that does not take into account the case of the string */
+struct case_insensitive_cmp { 
+    bool operator() (const std::string& a, const std::string& b) const {
+        return stricmp(a.c_str(), b.c_str()) < 0;
+    }
+};
 
 /** A class for unpacking and removing sets of packages. */
 class unpack:
@@ -160,7 +168,7 @@ private:
 
 	/** The set of destination pathnames (for all packages) that have
 	 * not yet been removed. */
-	std::set<string> _files_to_remove;
+	std::set<string, case_insensitive_cmp> _files_to_remove;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * been backed up prior to removal, but not yet fully removed. */
@@ -175,7 +183,7 @@ private:
 
 	/** The set of destination pathnames (for all packages) that conflict
 	 * with files already on the system. */
-	std::set<string> _files_that_conflict;
+	std::set<string, case_insensitive_cmp> _files_that_conflict;
 		
 	/** The set of module packages where an existing module fulfills
 	 * the requirement for the package */
@@ -246,7 +254,7 @@ public:
 	 * that must be deleted before the given set of packages can be
 	 * processed.
 	 */
-	const std::set<string>& files_that_conflict() const
+	const std::set<string, case_insensitive_cmp>& files_that_conflict() const
 		{ return _files_that_conflict; }
 
        /** Set the log to add the unpack messages to */
