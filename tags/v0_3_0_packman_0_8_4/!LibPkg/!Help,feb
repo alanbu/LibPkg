@@ -1,0 +1,8 @@
+| This file is part of LibPkg.
+| Copyright © 2003 Graham Shaw.            
+| Distribution and use are subject to the GNU Lesser General Public License,
+| a copy of which may be found in the file !LibPkg.Copyright.
+
+If "<LibPkg$Dir>"="" Then Set LibPkg$Dir <Obey$Dir>
+IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Help <LibPkg$Dir>.html.index/html
+If ("<Alias$@RunType_FAF>"="") OR ("<LibPkg$Help>"="") Then Filer_Run <LibPkg$Dir>.README Else Filer_Run <LibPkg$Help>
