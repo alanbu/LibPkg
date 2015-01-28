@@ -29,8 +29,7 @@
  * - RISC OS 5.03
  *
  * Supported compilers include:
- * - GCC 2.95.4 (release 3)
- * - GCC 2.95.4 (experimental 32-bit, 05 May 2003)
+ * - GCC 4.7.4 (release 1)
  *
  * The Acorn C/C++ compiler (up to version 3.19 at least) is not
  * supported because there are important parts of the C++ language
@@ -48,8 +47,8 @@
  * adds libpkg: to the list of paths that are searched for include
  * files.
  *
- * When linking, append -llibpkg:a.libpkg to the GCC command line.
- * This adds libpkg:a.libpkg to the list of libraries searched by the
+ * When linking, append -LLibPkg: -lpkg.a to the GCC command line.
+ * This adds libpkg:libpkg.a to the list of libraries searched by the
  * linker.
  *
  * Include directives should be of the form:
@@ -78,13 +77,12 @@
  * - fixdeps
  *
  * Also required are the libraries:
- * - zlib
- * - libcurl
- * - RTK
+ * - zlib1g
+ * - libcurl3
  *
  * Suitable versions of make, gcc and libfile may be found within
- * supported distributions of GCC.  fixdeps and the RTK may be obtained
- * from the RTK web site (http://www.sagitta.demon.co.uk/rtk/).
+ * supported distributions of GCC.  fixdeps can be downloaded from
+ * www.riscpkg.org or using !RiscPkg or !PackMan.
  *
  * No configuration is necessary.  Change the current directory to !LibPkg
  * then issue the command:
@@ -96,18 +94,10 @@
  * They can be overcome by executing the makefiles individually from
  * an obey file.
  * @section support Support
- * The RiscPkg and LibPkg home page may be found at:
+ * The RiscPkg home page may be found at:
  *
- * http://www.sagitta.demon.co.uk/riscpkg/
+ * http://www.riscpkg.org
  *
- * and the library itself downloaded from:
+ * and the library itself downloaded from the same location.
  *
- * http://www.sagitta.demon.co.uk/riscos/
- *
- * There is a mailing list for RiscPkg and LibPkg.  To subscribe,
- * send an empty message to:
- *
- * mailto:riscpkg-request@sagitta.demon.co.uk
- *
- * with a subject of "subscribe".
  */
