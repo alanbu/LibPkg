@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
 // Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013 Alan Buckley.
+// Copyright © 2013-2016 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -74,6 +74,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 {
 	// Initialise iterator.
 	std::string::const_iterator p=first;
+	std::string valid("!_+-.<>");
 	_flags = 0;
 
 	// Parse package name.
@@ -81,7 +82,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 	while ((p!=last)&&(*p!=' ')&&(*p!='('))
 	{
 		char ch=*p++;
-		if (!std::isalnum(ch)&&(ch!='!')&&(ch!='_')&&(ch!='+')&&(ch!='-')&&(ch!='.'))
+		if (!std::isalnum(ch)&&(valid.find(ch) == std::string::npos))
 			throw parse_error("illegal character in component name");
 	}
 	if (p==q) throw parse_error("component name expected");
