@@ -1,12 +1,13 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Additions for components
-// Copyright © 2013 Alan Buckley.
+// Copyright ï¿½ 2013 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <algorithm>
 #include <sstream>
+#include <tr1/functional>
 
 #include "libpkg/filesystem.h"
 #include "libpkg/version.h"
@@ -21,6 +22,7 @@
 #include "libpkg/component.h"
 #include "libpkg/component_update.h"
 #include "libpkg/boot_options_file.h"
+#include "libpkg/triggers.h"
 #include "libpkg/os/os.h"
 
 namespace pkg {
@@ -35,6 +37,9 @@ commit::commit(pkgbase& pb,const std::set<string>& packages):
 	_files_total(npos),
 	_bytes_done(0),
 	_bytes_total(npos),
+	_trigger_run(0),
+	_triggers(0),
+	_trigger(0),
 	_log(0),
 	_warnings(0)
 {
@@ -51,6 +56,7 @@ commit::commit(pkgbase& pb,const std::set<string>& packages):
 commit::~commit()
 {
 	delete _warnings;
+	delete _triggers;
 }
 
 void commit::poll()
@@ -305,6 +311,7 @@ void commit::poll()
 			switch (_upack->state())
 			{
 			case unpack::state_done:
+				_triggers = _upack->detach_triggers();
 				// If unpack complete then move to next package.
 				delete _upack;
 				_upack=0;
@@ -337,7 +344,12 @@ void commit::poll()
 			// Begin unpack operation.
 			if (_log) _log->message(LOG_INFO_UNPACKING);
 			_upack=new unpack(_pb,_packages_to_unpack);
+			_upack->use_trigger_run(_trigger_run);
 			_upack->log_to(_log);
+			using namespace std::tr1::placeholders;
+			std::tr1::function<void(LogCode code, const std::string &item, const std::string &what)> f =
+					std::tr1::bind(&commit::warning, this, _1, _2, _3);
+			_upack->warning_func(f);
 		}
 		break;
 	case state_configure:
@@ -594,8 +606,90 @@ void commit::poll()
 			}
 
 			// Progress to next state.
-			_state=state_done;
-			if (_log) _log->message(LOG_INFO_COMMIT_DONE);		
+			_state=state_post_remove_triggers;
+			if (_log && _triggers && _triggers->post_remove_triggers_to_run())
+				_log->message(LOG_INFO_POST_REMOVE_TRIGGERS);
+		}
+		break;
+
+	case state_post_remove_triggers:
+		if (_trigger)
+		{
+			switch (_trigger->state())
+			{
+			case trigger::state_error:
+				warning(LOG_WARNING_POST_REMOVE_TRIGGER_FAILED, _trigger->pkgname(), _trigger->message());
+				_message = _trigger->message();
+				delete _trigger;
+				_trigger = 0;
+				break;
+			case trigger::state_success:
+				delete _trigger;
+				_trigger = 0;
+				break;
+			default:
+				// Trigger still running
+				break;
+			}
+		}
+		else if (_triggers && _triggers->post_remove_triggers_to_run())
+		{
+			_trigger = _triggers->next_post_remove_trigger();
+			_trigger->log_to(_log);
+			_trigger->run();
+		}
+		else
+		{
+			_state = state_post_install_triggers;
+			if (_log && _triggers && _triggers->post_install_triggers_to_run())
+				_log->message(LOG_INFO_POST_INSTALL_TRIGGERS);
+		}
+		break;
+
+	case state_post_install_triggers:
+		if (_trigger)
+		{
+			switch (_trigger->state())
+			{
+			case trigger::state_error:
+				warning(LOG_WARNING_POST_INSTALL_TRIGGER_FAILED, _trigger->pkgname(), _trigger->message());
+				_message = _trigger->message();
+				delete _trigger;
+				_trigger = 0;
+				break;
+			case trigger::state_success:
+				delete _trigger;
+				_trigger = 0;
+				break;
+			default:
+				// Trigger still running
+				break;
+			}
+		}
+		else if (_triggers && _triggers->post_install_triggers_to_run())
+		{
+			_trigger = _triggers->next_post_install_trigger();
+			_trigger->log_to(_log);
+			_trigger->run();
+		}
+		else
+		{
+			_state = state_cleanup_triggers;
+			if (_log && _triggers && _triggers->post_remove_files_to_remove())
+				_log->message(LOG_INFO_REMOVE_POST_REMOVE_TRIGGERS);
+		}
+		break;
+
+	case state_cleanup_triggers:
+		if (_triggers && _triggers->post_remove_files_to_remove())
+		{
+			_triggers->remove_post_remove_file();
+		}
+		else
+		{
+			if (_triggers) _triggers->delete_shared_vars();
+			_state = state_done;
+			if (_log) _log->message(LOG_INFO_COMMIT_DONE);
 		}
 		break;
 
@@ -648,6 +742,31 @@ void commit::update_download_progress()
 	// information is available (provided there is at least one total
 	// or estimated total from which to extrapolate).
 	if (known) _bytes_total+=(_bytes_total*(count-known))/known;
+}
+
+
+bool commit::has_substate_text() const
+{
+	return (_upack != 0);
+}
+
+bool commit::clear_substate_text_changed()
+{
+	bool changed = false;
+	if (_upack) changed = _upack->clear_state_text_changed();
+	return changed;
+
+}
+
+std::string commit::substate_text() const
+{
+	if (_upack) return _upack->state_text();
+	return "";
+}
+
+void commit::use_trigger_run(trigger_run *tr)
+{
+	_trigger_run = tr;
 }
 
 void commit::log_to(log *use_log)

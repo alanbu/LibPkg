@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013-2014 Alan Buckley.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2013-2014 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -9,10 +9,12 @@
 
 #include <string>
 #include <set>
+#include <tr1/functional>
 #include "string.h"
 
 #include "libpkg/auto_dir.h"
 #include "libpkg/thread.h"
+#include "libpkg/log.h"
 
 namespace pkg {
 
@@ -21,6 +23,9 @@ using std::string;
 class pkgbase;
 class zipfile;
 class log;
+class triggers;
+class trigger_run;
+class trigger;
 
 /** Comparison that does not take into account the case of the string */
 struct case_insensitive_cmp { 
@@ -51,9 +56,16 @@ public:
 		 * changed to status::state_half_unpacked.
 		 */
 		state_pre_remove,
+		/** The state in which post remove triggers are copied so they
+		 * are preserved to be run after the packages have been removed */
+		state_copy_post_remove,
+		/** The state in which the pre remove triggers are run */
+		state_run_pre_remove_triggers,
 		/** The state in which files are unpacked from their zip archives
-		 * and moved to temporary locations. */
+		* and moved to temporary locations. */
 		state_unpack,
+		/** The state in which pre install triggers are run */
+		state_run_pre_install_triggers,
 		/** The state in which old versions of files are backed up and
 		 * replaced with new versions. */
 		state_replace,
@@ -74,8 +86,16 @@ public:
 		state_unwind_remove,
 		/** The state in which state_replace is being backed out. */
 		state_unwind_replace,
+		/** The state in which post remove triggers are run to unwind the
+		 * actions of the pre install triggers */
+		state_unwind_pre_install_triggers,
 		/** The state in which state_unpack is being backed out. */
 		state_unwind_unpack,
+		/** The state in which post install triggers are run to unwind the
+		 * actions of the pre remove and/or pre install triggers */
+		state_unwind_pre_remove_triggers,
+		/** The state in which post remove trigger copies are removed */
+		state_unwind_copy_post_remove,
 		/** The state in which state_pre_remove is being backed out. */
 		state_unwind_pre_remove,
 		/** The state in which state_pre_unpack is being backed out. */
@@ -189,8 +209,26 @@ private:
 	 * the requirement for the package */
 	std::set<string> _existing_module_packages;
 
+	/** The class to manage the package triggers */
+	triggers *_triggers;
+
+	/** The class used to execute triggers */
+	trigger_run *_trigger_run;
+
+	/** The currently executing trigger */
+	trigger *_trigger;
+
 	/** The log to use. Can be 0 for no logging  */
 	pkg::log *_log;
+
+	/** The function to log and report warnings */
+	std::tr1::function<void(LogCode code, const std::string &item, const std::string &what)> _warning;
+
+	/** The state text has just changed */
+	bool _state_text_changed;
+	/** The current state text */
+	std::string _state_text;
+
 public:
 	/** Construct unpack object.
 	 * @param pb the package database
@@ -239,6 +277,19 @@ public:
 	string message() const
 		{ return _message; }
 
+	/**
+	 * Check is state text has changed and clear the changed flag
+	 */
+	bool clear_state_text_changed()
+	{
+		if (_state_text_changed) {_state_text_changed=false; return true;}
+		else return false;
+	}
+
+	/** Return the current state text */
+	const std::string &state_text() const
+		{ return _state_text; }
+
 	/** Get the set of packages that cannot be processed.
 	 * When state()==state_fail, this function returns a list of packages
 	 * that cannot be processed until the package manager has been
@@ -257,8 +308,23 @@ public:
 	const std::set<string, case_insensitive_cmp>& files_that_conflict() const
 		{ return _files_that_conflict; }
 
-       /** Set the log to add the unpack messages to */
-       void log_to(pkg::log *use_log);
+	/** Set the class to run triggers */
+	void use_trigger_run(trigger_run *tr);
+
+    /** Set the log to add the unpack messages to */
+    void log_to(pkg::log *use_log);
+
+    /** Set the function to log and capture warnings */
+    void warning_func(std::tr1::function<void(LogCode code, const std::string &item, const std::string &what)> &f) {_warning = f;}
+
+	/** Detach triggers for use later in the commit stage.
+	 * This should done if the unpack was successful.
+	 * The object that called this memory will now own the
+	 * triggers and must delete them when they are no
+	 * longer required.
+	 */
+	triggers *detach_triggers();
+
 protected:
 	void poll();
 private:
@@ -268,6 +334,12 @@ private:
 	 * more manageable.
 	 */
 	void _poll();
+
+	/** Change the state, logging new state if logging is on */
+	void state(state_type new_state);
+
+	/** Change the state text */
+	void state_text(const std::string &text);
 
 	/** Read manifest from info directory.
 	 * The set passed into this function is not cleared before use,
@@ -310,6 +382,33 @@ private:
 	 * @param pkgname the package name
 	 */
 	void remove_manifest(const string& pkgname);
+
+	/** Add pre install trigger to the list of triggers to be run later
+	 * @param pkgname the name of the package that the trigger belongs to
+	 */
+	void add_pre_install_trigger(const string &pkgname, bool has_unwind);
+
+	/** Add post install trigger to the list of triggers to be run later
+	* @param pkgname the name of the package that the trigger belongs to
+	*/
+	void add_post_install_trigger(const string &pkgname);
+
+	/** Add pre remove trigger to the list of triggers to be run later
+	* @param pkgname the name of the package that the trigger belongs to
+	*/
+	void add_pre_remove_trigger(const string &pkgname);
+	/** Set flag to indicate package has a post install trigger to use
+	 * during unwind.
+	 * @param pkgname the name of the package that the trigger belongs to
+	 */
+	void set_post_install_unwind(const string &pkgname);
+
+	/** Add post remove trigger to the list of triggers to be run later
+	* @param pkgname the name of the package that the trigger belongs to
+	* @param mf the set of files to be removed used to preserve the post
+	* remove triggers after the package has been deleted.
+	*/
+	void add_post_remove_trigger(const string &pkgname, std::set<std::string> &mf);
 
 	/** Unpack file from package.
 	 * The file is unpacked into the temporary subdirectory "~RiscPkg++".
@@ -384,6 +483,13 @@ private:
    /** Clear up temporary files for existing modules on error */	 
 	 void unwind_existing_modules();
 	 
+	 /** Get version package versions for triggers
+	  * @param pkgname package name
+	  * @param old_version set to currently installed version "" if not installed
+	  * @param new_version set to version to be installed or "" if being removed
+	  */
+	 void get_trigger_versions(const std::string &pkgname, std::string &old_version, std::string &new_version);
+
 	class cannot_process;
 	class file_conflict;
 	class file_info_not_found;

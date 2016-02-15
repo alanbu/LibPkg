@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -8,6 +8,7 @@
 
 #include "libpkg/thread.h"
 #include "libpkg/log.h"
+#include "libpkg/trigger.h"
 
 namespace pkg {
 
@@ -15,6 +16,9 @@ class control_binary;
 class pkgbase;
 class download;
 class unpack;
+class trigger_run;
+class triggers;
+class trigger;
 
 /** A class for installing, removing and purging packages. */
 class commit:
@@ -54,6 +58,12 @@ public:
 		state_run_files,
 		/** The state in which files are added to the current apps virtual directory */
 		state_add_files_to_apps,
+		/** The state in which post remove triggers are run */
+		state_post_remove_triggers,
+		/** The state in which post install triggers are run */
+		state_post_install_triggers,
+		/** The state in which work files and variables for triggers are cleaned up */
+		state_cleanup_triggers,
 		/** The state in which all operations have been successfully
 		 * completed. */
 		state_done,
@@ -132,6 +142,15 @@ private:
 	 * already on the system. */
 	std::set<string> _files_that_conflict;
 
+	/** Class to run any triggers */
+	trigger_run *_trigger_run;
+
+	/** triggers to run at end of commit */
+	triggers *_triggers;
+
+	/** The current post remove/install trigger that is running */
+	trigger *_trigger;
+
 	/** Optional commit log */
 	log *_log;
 
@@ -186,6 +205,10 @@ public:
 	string message() const
 		{ return _message; }
 
+	bool has_substate_text() const;
+	bool clear_substate_text_changed();
+	std::string substate_text() const;
+
 	/** Get the set of destination pathnames that conflict with files
 	 * already on the system.
 	 * When state()==state_fail, this function returns a list of files
@@ -194,6 +217,9 @@ public:
 	 */
 	const std::set<string>& files_that_conflict() const
 		{ return _files_that_conflict; }
+
+	/** Set the class to run triggers */
+	void use_trigger_run(trigger_run *tr);
 
 	/** Set the log to add to
 	 * @param use_log log to use or 0 to stop logging

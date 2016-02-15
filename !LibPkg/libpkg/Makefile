@@ -54,7 +54,9 @@ OBJ = md5.o \
  component.o \
  component_update.o \
  boot_options_file.o \
- module_info.o
+ module_info.o \
+ trigger.o \
+ triggers.o
 
 
 .PHONY: all clean

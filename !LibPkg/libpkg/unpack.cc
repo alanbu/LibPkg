@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013 Alan Buckley.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2013 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -17,6 +17,8 @@
 #include "libpkg/unpack.h"
 #include "libpkg/log.h"
 #include "libpkg/module_info.h"
+#include "libpkg/triggers.h"
+#include "libpkg/trigger.h"
 
 namespace {
 
@@ -24,6 +26,12 @@ using std::string;
 
 /** The source pathname of the package control file. */
 const string ctrl_src_pathname("RiscPkg.Control");
+
+/** The source pathnames of the triggers */
+const string pre_remove_src_pathname("RiscPkg.Triggers.PreRemove");
+const string pre_install_src_pathname("RiscPkg.Triggers.PreInstall");
+const string post_remove_src_pathname("RiscPkg.Triggers.PostRemove");
+const string post_install_src_pathname("RiscPkg.Triggers.PostInstall");
 
 /** The destination filename of the manifest file. */
 const string mf_dst_filename("Files");
@@ -158,7 +166,12 @@ unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 	_files_total_unpack(0),
 	_files_total_remove(0),
 	_bytes_total_unpack(0),
-	_log(0)
+	_triggers(0),
+	_trigger_run(0),
+	_trigger(0),
+	_log(0),
+	_state_text_changed(true),
+	_state_text("Preparing file lists")
 {
 	// For each package to be processed, determine whether it should
 	// be unpacked and/or removed.
@@ -176,11 +189,25 @@ unpack::unpack(pkgbase& pb,const std::set<string>& packages):
 }
 
 unpack::~unpack()
-{}
+{
+	delete _triggers;
+}
+
+void unpack::use_trigger_run(trigger_run *tr)
+{
+	_trigger_run = tr;
+}
 
 void unpack::log_to(pkg::log *use_log)
 {
    _log = use_log;
+}
+
+triggers *unpack::detach_triggers()
+{
+	triggers *t = _triggers;
+	_triggers = 0;
+	return t;
 }
 
 void unpack::poll()
@@ -201,20 +228,28 @@ void unpack::poll()
 		case state_pre_unpack:
 		case state_pre_remove:
 			if (!_existing_module_packages.empty()) unwind_existing_modules();
-			_state=state_fail;
+			state(state_fail);
 			break;
 		case state_unpack:
-			_state=state_unwind_unpack;
-			if (_log && !_files_being_unpacked.empty())
-			    _log->message(LOG_INFO_UNWIND_UNPACK_FILES);
+			state(state_unwind_unpack);
 			break;
 		case state_replace:
 		case state_remove:
-			_state=state_unwind_replace;
-			if (_log && !_files_unpacked.empty()) _log->message(LOG_INFO_UNWIND_REPLACED_FILES);
+			state(state_unwind_replace);
 			break;
+		case state_run_pre_remove_triggers:
+			state(state_unwind_pre_remove_triggers);
+			delete _trigger;
+			_trigger = 0;
+			break;
+		case state_run_pre_install_triggers:
+			state(state_unwind_pre_install_triggers);
+			delete _trigger;
+			_trigger = 0;
+			break;
+
 		default:
-			_state=state_fail;
+			state(state_fail);
 			break;
 		}
 	}
@@ -242,7 +277,7 @@ void unpack::_poll()
 			const status& selstat=_pb.selstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
 
-      if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
+			if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
 
 			// Mark package as half-unpacked (but do not commit until
 			// pre-remove and pre-unpack phases have been completed).
@@ -267,15 +302,21 @@ void unpack::_poll()
 			build_manifest(mf,*_zf,&_bytes_total_unpack);
 			mf.erase(ctrl_src_pathname);
 
-      // Check if it's a module already on the system in which case
-      // we don't need to reinstall it
-      if (!already_installed(ctrl, mf))
-      {
+			// Check if it's a module already on the system in which case
+			// we don't need to reinstall it
+			if (!already_installed(ctrl, mf))
+			{
 				// Copy manifest to list of files to be unpacked.
 				_files_to_unpack=mf;
 				_files_total_unpack+=mf.size()+1;
 				bool overwrite_removed=prevstat.state()==status::state_removed;
 				if (overwrite_removed) _files_total_remove+=1;
+
+				if (mf.count(pre_install_src_pathname) == 1)
+				{
+					add_pre_install_trigger(_pkgname, (mf.count(post_remove_src_pathname) == 1));
+				}
+				if (mf.count(post_install_src_pathname) == 1) add_post_install_trigger(_pkgname);
 
 				// Progress to next package.
 			  _packages_pre_unpacked.insert(_pkgname);
@@ -287,7 +328,7 @@ void unpack::_poll()
 			// Progress to next state.
 			delete _zf;
 			_zf=0;
-			_state=state_pre_remove;
+			state(state_pre_remove);
 		}
 		break;
 	case state_pre_remove:
@@ -330,6 +371,10 @@ void unpack::_poll()
 			}
 			_files_total_remove+=1;
 
+			if (mf.count(pre_remove_src_pathname) == 1)	add_pre_remove_trigger(_pkgname);
+			if (mf.count(post_install_src_pathname) != 0) set_post_install_unwind(_pkgname);
+			if (mf.count(post_remove_src_pathname) == 1) add_post_remove_trigger(_pkgname,mf);
+
 			// Progress to next package.
 			_packages_being_removed.insert(_pkgname);
 			_packages_to_remove.erase(_pkgname);
@@ -351,12 +396,58 @@ void unpack::_poll()
 			// as half-unpacked.
 			_pb.curstat().commit();
 
-			// Progress to next state.
-			_state=state_unpack;
-			_files_total=(_files_total_unpack+_files_total_remove)*2;
-			_bytes_total=_bytes_total_unpack;
+			state(state_copy_post_remove);
 		}
 		break;
+
+	case state_copy_post_remove:
+		if (_triggers && _triggers->post_remove_files_to_copy())
+		{
+			if (!_triggers->copy_post_remove_file())
+			{
+				state(state_unwind_copy_post_remove);
+			}
+		}
+		else
+		{
+			state(state_run_pre_remove_triggers);
+		}
+		break;
+
+	case state_run_pre_remove_triggers:
+		if (_trigger)
+		{
+			switch (_trigger->state())
+			{
+			case trigger::state_error:
+				_message = _trigger->message();
+				state(state_unwind_pre_remove_triggers);
+				delete _trigger;
+				_trigger = 0;
+				break;
+			case trigger::state_success:
+				delete _trigger;
+				_trigger = 0;
+				break;
+			default:
+				// Trigger still running
+				break;
+			}
+		}
+		else if (_triggers && _triggers->pre_remove_triggers_to_run())
+		{
+			_trigger = _triggers->next_pre_remove_trigger();
+			_trigger->log_to(_log);
+			_trigger->run();
+		} else
+		{
+			// Progress to next state.
+			state(state_unpack);
+			_files_total = (_files_total_unpack + _files_total_remove) * 2;
+			_bytes_total = _bytes_total_unpack;
+		}
+		break;
+
 	case state_unpack:
 		if (_files_to_unpack.size())
 		{
@@ -417,8 +508,38 @@ void unpack::_poll()
 			_ad("");
 			delete _zf;
 			_zf=0;
-			_state=state_replace;
-			if (_log && !_files_being_unpacked.empty()) _log->message(LOG_INFO_UNPACK_REPLACE);
+			state(state_run_pre_install_triggers);
+		}
+		break;
+	case state_run_pre_install_triggers:
+		if (_trigger)
+		{
+			switch (_trigger->state())
+			{
+			case trigger::state_error:
+				_message = _trigger->message();
+				state(state_unwind_pre_install_triggers);
+				delete _trigger;
+				_trigger = 0;
+				break;
+			case trigger::state_success:
+				delete _trigger;
+				_trigger = 0;
+				break;
+			default:
+				// Trigger still running
+				break;
+			}
+		}
+		else if (_triggers && _triggers->pre_install_triggers_to_run())
+		{
+			_trigger = _triggers->next_pre_install_trigger();
+			_trigger->log_to(_log);
+			_trigger->run();
+		}
+		else
+		{
+			state(state_replace);
 		}
 		break;
 	case state_replace:
@@ -446,8 +567,7 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
-			_state=state_remove;
-			if (_log && !_files_to_remove.empty()) _log->message(LOG_INFO_UNPACK_REMOVE);
+			state(state_remove);
 		}
 		break;
 	case state_remove:
@@ -466,7 +586,7 @@ void unpack::_poll()
 			// Progress to next state.
 			// This is the point of no return.
 			_ad("");
-			_state=state_post_remove;
+			state(state_post_remove);
 		}
 		break;
 	case state_post_remove:
@@ -516,7 +636,7 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
-			_state=state_post_unpack;
+			state(state_post_unpack);
 		}
 		break;
 	case state_post_unpack:
@@ -557,8 +677,7 @@ void unpack::_poll()
 			_pb.curstat().commit();
 
 			// Progress to next state.
-			_state=state_done;
-			if (_log) _log->message(LOG_INFO_UNPACK_DONE);
+			state(state_done);
 		}
 		break;
 	case state_done:
@@ -581,9 +700,7 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
-			_state=state_unwind_remove;
-			if (_log && !_files_being_removed.empty())
-			  _log->message(LOG_INFO_UNWIND_REMOVED);
+			state(state_unwind_remove);
 		}
 		break;
 	case state_unwind_remove:
@@ -598,9 +715,27 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
-			_state=state_unwind_unpack;
-			if (_log && !_files_being_unpacked.empty())
-			    _log->message(LOG_INFO_UNWIND_UNPACK_FILES);
+			state(state_unwind_pre_install_triggers);
+		}
+		break;
+	case state_unwind_pre_install_triggers:
+		if (_trigger)
+		{
+			if (_trigger->finished())
+			{
+				delete _trigger;
+				_trigger = 0;
+			}
+		}
+		else if (_triggers && _triggers->pre_install_to_unwind())
+		{
+			_trigger = _triggers->next_pre_install_unwind();
+			_trigger->log_to(_log);
+			_trigger->run();
+		}
+		else
+		{
+			state(state_unwind_unpack);
 		}
 		break;
 	case state_unwind_unpack:
@@ -633,9 +768,42 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
-			_state=state_unwind_pre_remove;
+			state(state_unwind_pre_remove_triggers);
+			_trigger = 0;
 		}
 		break;
+
+	case state_unwind_pre_remove_triggers:
+		if (_trigger)
+		{
+			if (_trigger->finished())
+			{
+				delete _trigger;
+				_trigger = 0;
+			}
+		}
+		else if (_triggers && _triggers->pre_remove_to_unwind())
+		{
+			_trigger = _triggers->next_pre_remove_unwind();
+			_trigger->log_to(_log);
+			_trigger->run();
+		} else
+		{
+			state(state_unwind_copy_post_remove);
+		}
+		break;
+
+	case state_unwind_copy_post_remove:
+		if (_triggers && _triggers->post_remove_files_to_remove())
+		{
+			_triggers->remove_post_remove_file();
+		}
+		else
+		{
+			state(state_unwind_pre_remove);
+		}
+		break;
+
 	case state_unwind_pre_remove:
 		if (_packages_being_removed.size())
 		{
@@ -644,15 +812,14 @@ void unpack::_poll()
 			status curstat=_pb.curstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
 
-			// If package was previously unpacked or better then mark
-			// as unpacked (but do not commit until unwind-pre-remove
-			// and unwind-pre-unpack phases have been completed.)
+			// If package was previously unpacked or better then
+			// return to previous state (but do not commit until
+			// unwind-pre-remove and unwind-pre-unpack phases have
+			// been completed.)
 			if (prevstat.state()>=status::state_unpacked)
 			{
-				curstat.state(status::state_unpacked);
+				curstat.state(prevstat.state());
 				curstat.version(prevstat.version());
-				curstat.flag(status::flag_auto,
-					prevstat.flag(status::flag_auto));
 				_pb.curstat().insert(_pkgname,curstat);
 				if (_log) _log->message(LOG_INFO_UNWIND_STATE, _pkgname);
 			}
@@ -663,7 +830,7 @@ void unpack::_poll()
 		else
 		{
 			// Progress to next state.
-			_state=state_unwind_pre_unpack;
+			state(state_unwind_pre_unpack);
 		}
 		break;
 	case state_unwind_pre_unpack:
@@ -694,15 +861,142 @@ void unpack::_poll()
 			// removed or unpacked should by now have been marked
 			// as half-unpacked.
 			_pb.curstat().commit();
+
+			// Delete trigger shared variables
+			if (_triggers) _triggers->delete_shared_vars();
 			if (_log) _log->message(LOG_INFO_UNWIND_DONE);
 
 			// Progress to next state.
-			_state=state_fail;
+			state(state_fail);
 		}
 		break;
 	case state_fail:
 		// Unpack operation has failed: do nothing.
 		break;
+	}
+}
+
+void unpack::state(state_type new_state)
+{
+	_state = new_state;
+	if (_log)
+	{
+		// Only log operations that are going to do anything
+		LogCode code = LOG_ERROR_UNINITIALISED;
+		switch (_state)
+		{
+		case state_pre_unpack:
+		case state_pre_remove:
+			// Not logging as individual packages are logged anyway
+			break;
+		case state_copy_post_remove:
+			if (_triggers && _triggers->post_remove_files_to_copy())
+			{
+				code = LOG_INFO_COPY_POST_REMOVE;
+				state_text("Saving post-remove triggers");
+			}
+			break;
+		case state_run_pre_remove_triggers:
+			if (_triggers && _triggers->pre_remove_triggers_to_run())
+			{
+				code = LOG_INFO_PRE_REMOVE_TRIGGERS;
+				state_text("Running pre-remove triggers");
+			}
+			break;
+		case state_unpack:
+			// Not logging as unpack is logged for each package
+			state_text("Unpacking files");
+			break;
+		case state_run_pre_install_triggers:
+			if (_triggers && _triggers->pre_install_triggers_to_run())
+			{
+				code = LOG_INFO_PRE_INSTALL_TRIGGERS;
+				state_text("Running pre-install triggers");
+			}
+			break;
+		case state_replace:
+			if (!_files_being_unpacked.empty())
+			{
+				code = LOG_INFO_UNPACK_REPLACE;
+				state_text("Replacing files");
+			}
+			break;
+		case state_remove:
+			if (!_files_to_remove.empty())
+			{
+				code = LOG_INFO_UNPACK_REMOVE;
+				state_text("Removing files");
+			}
+			break;
+		case state_post_remove:
+		case state_post_unpack:
+			state_text("Removing backups");
+			// Not logging as post remove/unpack is logged for each package
+			break;
+		case state_done:
+			code = LOG_INFO_UNPACK_DONE;
+			state_text("Finished");
+			break;
+		case state_unwind_remove:
+			if (!_files_being_removed.empty())
+			{
+				code =  LOG_INFO_UNWIND_REMOVED;
+				state_text("Unwinding after error");
+			}
+			break;
+		case state_unwind_replace:
+			if (!_files_unpacked.empty())
+			{
+				code = LOG_INFO_UNWIND_REPLACED_FILES;
+				state_text("Unwinding after error");
+			}
+			break;
+		case state_unwind_pre_install_triggers:
+			if (_triggers && _triggers->pre_install_to_unwind())
+			{
+				code = LOG_INFO_UNWIND_PRE_INSTALL_TRIGGERS;
+				state_text("Unwinding calling post-remove triggers");
+			}
+			break;
+		case state_unwind_unpack:
+			if (!_files_being_unpacked.empty())
+			{
+				code = LOG_INFO_UNWIND_UNPACK_FILES;
+				state_text("Unwinding after error");
+			}
+			break;
+		case state_unwind_pre_remove_triggers:
+			if (_triggers && _triggers->pre_remove_to_unwind())
+			{
+				code = LOG_INFO_UNWIND_PRE_REMOVE_TRIGGERS;
+				state_text("Unwinding calling post-install triggers");
+			}
+			break;
+		case state_unwind_copy_post_remove:
+			if (_triggers && _triggers->post_remove_files_to_remove()) code = LOG_INFO_REMOVE_POST_REMOVE_TRIGGERS;
+			state_text("Unwinding after error");
+			break;
+		case state_unwind_pre_remove:
+		case state_unwind_pre_unpack:
+			// Not logging as unwind pre_remove/pre_unpack is logged for each package
+			state_text("Unwinding after error");
+			break;
+		case state_fail:
+			// Not logged as actual error is logged.
+			state_text("Failed");
+			break;
+		}
+		if (code != LOG_ERROR_UNINITIALISED)
+			_log->message(code);
+	}
+}
+
+void unpack::state_text(const std::string &text)
+{
+	if (text != _state_text)
+	{
+		_state_text = text;
+		_state_text_changed = true;
 	}
 }
 
@@ -788,6 +1082,72 @@ void unpack::remove_manifest(const string& pkgname)
 	force_delete(dst_pathname);
 	force_delete(tmp_pathname);
 	force_delete(bak_pathname);
+}
+
+void unpack::add_pre_install_trigger(const string &pkgname, bool has_unwind)
+{
+	if (_trigger_run)
+	{
+		std::string old_version, new_version;
+		get_trigger_versions(pkgname, old_version, new_version);
+
+		if (!_triggers) _triggers = new triggers(_pb, _trigger_run, _log);
+		_triggers->add_pre_install(pkgname, old_version, new_version, has_unwind);
+	} else if (_warning)
+		_warning(LOG_WARNING_NO_TRIGGER_RUN, "pre-install", pkgname);
+}
+
+void unpack::add_post_install_trigger(const string &pkgname)
+{
+	if (_trigger_run)
+	{
+		std::string old_version, new_version;
+		get_trigger_versions(pkgname, old_version, new_version);
+		if (!_triggers) _triggers = new triggers(_pb, _trigger_run, _log);
+		_triggers->add_post_install(pkgname, old_version, new_version);
+	} else if (_warning)
+		_warning(LOG_WARNING_NO_TRIGGER_RUN, "post-install", pkgname);
+}
+
+void unpack::add_pre_remove_trigger(const string &pkgname)
+{
+	if (_trigger_run)
+	{
+		std::string old_version, new_version;
+		get_trigger_versions(pkgname, old_version, new_version);
+		if (!_triggers) _triggers = new triggers(_pb, _trigger_run, _log);
+		_triggers->add_pre_remove(pkgname, old_version, new_version);
+	} else if (_warning)
+		_warning(LOG_WARNING_NO_TRIGGER_RUN, "pre-remove", pkgname);
+}
+
+void unpack::set_post_install_unwind(const string &pkgname)
+{
+	if (_trigger_run)
+	{
+		std::string old_version, new_version;
+		get_trigger_versions(pkgname, old_version, new_version);
+		if (!_triggers) _triggers = new triggers(_pb, _trigger_run, _log);
+		_triggers->add_post_install_abort(pkgname, old_version, new_version);
+	}
+}
+
+void unpack::add_post_remove_trigger(const string &pkgname, std::set<string> &mf)
+{
+	if (_trigger_run)
+	{
+		std::string old_version, new_version;
+		get_trigger_versions(pkgname, old_version, new_version);
+		if (!_triggers) _triggers = new triggers(_pb, _trigger_run, _log);
+		_triggers->add_post_remove(pkgname, old_version, new_version);
+		std::set<std::string>::iterator ft = mf.lower_bound("RiscPkg.Triggers");
+		std::set<std::string>::iterator et = mf.upper_bound("RiscPkg.TriggersX");
+		for (std::set<std::string>::iterator i = ft; i != et; ++i)
+		{
+			_triggers->add_post_remove_file(_pb.paths()(*i, _pkgname));
+		}
+	} else if (_warning)
+		_warning(LOG_WARNING_NO_TRIGGER_RUN, "post-remove", pkgname);
 }
 
 void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
@@ -1160,6 +1520,29 @@ void unpack::unwind_existing_modules()
  		}
  	}
  	_existing_module_packages.clear();
+}
+
+void unpack::get_trigger_versions(const std::string &pkgname, std::string &old_version, std::string &new_version)
+{
+	const status& selstat = _pb.selstat()[pkgname];
+	const status& prevstat = _pb.prevstat()[pkgname];
+
+	if (selstat.state() == status::state_installed)
+	{
+		new_version = selstat.version();
+	} else
+	{
+		new_version.clear();
+	}
+	if (prevstat.state() == status::state_installed)
+	{
+		old_version = prevstat.version();
+	} else
+	{
+		old_version.clear();
+	}
+
+
 }
 
 /* currently the only reason packages cannot be processed is a standards-version mismatch, so make the error descriptive */
