@@ -1,13 +1,15 @@
 # This file is part of !LibPkg.
-# Copyright © 2003-2016 Graham Shaw.
+# Copyright ï¿½ 2003-2016 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 # Versions after 0.3.0 were modified by Alan Buckley
 
-Version 0.6.? (???)
+Version 0.7.0 (???)
 
   Component parsing fixed so components including "<" or ">" are processed correctly.
-
+  Added support for running code during commit (triggers)
+  Raised supported standards version from 0.4.* to 0.5.*
+  
 Version 0.6.1 (Jan 2015)
 
   Fixed read to boot options file to use the Choices path
