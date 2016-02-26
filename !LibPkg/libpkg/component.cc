@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013-2016 Alan Buckley.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2013-2016 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -54,9 +54,12 @@ component::operator std::string() const
 		bool add_space = false;
 		for (int f = (int)movable; f <= (int)add_to_apps; ++f)
 		{
-			if (add_space) out += " ";
-			else add_space = true;
-			if (flag((flag_type)f)) out += ComponentFlagNames[f];
+			if (flag((flag_type)f))
+			{
+				if (add_space) out += " ";
+				else add_space = true;
+				out += ComponentFlagNames[f];
+			}
 		}
 		out += ")";
 	}
@@ -74,7 +77,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 {
 	// Initialise iterator.
 	std::string::const_iterator p=first;
-	std::string valid("!_+-.<>");
+	std::string valid("!_+-.<>/");
 	_flags = 0;
 
 	// Parse package name.
