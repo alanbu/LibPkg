@@ -1,5 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2013 Graham Shaw.
+// Copyright ï¿½ 2003-2013 Graham Shaw.
+// Copyright ï¿½ 2016 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -25,6 +26,8 @@ const default_path default_paths[]={
 	{"Apps","<Boot$Dir>.^.Apps"},
 	{"Boot","<Boot$Dir>"},
 	{"Bootloader","<Boot$Dir>.Loader"},
+	{"Diversions", "<Boot$Dir>.^.Diversions"},
+	{"Documents", "<Boot$Dir>.^.Documents"},
 	{"Manuals","<Boot$Dir>.^.Manuals"},
 	{"Printing","<Boot$Dir>.^.Printing"},
 	{"Resources","<BootResources$Dir>"},
@@ -296,7 +299,7 @@ string resolve_pathrefs(const path_table& paths,const string& in)
 	// Specify prefix to logical path name variable.
 	static const string prefix("Packages$@");
 
-	// Construct output buffer.
+	// Constructï¿½output buffer.
 	string out;
 	out.reserve(in.length());
 
