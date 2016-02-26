@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013 Alan Buckley
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2013-2016 Alan Buckley
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -76,6 +76,11 @@ namespace pkg
  *
  * or if it was on the boot drive
  * IfThere Boot:^.Apps.Desktop.!Fred Then AddApp Boot:^.Apps.Desktop.!Fred
+ *
+ * Note: Some old Desktop files have Acorn in the section headers
+ * instead of RISCOS. From observing what !Boot does it seems we
+ * must create new RISCOS sections, but the Acorn sections should
+ * be used to position them.
  */
 
 /**
@@ -190,7 +195,7 @@ void boot_options_file::commit()
 				rest = insert_after;
 			} else
 			{
-				file.write(_file_contents, sizeof(_file_contents));
+				file.write(_file_contents, std::strlen(_file_contents));
 				rest = 0;
 			}
 			const char *start_text = "\n|Start ";

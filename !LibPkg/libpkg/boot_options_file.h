@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2013 Alan Buckley
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2013 Alan Buckley
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -96,8 +96,12 @@ public:
 	look_at_options() : boot_options_file("Desktop", "RISCOS BootBoot", "0.01", "Boot","Filer_Boot") {}
 	virtual ~look_at_options() {}
 protected:
-	virtual char *find_insert_section() {return find_section("RISCOS !Boot", "Auto tasks");};
-
+	virtual char *find_insert_section()
+	{
+		char *found = find_section("Acorn BootBoot", "Boot");
+		if (!found) found = find_section("RISCOS !Boot", "Auto tasks");
+		return found;
+	};
 };
 
 /**
@@ -113,7 +117,8 @@ public:
 protected:
 	virtual char *find_insert_section()
 	{
-		char *found = find_section("RISCOS BootBoot", "Boot");
+		char *found = find_section("Acorn BootRun", "Run");
+		if (!found) found = find_section("RISCOS BootBoot", "Boot");
 		if (!found) found = find_section("RISCOS !Boot", "Auto tasks");
 		return found;
 	}
@@ -130,7 +135,12 @@ public:
 	add_to_apps_options() : boot_options_file("PreDesktop","RISCOS BootApps","0.01","ResApps","AddApp") {}
 
 protected:
-	virtual char *find_insert_section() {return find_section("RISCOS !Boot", "ResApps");}	
+	virtual char *find_insert_section()
+	{
+		char *found = find_section("Acorn BootApps", "ResApps");
+		if (!found) found = find_section("RISCOS !Boot", "ResApps");
+		return found;
+	}
 };
 
 } // end of namespace
