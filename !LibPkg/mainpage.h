@@ -98,6 +98,7 @@
  *
  * http://www.riscpkg.org
  *
- * and the library itself downloaded from the same location.
+ * and the original version of the library can be downloaded from the same location.
+ * This branch is now hosted on GitHub at https://github.com/alanbu/LibPkg
  *
  */
