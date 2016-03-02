@@ -879,115 +879,116 @@ void unpack::_poll()
 void unpack::state(state_type new_state)
 {
 	_state = new_state;
-	if (_log)
+	// Only log operations that are going to do anything
+	LogCode code = LOG_ERROR_UNINITIALISED;
+
+	switch (_state)
 	{
-		// Only log operations that are going to do anything
-		LogCode code = LOG_ERROR_UNINITIALISED;
-		switch (_state)
+	case state_pre_unpack:
+	case state_pre_remove:
+		// Not logging as individual packages are logged anyway
+		break;
+	case state_copy_post_remove:
+		if (_triggers && _triggers->post_remove_files_to_copy())
 		{
-		case state_pre_unpack:
-		case state_pre_remove:
-			// Not logging as individual packages are logged anyway
-			break;
-		case state_copy_post_remove:
-			if (_triggers && _triggers->post_remove_files_to_copy())
-			{
-				code = LOG_INFO_COPY_POST_REMOVE;
-				state_text("Saving post-remove triggers");
-			}
-			break;
-		case state_run_pre_remove_triggers:
-			if (_triggers && _triggers->pre_remove_triggers_to_run())
-			{
-				code = LOG_INFO_PRE_REMOVE_TRIGGERS;
-				state_text("Running pre-remove triggers");
-			}
-			break;
-		case state_unpack:
-			// Not logging as unpack is logged for each package
-			state_text("Unpacking files");
-			break;
-		case state_run_pre_install_triggers:
-			if (_triggers && _triggers->pre_install_triggers_to_run())
-			{
-				code = LOG_INFO_PRE_INSTALL_TRIGGERS;
-				state_text("Running pre-install triggers");
-			}
-			break;
-		case state_replace:
-			if (!_files_being_unpacked.empty())
-			{
-				code = LOG_INFO_UNPACK_REPLACE;
-				state_text("Replacing files");
-			}
-			break;
-		case state_remove:
-			if (!_files_to_remove.empty())
-			{
-				code = LOG_INFO_UNPACK_REMOVE;
-				state_text("Removing files");
-			}
-			break;
-		case state_post_remove:
-		case state_post_unpack:
-			state_text("Removing backups");
-			// Not logging as post remove/unpack is logged for each package
-			break;
-		case state_done:
-			code = LOG_INFO_UNPACK_DONE;
-			state_text("Finished");
-			break;
-		case state_unwind_remove:
-			if (!_files_being_removed.empty())
-			{
-				code =  LOG_INFO_UNWIND_REMOVED;
-				state_text("Unwinding after error");
-			}
-			break;
-		case state_unwind_replace:
-			if (!_files_unpacked.empty())
-			{
-				code = LOG_INFO_UNWIND_REPLACED_FILES;
-				state_text("Unwinding after error");
-			}
-			break;
-		case state_unwind_pre_install_triggers:
-			if (_triggers && _triggers->pre_install_to_unwind())
-			{
-				code = LOG_INFO_UNWIND_PRE_INSTALL_TRIGGERS;
-				state_text("Unwinding calling post-remove triggers");
-			}
-			break;
-		case state_unwind_unpack:
-			if (!_files_being_unpacked.empty())
-			{
-				code = LOG_INFO_UNWIND_UNPACK_FILES;
-				state_text("Unwinding after error");
-			}
-			break;
-		case state_unwind_pre_remove_triggers:
-			if (_triggers && _triggers->pre_remove_to_unwind())
-			{
-				code = LOG_INFO_UNWIND_PRE_REMOVE_TRIGGERS;
-				state_text("Unwinding calling post-install triggers");
-			}
-			break;
-		case state_unwind_copy_post_remove:
-			if (_triggers && _triggers->post_remove_files_to_remove()) code = LOG_INFO_REMOVE_POST_REMOVE_TRIGGERS;
-			state_text("Unwinding after error");
-			break;
-		case state_unwind_pre_remove:
-		case state_unwind_pre_unpack:
-			// Not logging as unwind pre_remove/pre_unpack is logged for each package
-			state_text("Unwinding after error");
-			break;
-		case state_fail:
-			// Not logged as actual error is logged.
-			state_text("Failed");
-			break;
+			code = LOG_INFO_COPY_POST_REMOVE;
+			state_text("Saving post-remove triggers");
 		}
-		if (code != LOG_ERROR_UNINITIALISED)
-			_log->message(code);
+		break;
+	case state_run_pre_remove_triggers:
+		if (_triggers && _triggers->pre_remove_triggers_to_run())
+		{
+			code = LOG_INFO_PRE_REMOVE_TRIGGERS;
+			state_text("Running pre-remove triggers");
+		}
+		break;
+	case state_unpack:
+		// Not logging as unpack is logged for each package
+		state_text("Unpacking files");
+		break;
+	case state_run_pre_install_triggers:
+		if (_triggers && _triggers->pre_install_triggers_to_run())
+		{
+			code = LOG_INFO_PRE_INSTALL_TRIGGERS;
+			state_text("Running pre-install triggers");
+		}
+		break;
+	case state_replace:
+		if (!_files_being_unpacked.empty())
+		{
+			code = LOG_INFO_UNPACK_REPLACE;
+			state_text("Replacing files");
+		}
+		break;
+	case state_remove:
+		if (!_files_to_remove.empty())
+		{
+			code = LOG_INFO_UNPACK_REMOVE;
+			state_text("Removing files");
+		}
+		break;
+	case state_post_remove:
+	case state_post_unpack:
+		state_text("Removing backups");
+		// Not logging as post remove/unpack is logged for each package
+		break;
+	case state_done:
+		code = LOG_INFO_UNPACK_DONE;
+		state_text("Finished");
+		break;
+	case state_unwind_remove:
+		if (!_files_being_removed.empty())
+		{
+			code =  LOG_INFO_UNWIND_REMOVED;
+			state_text("Unwinding after error");
+		}
+		break;
+	case state_unwind_replace:
+		if (!_files_unpacked.empty())
+		{
+			code = LOG_INFO_UNWIND_REPLACED_FILES;
+			state_text("Unwinding after error");
+		}
+		break;
+	case state_unwind_pre_install_triggers:
+		if (_triggers && _triggers->pre_install_to_unwind())
+		{
+			code = LOG_INFO_UNWIND_PRE_INSTALL_TRIGGERS;
+			state_text("Unwinding calling post-remove triggers");
+		}
+		break;
+	case state_unwind_unpack:
+		if (!_files_being_unpacked.empty())
+		{
+			code = LOG_INFO_UNWIND_UNPACK_FILES;
+			state_text("Unwinding after error");
+		}
+		break;
+	case state_unwind_pre_remove_triggers:
+		if (_triggers && _triggers->pre_remove_to_unwind())
+		{
+			code = LOG_INFO_UNWIND_PRE_REMOVE_TRIGGERS;
+			state_text("Unwinding calling post-install triggers");
+		}
+		break;
+	case state_unwind_copy_post_remove:
+		if (_triggers && _triggers->post_remove_files_to_remove()) code = LOG_INFO_REMOVE_POST_REMOVE_TRIGGERS;
+		state_text("Unwinding after error");
+		break;
+	case state_unwind_pre_remove:
+	case state_unwind_pre_unpack:
+		// Not logging as unwind pre_remove/pre_unpack is logged for each package
+		state_text("Unwinding after error");
+		break;
+	case state_fail:
+		// Not logged as actual error is logged.
+		state_text("Failed");
+		break;
+	}
+
+	if (_log && code != LOG_ERROR_UNINITIALISED)
+	{
+		_log->message(code);
 	}
 }
 
