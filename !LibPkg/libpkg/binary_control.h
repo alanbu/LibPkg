@@ -33,7 +33,12 @@ public:
 
 	std::string environment_id() const;
 	const pkg_env *package_env() const;
+
+	/** Get package weight or use environment default weight if 0 or unser
+	 * @return the weight used to choose the most appropriate package for an environment.
+	 */
 	int weight() const;
+
 protected:
 	virtual int priority(const string& value) const;
 	mutable pkg_env *_environment;

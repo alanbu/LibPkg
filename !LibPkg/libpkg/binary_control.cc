@@ -5,6 +5,8 @@
 
 #include "libpkg/binary_control.h"
 #include "libpkg/env_checker.h"
+#include <cstdlib>
+
 
 namespace pkg {
 
@@ -15,6 +17,7 @@ static const std::map<string,int>& init_priorities()
 	priorities["md5sum"]=--pr;
 	priorities["size"]=--pr;
 	priorities["url"]=--pr;
+
 	priorities["conflicts"]=--pr;
 	priorities["suggests"]=--pr;
 	priorities["recommends"]=--pr;
@@ -23,6 +26,7 @@ static const std::map<string,int>& init_priorities()
 	priorities["source"]=--pr;
 	priorities["osdepends"] = --pr;
 	priorities["environment"]=--pr;
+
 	priorities["standards-version"]=--pr;
 	priorities["maintainer"]=--pr;
 	priorities["installed-size"]=--pr;
@@ -67,7 +71,14 @@ int binary_control::weight() const
 {
 	if (_weight == 0)
 	{
-		_weight = weight();
+		const_iterator f=find("weight");
+		if (f==end())
+		{
+			_weight = 0;
+		} else
+		{
+			_weight = std::atoi(f->second.c_str());
+		}
 		if (_weight == 0) _weight = package_env()->default_weight();
 	}
 	return _weight;

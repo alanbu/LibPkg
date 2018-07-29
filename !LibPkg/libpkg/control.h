@@ -228,11 +228,6 @@ public:
 	 */
 	string osdepends() const;
 
-	/** Get package weight or 0 to use environment default weight.
-	 * @return the weight to choose the most appropriate package for an environment.
-	 */
-	int weight() const;
-
 protected:
 	/** Get priority.
 	 * This function may be overridden to modify the sort order.

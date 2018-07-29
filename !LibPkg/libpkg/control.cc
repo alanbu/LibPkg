@@ -4,7 +4,6 @@
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <iostream>
-#include <cstdlib>
 
 #include "libpkg/control.h"
 
@@ -137,14 +136,6 @@ string control::osdepends() const
 	const_iterator f=find(key);
 	return (f==end())?string():(*f).second;
 }
-
-int control::weight() const
-{
-	static const key_type key("Weight");
-	const_iterator f=find(key);
-	return (f==end())?0:std::atoi((*f).second.c_str());
-}
-
 
 int control::priority(const string& value) const
 {
