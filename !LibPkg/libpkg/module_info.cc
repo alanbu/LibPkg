@@ -1,12 +1,14 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2014 Alan Buckley
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2014 Alan Buckley
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 
 #include "module_info.h"
 #include <fstream>
+#include <libpkg/os/call_swi.h>
+#include <libpkg/os/osswi.h>
 
 namespace pkg
 {
@@ -49,16 +51,7 @@ bool module_info::read(const std::string &path)
 		 mod.seekg(hdr[5]); // help string
 		 mod.get(text, sizeof(text), 0);
 		 _help_string = text;
-		 char *vp = text;
-		 while (*vp && (*vp != ' ' && *vp != '\t')) vp++;
-		 while (*vp && (*vp < '0' || *vp > '9')) vp++;
-		 _version.clear();
-		 while (*vp >= '0' && *vp <= '9') _version += *vp++;
-		 if (*vp == '.')
-		 {
-		 		_version += *vp++;
-		    while (*vp >= '0' && *vp <= '9') _version += *vp++;
-		 }
+		 extract_version();
 		 
 		 _read_ok = true;
 	} catch(...)
@@ -68,6 +61,55 @@ bool module_info::read(const std::string &path)
 	
 	return _read_ok;
 }		
+
+/**
+ * Look up module in loaded module list
+ *
+ * @param module title (Can use "." as a wild card)
+ * @returns true if module exists
+ */
+bool module_info::lookup(const std::string &title)
+{
+	_read_ok = false;
+	try
+	{
+		_kernel_swi_regs regs;
+		regs.r[0] = 18;
+		regs.r[1] = reinterpret_cast<int>(title.c_str());
+		os::call_swi(swi::OS_Module, &regs);
+		unsigned int *module_start = reinterpret_cast<unsigned int *>(regs.r[3]);
+		if (!module_start[4] || !module_start[5])
+		{
+			// Can't access module information
+			return false;
+		}
+		_title = ((char *)module_start) + module_start[4];
+		_help_string = ((char *)module_start) + module_start[5];
+		extract_version();
+		_read_ok = true;
+	} catch(...)
+	{
+		// Assume module isn't there on failure
+	}
+	return _read_ok;
+}
+
+/**
+ * Extract version from module help string
+ */
+void module_info::extract_version()
+{
+	 const char *vp = _help_string.c_str();
+	 while (*vp && (*vp != ' ' && *vp != '\t')) vp++;
+	 while (*vp && (*vp < '0' || *vp > '9')) vp++;
+	 _version.clear();
+	 while (*vp >= '0' && *vp <= '9') _version += *vp++;
+	 if (*vp == '.')
+	 {
+	 		_version += *vp++;
+	    while (*vp >= '0' && *vp <= '9') _version += *vp++;
+	 }
+}
 
 }
 

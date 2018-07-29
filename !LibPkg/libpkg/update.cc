@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -146,7 +146,7 @@ void update::_poll()
 				// Extract package name and version.
 				string pkgname=ctrl.pkgname();
 				version pkgvrsn=ctrl.version();
-				binary_control_table::key_type key(pkgname,pkgvrsn);
+				binary_control_table::key_type key(pkgname,pkgvrsn,ctrl.environment_id());
 				if (_packages_written.find(key)==_packages_written.end())
 				{
 					// If not already written then write to available list.
@@ -183,7 +183,7 @@ void update::_poll()
 
 				// Extract package version.
 				version pkgvrsn=ctrl.version();
-				binary_control_table::key_type key(pkgname,pkgvrsn);
+				binary_control_table::key_type key(pkgname,pkgvrsn,ctrl.environment_id());
 				if (_packages_written.find(key)==_packages_written.end())
 				{
 					// If not already written then write to available list.

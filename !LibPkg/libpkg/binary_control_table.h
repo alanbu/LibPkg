@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -30,13 +30,16 @@ public:
 		string pkgname;
 		/** The package version. */
 		version pkgvrsn;
+		/** The package environment id */
+		string pkgenv;
 		/** Construct default key type. */
 		key_type();
 		/** Contruct key type from package name and version.
 		 * @param _pkgname the package name
 		 * @param _pkgvrsn the package version
+		 * @param _pkgenv the package environment id
 		 */
-		key_type(const string& _pkgname,const version& _pkgvrsn);
+		key_type(const string& _pkgname,const version& _pkgvrsn, const string &_pkgenv);
 	};
 	typedef binary_control mapped_type;
 	typedef std::map<key_type,mapped_type>::const_iterator const_iterator;

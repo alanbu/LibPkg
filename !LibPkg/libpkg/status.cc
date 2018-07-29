@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright ï¿½ 2003 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -55,11 +55,12 @@ status::status():
 	_iflags(0)
 {}
 
-status::status(state_type state,const string& version):
+status::status(state_type state,const string& version, const string &environment_id):
 	_state(state),
 	_flags(0),
 	_iflags(0),
-	_version(version)
+	_version(version),
+	_environment_id(environment_id)
 {}
 
 status::~status()
@@ -87,6 +88,11 @@ void status::version(const string& version)
 	_version=version;
 }
 
+void status::environment_id(const string &env_id)
+{
+	_environment_id = env_id;
+}
+
 status::parse_error::parse_error(const string& message):
 	runtime_error(message)
 {}
@@ -95,14 +101,16 @@ bool operator==(const status& lhs,const status& rhs)
 {
 	return (lhs.state()==rhs.state())&&
 		(lhs.flags()==rhs.flags())&&
-		(lhs.version()==rhs.version());
+		(lhs.version()==rhs.version())&&
+		(lhs.environment_id()==rhs.environment_id());
 }
 
 bool operator!=(const status& lhs,const status& rhs)
 {
 	return (lhs.state()!=rhs.state())||
 		(lhs.flags()!=rhs.flags())||
-		(lhs.version()!=rhs.version());
+		(lhs.version()!=rhs.version())||
+		(lhs.environment_id()!=rhs.environment_id());
 }
 
 std::ostream& operator<<(std::ostream& out,
@@ -132,6 +140,8 @@ std::ostream& operator<<(std::ostream& out,
 			out << (*i).first;
 		}
 	}
+	// Write environment
+	out << '\t' << pkgstat.second.environment_id();
 	return out;
 }
 
@@ -159,8 +169,9 @@ std::istream& operator>>(std::istream& in,std::pair<string,status>& pkgstat)
 		else done=true;
 	}
 
-	// Check number of fields.
-	if (fields.size()!=4)
+	// Check number of fields
+	// Version 0.6 adds an extra field, but can read old files
+	if (fields.size()!=4 && fields.size()!=5)
 		throw status::parse_error("incorrect number of fields");
 
 	// Parse package name.
@@ -199,6 +210,15 @@ std::istream& operator>>(std::istream& in,std::pair<string,status>& pkgstat)
 			else done=true;
 		}
 	}
+	// Parse environment
+	string env_id;
+	if (fields.size() >= 5)
+	{
+		string env_id = fields[4];
+		if (env_id.length()) pkgstat.second.environment_id(env_id);
+	}
+	// Default to "u" for unset if environment isn't specified
+	if (env_id.empty()) pkgstat.second.environment_id("u");
 	return in;
 }
 

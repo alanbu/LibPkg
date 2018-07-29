@@ -12,7 +12,7 @@ CPPFLAGS = -I..
 endif
 
 CXXFLAGS = -mthrowback -munixlib -mpoke-function-name \
- -Wall -W -Wno-unused -Wno-uninitialized -O2
+ -Wall -W -Wno-unused -Wno-uninitialized -O2 -std=c++0x
 
 ifeq ($(GCCSDK_INSTALL_ENV),)
 include fixdeps:Rules/make
@@ -56,7 +56,10 @@ OBJ = md5.o \
  boot_options_file.o \
  module_info.o \
  trigger.o \
- triggers.o
+ triggers.o \
+ env_checker.o \
+ env_checks.o \
+ env_packages_table.o
 
 
 .PHONY: all clean

@@ -37,8 +37,8 @@ clean:
 
 # Install for GCCSDK cross compiler
 install:
-	cp libpkg.a $(GCCSDK_INSTALL_ENV)/lib/
+	cp -f libpkg.a $(GCCSDK_INSTALL_ENV)/lib/
 	mkdir -p $(GCCSDK_INSTALL_ENV)/include/libpkg/os
-	cp libpkg/*.h libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg
-	cp libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg/os
+	cp -f libpkg/*.h libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg
+	cp -f libpkg/os/*.h $(GCCSDK_INSTALL_ENV)/include/libpkg/os
 

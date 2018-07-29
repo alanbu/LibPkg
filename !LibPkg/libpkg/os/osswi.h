@@ -1,5 +1,5 @@
 // This file is part of the RISC OS Toolkit (RTK).
-// Copyright © 2003 Graham Shaw.
+// Copyright ï¿½ 2003 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !RTK.Copyright.
 
@@ -159,6 +159,8 @@ const int OS_ConvertNetStation  =0xEA;
 const int OS_ConvertFixedFileSize=0xEB;
 const int OS_ConvertFileSize    =0xEC;
 const int OS_WriteI             =0x100;
+
+const int VFPSupport_Features	=0x58EC8;
 
 const int ModeFlags     =0;
 const int ScrRCol       =1;

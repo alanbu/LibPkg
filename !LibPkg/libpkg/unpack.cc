@@ -287,13 +287,13 @@ void unpack::_poll()
 			_pb.curstat().insert(_pkgname,curstat);
 
 			// Check whether standards-version can be processed.
-			binary_control_table::key_type key(_pkgname,selstat.version());
+			binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
 			const control& ctrl=_pb.control()[key];
 			if (!can_process(ctrl.standards_version()))
 				_packages_cannot_process.insert(_pkgname);
 
 			// Open zip file.
-			string pathname=_pb.cache_pathname(_pkgname,selstat.version());
+			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
 			delete _zf;
 			_zf=new zipfile(pathname);
 
@@ -337,7 +337,6 @@ void unpack::_poll()
 			// Select package.
 			_pkgname=*_packages_to_remove.begin();
 			status curstat=_pb.curstat()[_pkgname];
-			const status& prevstat=_pb.prevstat()[_pkgname];
 			if (_log) _log->message(LOG_INFO_PREREMOVE, _pkgname);
 
 			// Mark package as half-unpacked (but do not commit until
@@ -346,7 +345,7 @@ void unpack::_poll()
 			_pb.curstat().insert(_pkgname,curstat);
 
 			// Check whether package format is supported.
-			binary_control_table::key_type key(_pkgname,curstat.version());
+			binary_control_table::key_type key(_pkgname,curstat.version(),curstat.environment_id());
 			const control& ctrl=_pb.control()[key];
 			if (!can_process(ctrl.standards_version()))
 				_packages_cannot_process.insert(_pkgname);
@@ -470,7 +469,7 @@ void unpack::_poll()
             if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
 
 			// Open zip file.
-			string pathname=_pb.cache_pathname(_pkgname,selstat.version());
+			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
 			delete _zf;
 			_zf=new zipfile(pathname);
 

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -11,6 +11,7 @@
 #include "libpkg/filesystem.h"
 #include "libpkg/control.h"
 #include "libpkg/pkgbase.h"
+#include "libpkg/env_checker.h"
 
 namespace {
 
@@ -27,8 +28,10 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 	_cpathname(cpathname),
 	_curstat(pathname+string(".Status")),
 	_selstat(pathname+string(".Selected")),
+	_env_checker_ptr(pathname+string(".ModuleIDs")),
 	_control(pathname+string(".Available")),
 	_sources(dpathname+string(".Sources"),cpathname+string(".Sources")),
+	_env_packages(nullptr),
 	_paths(pathname+string(".Paths")),
 	_changed(false)
 {
@@ -37,15 +40,30 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 }
 
 pkgbase::~pkgbase()
-{}
+{
+	delete _env_packages;
+}
 
-string pkgbase::cache_pathname(const string& pkgname,const string& version)
+env_packages_table& pkgbase::env_packages()
+{
+	// Create on demand as it gives a chance for the environment override
+	// to be applied before its first used.
+	if (!_env_packages)
+	{
+		_env_packages = new env_packages_table(&_control);
+	}
+	return *_env_packages;
+}
+
+string pkgbase::cache_pathname(const string& pkgname,const string& version, const string& pkgenvid)
 {
 	string _pkgname(pkgname);
 	string _version(version);
+	string env_suffix;
+	if (!pkgenvid.empty() && pkgenvid != "u") env_suffix = "_" + pkgenvid;
 	std::replace(_pkgname.begin(),_pkgname.end(),'.','/');
 	std::replace(_version.begin(),_version.end(),'.','/');
-	return _pathname+string(".Cache.")+_pkgname+string("_")+_version;
+	return _pathname+string(".Cache.")+_pkgname+string("_")+_version+env_suffix;
 }
 
 string pkgbase::info_pathname(const string& pkgname)
@@ -127,7 +145,7 @@ string pkgbase::component_update_pathname()
 void pkgbase::verify_cached_file(const binary_control& ctrl)
 {
 	// Test whether file exists.
-	string pathname=cache_pathname(ctrl.pkgname(),ctrl.version());
+	string pathname=cache_pathname(ctrl.pkgname(),ctrl.version(),ctrl.environment_id());
 	if (!object_type(pathname))
 		throw cache_error("missing cache file",ctrl);
 
@@ -219,17 +237,23 @@ bool pkgbase::fix_dependencies(const std::set<string>& seed)
 					// see whether the installed version can be left
 					// as it is.
 					binary_control_table::key_type
-						key(pkgname,selstat.version());
+						key(pkgname,selstat.version(),selstat.environment_id());
 					success=fix_dependencies(_control[key],true);
 				}
 				if (!success)
 				{
 					// If the previous step did not find a suitable
 					// candidate then try the latest version available.
-					const pkg::control& ctrl=_control[pkgname];
-					success=fix_dependencies(ctrl,true);
-					if (success)
-						ensure_installed(pkgname,ctrl.version());
+					auto found_pkg = env_packages().find(pkgname);
+					if (found_pkg != env_packages().end())
+					{
+						binary_control_table::key_type
+							key(pkgname,found_pkg->second.pkgvrsn,found_pkg->second.pkgenv);
+						const pkg::control& ctrl=_control[key];
+						success=fix_dependencies(ctrl,true);
+						if (success)
+							ensure_installed(pkgname,ctrl.version(),found_pkg->second.pkgenv);
+					}
 				}
 				if (!success&&!selstat.flag(status::flag_must_remove))
 				{
@@ -245,7 +269,7 @@ bool pkgbase::fix_dependencies(const std::set<string>& seed)
 			{
 				// This package is selected for installation, and as yet
 				// there are no known grounds for its removal.
-				binary_control_table::key_type key(pkgname,selstat.version());
+				binary_control_table::key_type key(pkgname,selstat.version(),selstat.environment_id());
 				bool success=fix_dependencies(_control[key],false,false);
 				if (!success)
 				{
@@ -273,8 +297,10 @@ bool pkgbase::fix_dependencies(const std::set<string>& seed)
 				if (selstat.state()<=status::state_removed)
 					selstat.flag(status::flag_auto,true);
 				selstat.state(status::state_installed);
-				const pkg::control& ctrl=_control[pkgname];
-				selstat.version(ctrl.version());
+				auto best = env_packages()[pkgname];
+				pkg::binary_control_table::key_type key(pkgname, best.pkgvrsn, best.pkgenv );
+				selstat.version(best.pkgvrsn);
+				selstat.environment_id(best.pkgenv);
 				_selstat.insert(pkgname,selstat);
 			}
 		}
@@ -322,7 +348,7 @@ void pkgbase::remove_auto()
 			const status& selstat=i->second;
 			if (selstat.state()>=status::state_installed)
 			{
-				binary_control_table::key_type key(pkgname,selstat.version());
+				binary_control_table::key_type key(pkgname,selstat.version(),selstat.environment_id());
 				fix_dependencies(_control[key],true,true);
 			}
 		}
@@ -368,7 +394,7 @@ bool pkgbase::fix_dependencies(const pkg::control& ctrl,bool allow_new,
 		if (const pkg::control* ctrl=resolve(*i,allow_new))
 		{
 			if (apply)
-				ensure_installed(ctrl->pkgname(),ctrl->version());
+				ensure_installed(ctrl->pkgname(),ctrl->version(), ((pkg::binary_control *)ctrl)->environment_id());
 		}
 		else success=false;
 	}
@@ -420,7 +446,8 @@ const pkg::control* pkgbase::resolve(const dependency& dep,bool allow_new)
 		!selstat.flag(status::flag_must_upgrade))
 	{
 		string pkgvrsn=selstat.version();
-		binary_control_table::key_type key(pkgname,pkgvrsn);
+		string envid=selstat.environment_id();
+		binary_control_table::key_type key(pkgname,pkgvrsn,envid);
 		const pkg::control& ctrl=_control[key];
 		if (dep.matches(ctrl.pkgname(),ctrl.version()))
 			return &ctrl;
@@ -431,16 +458,21 @@ const pkg::control* pkgbase::resolve(const dependency& dep,bool allow_new)
 	// dependency with the most recent available version.
 	if (allow_new||selstat.flag(status::flag_must_upgrade))
 	{
-		const pkg::control& ctrl=_control[pkgname];
-		if (dep.matches(ctrl.pkgname(),ctrl.version()))
-			return &ctrl;
+		auto found_pkg = env_packages().find(pkgname);
+		if (found_pkg != env_packages().end())
+		{
+			binary_control_table::key_type key(pkgname,found_pkg->second.pkgvrsn,found_pkg->second.pkgenv);
+			const pkg::control& ctrl=_control[key];
+			if (dep.matches(ctrl.pkgname(),ctrl.version()))
+				return &ctrl;
+		}
 	}
 
 	// If no match found then return 0.
 	return 0;
 }
 
-void pkgbase::ensure_installed(const string& pkgname,const string& pkgvrsn)
+void pkgbase::ensure_installed(const string& pkgname,const string& pkgvrsn,const string &pkgenv)
 {
 	bool changed=false;
 	status selstat=_selstat[pkgname];
@@ -460,6 +492,8 @@ void pkgbase::ensure_installed(const string& pkgname,const string& pkgvrsn)
 	}
 	if (changed)
 	{
+		// Ensure we get the package for the correct environment
+		selstat.environment_id(pkgenv);
 		_selstat.insert(pkgname,selstat);
 		_changed=true;
 	}

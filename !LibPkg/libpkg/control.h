@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -215,6 +215,23 @@ public:
 	 *  the empty string
 	 */
 	string components() const;
+
+	/** Get environment
+	 * @return a comma separated list of the environmental features
+	 * required for this package.
+	 */
+	string environment() const;
+
+	/** Get OS dependencies
+	 * @return a comma separated list of the modules that need to be
+	 * present in the OS for this package
+	 */
+	string osdepends() const;
+
+	/** Get package weight or 0 to use environment default weight.
+	 * @return the weight to choose the most appropriate package for an environment.
+	 */
+	int weight() const;
 
 protected:
 	/** Get priority.

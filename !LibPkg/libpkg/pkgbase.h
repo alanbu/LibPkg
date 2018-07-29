@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -12,7 +12,9 @@
 #include "libpkg/status_table.h"
 #include "libpkg/binary_control_table.h"
 #include "libpkg/source_table.h"
+#include "libpkg/env_checker.h"
 #include "libpkg/path_table.h"
+#include "libpkg/env_packages_table.h"
 
 namespace pkg {
 
@@ -42,11 +44,17 @@ private:
 	/** The previous status table. */
 	status_table _prevstat;
 
+	/** Environment checker loader class */
+	env_checker_ptr _env_checker_ptr;
+
 	/** The binary control table. */
 	binary_control_table _control;
 
 	/** The source table. */
 	source_table _sources;
+
+	/** The list of packages for the current environment. */
+	env_packages_table *_env_packages;
 
 	/** The path table. */
 	path_table _paths;
@@ -103,6 +111,13 @@ public:
 	source_table& sources()
 		{ return _sources; }
 
+	/** Get environment packages table which contains the package names
+	 * of packages suitable for the current environment and the "best"
+	 * version to install.
+	 * @return environment packages table
+	 */
+	env_packages_table& env_packages();
+
 	/** Get path table.
 	 * @return the path table
 	 */
@@ -123,10 +138,12 @@ public:
 	/** Get pathname for package in cache.
 	 * @param pkgname the package name
 	 * @param pkgvrsn the package version
+	 * @param pkgenvid the package environment id
 	 * @return the pathname
 	 */
 	string cache_pathname(const string& pkgname,
-		const string& pkgvrsn);
+		const string& pkgvrsn,
+		const string& pkgenvid);
 
 	/** Get pathname for info directory of package.
 	 * @param pkgname the package name
@@ -244,8 +261,9 @@ private:
 	 * are set if they are not already.
 	 * @param pkgname the package name
 	 * @param pkgvrsn the package version
+	 * @param pkgenv the environment id for the package to install
 	 */
-	void ensure_installed(const string& pkgname,const string& pkgvrsn);
+	void ensure_installed(const string& pkgname,const string& pkgvrsn,const string &pkgenv);
 };
 
 /** An exception class for reporting cache errors. */

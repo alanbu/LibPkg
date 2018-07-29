@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2008 Graham Shaw.
+// Copyright ï¿½ 2003-2008 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -229,7 +229,7 @@ version::operator string() const
 	if (include_minus)
 	{
 		verstr.push_back('-');
-		verstr.append(_upstream_version);
+		verstr.append(_package_version);
 	}
 	return verstr;
 }

@@ -1,9 +1,10 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <iostream>
+#include <cstdlib>
 
 #include "libpkg/control.h"
 
@@ -120,6 +121,30 @@ string control::components() const
 	const_iterator f=find(key);
 	return (f==end())?string():(*f).second;
 }
+
+
+string control::environment() const
+{
+	static const key_type key("Environment");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+
+}
+
+string control::osdepends() const
+{
+	static const key_type key("OSDepends");
+	const_iterator f=find(key);
+	return (f==end())?string():(*f).second;
+}
+
+int control::weight() const
+{
+	static const key_type key("Weight");
+	const_iterator f=find(key);
+	return (f==end())?0:std::atoi((*f).second.c_str());
+}
+
 
 int control::priority(const string& value) const
 {

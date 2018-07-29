@@ -76,7 +76,7 @@ void commit::poll()
 				const status& selstat=_pb.selstat()[pkgname];
 
 				// Find control record for old version
-				binary_control_table::key_type key(pkgname,curstat.version());
+				binary_control_table::key_type key(pkgname,curstat.version(),curstat.environment_id());
 				const binary_control& ctrl=_pb.control()[key];
 
 				if (selstat.state() <= status::state_removed)
@@ -172,7 +172,7 @@ void commit::poll()
 			const status& selstat=_pb.selstat()[_pkgname];
 
 			// Find control record.
-			binary_control_table::key_type key(_pkgname,selstat.version());
+			binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
 			if (_log) _log->message(LOG_INFO_PREPROCESS_PACKAGE, _pkgname, selstat.version());
 			const binary_control& ctrl=_pb.control()[key];
 
@@ -245,7 +245,7 @@ void commit::poll()
 					if (_log) _log->message(LOG_INFO_DOWNLOADED_PACKAGE, _pkgname);
 					const status& selstat=_pb.selstat()[_pkgname];
 					binary_control_table::key_type key(_pkgname,
-						selstat.version());
+						selstat.version(),selstat.environment_id());
 					const binary_control& ctrl=_pb.control()[key];
 					try
 					{
@@ -275,14 +275,13 @@ void commit::poll()
 		{
 			// Select package.
 			_pkgname=*_packages_to_download.begin();
-			const status& curstat=_pb.curstat()[_pkgname];
 			const status& selstat=_pb.selstat()[_pkgname];
 
 			// Obtain URL and cache pathname then begin download.
-			binary_control_table::key_type key(_pkgname,selstat.version());
+			binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
 			const binary_control& ctrl=_pb.control()[key];
 			string url=ctrl.url();
-			string pathname=_pb.cache_pathname(_pkgname,selstat.version());
+			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
 			_dload=new download(url,pathname);
 
 			if (_log) _log->message(LOG_INFO_DOWNLOADING_PACKAGE, _pkgname, url);
@@ -441,7 +440,6 @@ void commit::poll()
 			if (_log) _log->message(LOG_INFO_UPDATING_BOOT_OPTIONS);
 
 			component_update update(_pb.component_update_pathname());
-			bool paths_updated = true;
 			path_table &paths = _pb.paths();
 
 			std::string option_name("LookAt");

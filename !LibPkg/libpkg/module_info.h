@@ -1,6 +1,6 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
-// Copyright © 2014 Alan Buckley
+// Copyright ï¿½ 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2014 Alan Buckley
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -31,6 +31,7 @@ public:
 	module_info() {_read_ok = false;}
 	module_info(const std::string &path);
 	bool read(const std::string &path);
+	bool lookup(const std::string &title);
 
 	/**
 	 * Check if module information has been update successfully
@@ -53,6 +54,8 @@ public:
 	 *@return module version as a string (e.g. 1.23)
 	 */
 	std::string version() const {return _version;}
+private:
+	void extract_version();
 };
 
 }

@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright ï¿½ 2003 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -9,6 +9,8 @@
 #include "libpkg/control.h"
 
 namespace pkg {
+
+class pkg_env;
 
 /** A class to represent the content of a RiscPkg binary control file.
  * Behaviour is that of a map<string,string>, except that:
@@ -28,8 +30,14 @@ public:
 
 	/** Destroy binary control file. */
 	virtual ~binary_control();
+
+	std::string environment_id() const;
+	const pkg_env *package_env() const;
+	int weight() const;
 protected:
 	virtual int priority(const string& value) const;
+	mutable pkg_env *_environment;
+	mutable int _weight;
 };
 
 }; /* namespace pkg */

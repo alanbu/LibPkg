@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -94,6 +94,10 @@ private:
 	 * This field is not meaningful when the installation state
 	 * is not-present. */
 	string _version;
+	/** The environment needed for the package (id)
+	 * This field is not meaningful when the installation state
+	 * is not-present. */
+	string _environment_id;
 public:
 	/** Construct status.
 	 * By default, the package is not-present and all flags are clear.
@@ -104,8 +108,9 @@ public:
 	 * By default, all flags are clear.
 	 * @param state the required installation state
 	 * @param version the required version
+	 * @param environment_id the required environment
 	 */
-	status(state_type state,const string& version);
+	status(state_type state,const string& version, const string &environment_id);
 
 	/** Destroy status. */
 	~status();
@@ -142,6 +147,12 @@ public:
 	string version() const
 		{ return _version; }
 
+	/** Get environment id
+	 * @return coded string for environment for this package
+	 */
+	string environment_id() const
+		{ return _environment_id;}
+
 	/** Set installation state.
 	 * @param state the required installation state
 	 */
@@ -163,6 +174,11 @@ public:
 	 * @param version the required package version
 	 */
 	void version(const string& version);
+
+	/** Set package environment id
+	 * @param environment id to specified the environment required
+	 */
+	void environment_id(const string &environment_id);
 };
 
 /** An exception class for reporting parse errors. */
