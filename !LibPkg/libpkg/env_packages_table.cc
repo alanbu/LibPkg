@@ -95,7 +95,7 @@ void env_packages_table::rebuild()
 					// Versions the same check the weights
 					binary_control_table::key_type key(bcentry.first.pkgname, found->second.pkgvrsn, found->second.pkgenv);
 					const binary_control &pctrl = (*_control)[key];
-					if (bctrl.weight() > pctrl.weight())
+					if (bctrl.install_priority() > pctrl.install_priority())
 					{
 						found->second = best(new_version, bctrl.environment_id());
 					}

@@ -40,7 +40,7 @@ static const std::map<string,int>& init_priorities()
 
 binary_control::binary_control()
   : _environment(nullptr),
-	_weight(0)
+	_install_priority(0)
 {}
 
 binary_control::~binary_control()
@@ -67,21 +67,21 @@ const pkg_env *binary_control::package_env() const
 	return _environment;
 }
 
-int binary_control::weight() const
+int binary_control::install_priority() const
 {
-	if (_weight == 0)
+	if (_install_priority == 0)
 	{
-		const_iterator f=find("weight");
+		const_iterator f=find("InstallPriority");
 		if (f==end())
 		{
-			_weight = 0;
+			_install_priority = 0;
 		} else
 		{
-			_weight = std::atoi(f->second.c_str());
+			_install_priority = std::atoi(f->second.c_str());
 		}
-		if (_weight == 0) _weight = package_env()->default_weight();
+		if (_install_priority == 0) _install_priority = package_env()->default_install_priority();
 	}
-	return _weight;
+	return _install_priority;
 }
 
 }; /* namespace pkg */

@@ -44,15 +44,17 @@ unsigned int platform_features()
  * @param name short name
  * @param desc short description
  * @param id single letter optionally followed by a number. This must be unique for all checks.
+ * @param type The type of the check
+ * @param install_priority the priority weighting for this check
  */
-env_check::env_check(const std::string &name, const std::string &desc, const std::string &id, env_check_type type, int weight)
+env_check::env_check(const std::string &name, const std::string &desc, const std::string &id, env_check_type type, int install_priority)
   : _name(name),
 	_id(id),
 	_type(type),
 	_description(desc),
 	_detected(false),
 	_available(false),
-	_weight(weight)
+	_install_priority(install_priority)
 {
 }
 

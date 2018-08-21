@@ -32,7 +32,7 @@ class env_check
 {
 public:
 
-	env_check(const std::string &name, const std::string &desc, const std::string &id, env_check_type type, int weight);
+	env_check(const std::string &name, const std::string &desc, const std::string &id, env_check_type type, int install_priority);
 	virtual ~env_check() {}
 	/** The name of the check, should be fairly short */
 	const std::string &name() const {return _name;}
@@ -48,7 +48,7 @@ public:
 	/** Type for this check */
 	env_check_type type() const {return _type;}
 	/** Priority for this check, the higher the more important */
-	int weight() {return _weight;}
+	int install_priority() {return _install_priority;}
 private:
 	std::string _name;
 	std::string _id;
@@ -57,7 +57,7 @@ protected:
 	std::string _description;
 	bool _detected;
 	bool _available;
-	int _weight;
+	int _install_priority;
 };
 
 /** Class for packages where the environment has not been set */
@@ -96,8 +96,8 @@ public:
 	/** Return true if this environment is compatible with the current machine */
 	bool available() const {return _available;}
 
-	/** Default weight to use if the package doesn't specify one */
-	int default_weight() const {return _weight;}
+	/** Default install priority to use if the package doesn't specify one */
+	int default_install_priority() const {return _install_priority;}
 	/** Unique short Id string for use in maps and file caches */
 	const std::string &id() const {return _id;}
 
@@ -116,7 +116,7 @@ private:
 	std::string _id;
 	std::vector<env_check *> _checks;
 	bool _available;
-	int _weight;
+	int _install_priority;
 	env_check_type _type;
 };
 

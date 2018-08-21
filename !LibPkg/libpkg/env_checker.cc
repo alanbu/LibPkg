@@ -451,13 +451,13 @@ void env_checker::write_module_map()
 pkg_env::pkg_env(const std::string &name, const std::vector<env_check *> &checks) : _name(name),
     _checks(checks),
 	_available(true),
-	_weight(-10000),
+	_install_priority(-10000),
 	_type(System)
 {
    for(env_check *check : _checks)
    {
 	   _available &= check->available();
-	   _weight += check->weight();
+	   _install_priority += check->install_priority();
 	   _id = _id + check->id();
 	   if (check->type() > _type) _type = check->type();
    }

@@ -18,7 +18,7 @@ namespace pkg {
  * A class that filters the binary control table to create
  * a list of the packages available in the current environment.
  * It also records the latest version with the highest
- * weight to give the "best" version to install.
+ * install priority to give the "best" version to install.
  */
 class env_packages_table :
 			public table,
