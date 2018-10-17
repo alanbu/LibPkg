@@ -120,7 +120,8 @@ namespace pkg {
 		"Removing copied post-remove triggers",
 		"Running post-remove triggers",
 		"Running post-install triggers",
-		"Deleting shared variable '%0'"
+		"Deleting shared variable '%0'",
+		"Package environment '%0' with OS dependency '%1'"
 	};
 
 	// Array putting it all together

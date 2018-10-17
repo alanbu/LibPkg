@@ -175,6 +175,10 @@ void commit::poll()
 			binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
 			if (_log) _log->message(LOG_INFO_PREPROCESS_PACKAGE, _pkgname, selstat.version());
 			const binary_control& ctrl=_pb.control()[key];
+			if (_log)
+			{
+				_log->message(LOG_INFO_PACKAGE_ENV, ctrl.package_env()->env_names(), ctrl.package_env()->module_names());
+			}
 
 			// Determine whether a download is required.
 			// This is true if the package is to be unpacked,
@@ -364,6 +368,8 @@ void commit::poll()
 			{
 				status st=_pb.curstat()[_pkgname];
 				st.state(status::state_installed);
+				// Ensure environment change is also detected
+				st.environment_id(selstat.environment_id());
 				_pb.curstat().insert(_pkgname,st);
 				if (_log) _log->message(LOG_INFO_INSTALLED, _pkgname);
 			}

@@ -472,5 +472,22 @@ void pkg_env::reset_available()
    }
 }
 
+/**
+ * Return the environment part of the name
+ */
+std::string pkg_env::env_names() const
+{
+	return _name.substr(0, _name.find(ENV_MODULE_SEP));
+}
+
+/**
+ * Return the modules part of the name
+ */
+std::string pkg_env::module_names() const
+{
+	std::string::size_type mod_pos = _name.find(ENV_MODULE_SEP);
+	return (mod_pos == std::string::npos) ? std::string() : _name.substr(mod_pos+1);
+}
+
 
 } /* namespace lippkg */

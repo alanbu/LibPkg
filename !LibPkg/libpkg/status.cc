@@ -214,7 +214,7 @@ std::istream& operator>>(std::istream& in,std::pair<string,status>& pkgstat)
 	string env_id;
 	if (fields.size() >= 5)
 	{
-		string env_id = fields[4];
+		env_id = fields[4];
 		if (env_id.length()) pkgstat.second.environment_id(env_id);
 	}
 	// Default to "u" for unset if environment isn't specified
@@ -226,21 +226,24 @@ bool unpack_req(const status& curstat,const status& selstat)
 {
 	return (selstat.state()>=status::state_unpacked)&&
 		((curstat.state()<status::state_unpacked)||
-		(curstat.version()!=selstat.version()));
+		(curstat.version()!=selstat.version())||
+		(curstat.environment_id()!=selstat.environment_id()));
 }
 
 bool remove_req(const status& curstat,const status& selstat)
 {
 	return (curstat.state()>status::state_removed)&&
 		((selstat.state()<=status::state_removed)||
-		(curstat.version()!=selstat.version()));
+		(curstat.version()!=selstat.version())||
+		(curstat.environment_id()!=selstat.environment_id()));
 }
 
 bool config_req(const status& curstat,const status& selstat)
 {
 	return (selstat.state()>=status::state_installed)&&
 		((curstat.state()<status::state_installed)||
-		(curstat.version()!=selstat.version()));
+		(curstat.version()!=selstat.version())||
+		(curstat.environment_id()!=selstat.environment_id()));
 }
 
 bool purge_req(const status& curstat,const status& selstat)

@@ -107,6 +107,10 @@ public:
 	/** Reset available flag from contained checks */
 	void reset_available();
 
+	std::string env_names() const;
+	std::string module_names() const;
+
+
 private:
 	friend env_checker;
 	pkg_env(const std::string &name, const std::vector<env_check *> &checks);
