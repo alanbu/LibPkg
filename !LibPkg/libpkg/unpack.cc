@@ -283,6 +283,7 @@ void unpack::_poll()
 			// pre-remove and pre-unpack phases have been completed).
 			curstat.state(status::state_half_unpacked);
 			curstat.version(selstat.version());
+			curstat.environment_id(selstat.environment_id());
 			curstat.flag(status::flag_auto,selstat.flag(status::flag_auto));
 			_pb.curstat().insert(_pkgname,curstat);
 
