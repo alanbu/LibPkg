@@ -77,7 +77,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 {
 	// Initialise iterator.
 	std::string::const_iterator p=first;
-	std::string valid("!_+-.<>/");
+	std::string valid("!_+-.<>/'\xA0");
 	_flags = 0;
 
 	// Parse package name.
