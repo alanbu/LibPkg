@@ -192,7 +192,7 @@ pkg_env *env_checker::package_env(const std::string &env_list, const std::string
 
 	if (!os_depends.empty())
 	{
-		std::string::const_iterator pos;
+		std::string::const_iterator pos = os_depends.begin();
 		std::string::const_iterator start_pos = pos;
 		std::string::const_iterator end_pos;
 		while(start_pos != os_depends.end())
@@ -207,7 +207,7 @@ pkg_env *env_checker::package_env(const std::string &env_list, const std::string
 			}
 			if (end_pos > start_pos)
 			{
-				std::string module_name(start_pos, end_pos);
+				std::string module_name(start_pos, end_pos+1);
 				std::transform(module_name.begin(), module_name.end(), module_name.begin(),
 				                   [](unsigned char c){ return std::tolower(c); }
 				);
@@ -304,6 +304,7 @@ std::string env_checker::get_module_id(const std::string &title)
 		lower_title += std::tolower(ch);
 	}
 	auto found = _module_ids.find(lower_title);
+
 	if (found != _module_ids.end())
 	{
 		return found->second;
@@ -438,7 +439,7 @@ void env_checker::write_module_map()
 {
 	std::ofstream out(_module_map_path.c_str());
 	unsigned int version = 1;
-	out << version; // just in case the format needs to change
+	out << version << "\n"; // just in case the format needs to change
 	for(auto entry : _module_ids)
 	{
 		out << entry.second.substr(1) << "\t" << entry.first << "\n";
