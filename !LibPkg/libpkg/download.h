@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003-2005 Graham Shaw.
+// Copyright ï¿½ 2003-2005 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -10,6 +10,13 @@
 #include <fstream>
 
 #include "curl/curl.h"
+
+// Define the following to add extra logging of the download stage
+// #define LOG_DOWNLOAD
+
+#ifdef LOG_DOWNLOAD
+#include "libpkg/log.h"
+#endif
 
 namespace pkg {
 
@@ -36,6 +43,7 @@ public:
 		/** The state in which the download has failed. */
 		state_fail
 	};
+
 private:
 	/** The current state of the download. */
 	state_type _state;
@@ -45,6 +53,7 @@ private:
 
 	/** The libcurl result code. */
 	CURLcode _result;
+
 
 	/** The libcurl error buffer. */
 	char* _error_buffer;
@@ -60,12 +69,18 @@ private:
 
 	/** The total number of bytes to download, or npos if not known. */
 	size_type _bytes_total;
+
+	#ifdef LOG_DOWNLOAD
+	/** Optional curl debug  log */
+	log *_log;
+	#endif
+
 public:
 	/** Construct download action.
 	 * @param url the URL from which to download
 	 * @param pathname the pathname to which the file is to be written
 	 */
-	download(const string& url,const string& pathname);
+download(const string& url,const string& pathname);
 
 	/** Destroy download action. */
 	~download();
@@ -78,7 +93,7 @@ public:
 
 	/** Get libcurl result code.
 	 * @return the result code
-	 */
+     */
 	CURLcode result() const
 		{ return _result; }
 
@@ -108,7 +123,7 @@ public:
 	 */
 	size_t write_callback(char* buffer,size_t size,size_t nitems);
 
-	/** Handler for CURLOPT_PROGRESSFUNCTION callbacks.
+/** Handler for CURLOPT_PROGRESSFUNCTION callbacks.
 	 * @param dltotal the total number of bytes to download, or 0 if not known
 	 * @param dlnow the number of bytes downloaded
 	 * @return zero
@@ -119,6 +134,17 @@ public:
 	 * @param msg the message
 	 */
 	void message_callback(CURLMsg* msg);
+
+#ifdef LOG_DOWNLOAD
+    /** Handler for the CURLOPT_DEBUGFUNCTION callbacks
+	 */
+	int debug_callback(curl_infotype type,char *data, size_t size);
+	/** Set the log to add to
+	 * @param use_log log to use or 0 to stop logging
+	 */
+	void log_to(log *use_log);	
+#endif
+
 private:
 	/** The libcurl multi handle.
 	 * This is shared between all downloads.  A multi handle is created

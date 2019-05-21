@@ -121,7 +121,10 @@ namespace pkg {
 		"Running post-remove triggers",
 		"Running post-install triggers",
 		"Deleting shared variable '%0'",
-		"Package environment '%0' with OS dependency '%1'"
+		"Package environment '%0' with OS dependency '%1'",
+		"Download info '%0'",
+		"Download data %0 size %1",
+		"Download header %0 size %1'"
 	};
 
 	// Array putting it all together

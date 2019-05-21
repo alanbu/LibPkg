@@ -109,6 +109,9 @@ void update::_poll()
 			string pathname=_pb.list_pathname(_url);
 			_dload=new download(_url,pathname);
 			if (_log) _log->message(LOG_INFO_DOWNLOADING_SOURCE, _url);
+			#ifdef LOG_DOWNLOAD
+			if (_log) _dload->log_to(_log);
+			#endif
 		}
 		else
 		{

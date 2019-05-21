@@ -1,5 +1,5 @@
 // This file is part of LibPkg.
-// Copyright © 2003 Graham Shaw.
+// Copyright ï¿½ 2003 Graham Shaw.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
@@ -37,6 +37,15 @@ static int download_progress(void* dl,double dltotal,double dlnow,
 	return static_cast<pkg::download*>(dl)->progress_callback(dltotal,dlnow);
 }
 
+#ifdef LOG_DOWNLOAD
+static int debug_function(CURL *handle,curl_infotype type,char *data, size_t size, void *userptr)
+{
+	(void *)handle;
+	return static_cast<pkg::download*>(userptr)->debug_callback(type, data, size);
+}
+#endif
+
+
 }; /* extern "C" */
 
 namespace pkg {
@@ -52,6 +61,9 @@ download::download(const string& url,const string& pathname):
 	_bytes_total(npos)
 {
 	_error_buffer[0]=0;
+	#ifdef LOG_DOWNLOAD
+	_log = nullptr;
+	#endif
 
 	if (!_cmulti) _cmulti=curl_multi_init();
 	++_cmulti_refcount;
@@ -68,12 +80,30 @@ download::download(const string& url,const string& pathname):
 	curl_easy_setopt(_ceasy,CURLOPT_NOPROGRESS,false);
 	curl_easy_setopt(_ceasy,CURLOPT_FAILONERROR,true);
 	curl_easy_setopt(_ceasy,CURLOPT_ERRORBUFFER,_error_buffer);
+	curl_easy_setopt(_ceasy, CURLOPT_CONNECTTIMEOUT, 20L);
+	#ifdef LOG_DOWNLOAD
+		curl_easy_setopt(_ceasy, CURLOPT_DEBUGFUNCTION, &debug_function);
+		curl_easy_setopt(_ceasy, CURLOPT_DEBUGDATA, this);
+		curl_easy_setopt(_ceasy, CURLOPT_VERBOSE, 1L);
+	#endif
 	// follow 301 Moved Permanently and similar redirects
 	curl_easy_setopt(_ceasy,CURLOPT_FOLLOWLOCATION,1);
 	curl_multi_add_handle(_cmulti,_ceasy);
 
 	__riscosify_control=riscosify_control;
 }
+
+#ifdef LOG_DOWNLOAD
+void download::log_to(log *use_log)
+{
+	_log = use_log;
+	if (_log)
+	{
+		_log->message(LOG_INFO_DOWNLOAD_INFO, "Download logging on xxx");
+	}
+}
+#endif
+
 
 download::~download()
 {
@@ -116,6 +146,46 @@ void download::message_callback(CURLMsg* msg)
 	}
 }
 
+
+#ifdef LOG_DOWNLOAD
+int download::debug_callback(curl_infotype type,char *data, size_t size)
+{
+	if (!_log) return 0;
+	char size_text[16];
+	sprintf(size_text,"%d",(int)size);
+
+	switch(type)
+	{
+		case CURLINFO_TEXT:
+			_log->message(LOG_INFO_DOWNLOAD_INFO, data);
+			break; 
+  		case CURLINFO_HEADER_OUT:
+			_log->message(LOG_INFO_DOWNLOAD_HEADER, "sent", size_text);
+			break;
+		case CURLINFO_DATA_OUT:
+			_log->message(LOG_INFO_DOWNLOAD_DATA, "sent", size_text);
+			break;
+		case CURLINFO_SSL_DATA_OUT:
+			_log->message(LOG_INFO_DOWNLOAD_DATA, "SSL sent", size_text);
+			break;
+		case CURLINFO_HEADER_IN:
+			_log->message(LOG_INFO_DOWNLOAD_HEADER, "received", size_text);
+			break;
+		case CURLINFO_DATA_IN:
+			_log->message(LOG_INFO_DOWNLOAD_DATA, "received", size_text);
+			break;
+		case CURLINFO_SSL_DATA_IN:
+			_log->message(LOG_INFO_DOWNLOAD_DATA, "SSL received", size_text);
+			break;
+
+		case CURLINFO_END:
+			// Stop compiler warning
+			break;
+	}
+	return 0;
+}
+#endif
+
 CURLM* download::_cmulti=0;
 unsigned int download::_cmulti_refcount=0;
 
@@ -127,7 +197,7 @@ void download::poll_all()
 		__riscosify_control=0;
 
 		int running_handles=0;
-		curl_multi_perform(_cmulti,&running_handles);
+		CURLMcode mcode = curl_multi_perform(_cmulti,&running_handles);
 
 		int msgs_in_queue=0;
 		CURLMsg* msg=curl_multi_info_read(_cmulti,&msgs_in_queue);
