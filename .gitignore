@@ -3,4 +3,6 @@
 *.d
 *.a
 timestamp
+*.bin
+*.ipch
 
