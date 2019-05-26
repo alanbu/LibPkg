@@ -418,11 +418,12 @@ void env_checker::read_module_map()
 
 	std::string title;
 	std::string id;
-	char tab;
+	char first_char;
 
 	while (in && !in.eof())
 	{
-		in >> id >> tab;
+		in >> id >> first_char;
+		in.putback(first_char);
 		std::getline(in, title);
 		if (!title.empty())
 		{

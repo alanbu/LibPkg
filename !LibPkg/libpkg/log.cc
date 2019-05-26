@@ -62,6 +62,7 @@ namespace pkg {
 		"Started processing changes to packages",
 		"Preprocessing package '%0' version '%1'",
 		"Using cached version of package '%0'",
+		"Not using cached version of package '%0' due to '%1'",
 		"Downloading package '%0' from '%1'",
 		"Package '%0' downloaded",
 		"Unpacking packages",

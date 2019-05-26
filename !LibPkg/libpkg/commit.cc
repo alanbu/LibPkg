@@ -194,6 +194,7 @@ void commit::poll()
 				}
 				catch (pkgbase::cache_error& ex)
 				{
+					if (_log) _log->message(LOG_INFO_NOT_USING_CACHE,_pkgname, ex.what());
 				}
 			}
 
