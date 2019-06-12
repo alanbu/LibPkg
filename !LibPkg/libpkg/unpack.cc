@@ -247,6 +247,9 @@ void unpack::poll()
 			delete _trigger;
 			_trigger = 0;
 			break;
+		case state_create_empty_dirs:
+		  state(state_unwind_create_empty_dirs);
+			break;
 
 		default:
 			state(state_fail);
@@ -264,10 +267,30 @@ void unpack::_poll()
 		{
 			// Test whether file exists, add to set of conflicts if it does.
 			string src_pathname=*_files_to_unpack.begin();
+			if (src_pathname.back() == '.')
+			{
+				_empty_dirs_to_create.insert(src_pathname.substr(0, src_pathname.size()-1));
+			} else
+			{
+				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+				if (object_type(dst_pathname))
+				{
+							_files_that_conflict.insert(dst_pathname);
+				}
+			}
+			_files_to_unpack.erase(src_pathname);			
+		} else if (_empty_dirs_to_create.size())
+		{
+			  // Test if an empty directory exists, add it to conflicts
+				// if it clashes with a file
+			string src_pathname=*_empty_dirs_to_create.begin();
 			string dst_pathname=_pb.paths()(src_pathname,_pkgname);
-			if (object_type(dst_pathname)!=0)
-				_files_that_conflict.insert(dst_pathname);
-			_files_to_unpack.erase(src_pathname);
+			int type = object_type(dst_pathname);
+			if (type != 0 && type != 2)
+			{
+					_files_that_conflict.insert(dst_pathname);
+			}
+			_empty_dirs_to_create.erase(src_pathname);
 		}
 		else if (_packages_to_unpack.size())
 		{
@@ -361,11 +384,19 @@ void unpack::_poll()
 			for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
 			{
 				string src_pathname=*i;
+				bool is_dir = (src_pathname.back()=='.');
+				if (is_dir) src_pathname.erase(src_pathname.size()-1);
 				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
 				_files_that_conflict.erase(dst_pathname);
 				if (object_type(dst_pathname))
 				{
-					_files_to_remove.insert(dst_pathname);
+					if (is_dir)
+					{
+						_dirs_to_remove.insert(dst_pathname);
+					} else
+					{
+						_files_to_remove.insert(dst_pathname);
+					}
 					_files_total_remove+=1;
 				}
 			}
@@ -453,11 +484,20 @@ void unpack::_poll()
 		{
 			// Unpack file to temporary location.
 			string src_pathname=*_files_to_unpack.begin();
-			string dst_pathname=_pb.paths()(src_pathname,_pkgname);
-			// Make a note that we're trying to unpack this file,
-			// so can revert it later if necessary
-			unpack_file(src_pathname,dst_pathname);
-			_files_being_unpacked.insert(dst_pathname);
+			bool is_dir = (src_pathname.back() == '.');
+      if (is_dir)
+			{
+				string dst_pathname=_pb.paths()(src_pathname.substr(0, src_pathname.size()-1),_pkgname);
+				// Build list of all dirs to create for all packages
+				_empty_dirs_to_check.insert(dst_pathname);
+			} else
+			{			
+				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+				// Make a note that we're trying to unpack this file,
+				// so can revert it later if necessary
+					unpack_file(src_pathname,dst_pathname);
+				_files_being_unpacked.insert(dst_pathname);
+			}
 			_files_to_unpack.erase(src_pathname);
 		}
 		else if (_packages_pre_unpacked.size())
@@ -467,7 +507,7 @@ void unpack::_poll()
 			const status& selstat=_pb.selstat()[_pkgname];
 			const status& prevstat=_pb.prevstat()[_pkgname];
 
-            if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
+      if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
 
 			// Open zip file.
 			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
@@ -487,7 +527,8 @@ void unpack::_poll()
 
 			// Copy manifest to list of files to be unpacked.
 			_files_to_unpack=mf;
-
+			// _empty_dirs_to_check is not reset as it accumulates all dirs
+						
 			// Merge with manifest in package info directory.
 			read_manifest(mf,_pkgname);
 			prepare_manifest(mf,_pkgname);
@@ -562,6 +603,20 @@ void unpack::_poll()
 			// Progress to next file.
 			_files_unpacked.insert(dst_pathname);
 			_files_being_unpacked.erase(dst_pathname);
+		} else if (_empty_dirs_to_check.size())
+		{
+			string dst_pathname=*_empty_dirs_to_check.begin();
+			if (_dirs_to_remove.find(dst_pathname) != _dirs_to_remove.end())
+			{
+				_dirs_to_remove.erase(dst_pathname);
+				// We don't need to process this directory so remove from totals
+				_files_total--;
+				_files_total_remove--;
+			} else
+			{
+				_empty_dirs_to_create.insert(dst_pathname);
+			}
+			_empty_dirs_to_check.erase(dst_pathname);
 		}
 		else
 		{
@@ -580,6 +635,14 @@ void unpack::_poll()
 			// Progress to next file.
 			_files_being_removed.insert(dst_pathname);
 			_files_to_remove.erase(dst_pathname);
+		} else if (_dirs_to_remove.size())
+		{
+			string dst_pathname=*_dirs_to_remove.begin();
+			_ad(dst_pathname);
+			soft_delete(dst_pathname);
+			_files_done++;
+			_dirs_removed.insert(dst_pathname);
+			_dirs_to_remove.erase(dst_pathname);			
 		}
 		else
 		{
@@ -629,16 +692,34 @@ void unpack::_poll()
 			_packages_removed.insert(_pkgname);
 			_packages_being_removed.erase(_pkgname);
 
-            if (_log) _log->message(LOG_INFO_UNPACK_REMOVED, _pkgname);
+      if (_log) _log->message(LOG_INFO_UNPACK_REMOVED, _pkgname);
 
 		}
 		else
 		{
 			// Progress to next state.
 			_ad("");
-			state(state_post_unpack);
+			state(state_create_empty_dirs);
 		}
 		break;
+
+	case state_create_empty_dirs:
+	  if (_empty_dirs_to_create.size())
+		{
+			std::string dst_pathname = *_empty_dirs_to_create.begin();
+			_ad(dst_pathname);
+			create_directory(dst_pathname);
+			_files_done++;
+			_dirs_created.insert(dst_pathname);
+			_empty_dirs_to_create.erase(dst_pathname);
+		} else
+		{
+			// Progress to next state.
+			_ad("");
+			state(state_post_unpack);
+		}
+		break;		
+
 	case state_post_unpack:
 		if (_packages_being_unpacked.size())
 		{
@@ -683,6 +764,22 @@ void unpack::_poll()
 	case state_done:
 		// Unpack operation complete: do nothing.
 		break;
+
+	case state_unwind_create_empty_dirs:
+	  if (_dirs_created.size())
+		{
+			std::string dst_pathname = *_dirs_created.begin();
+			_ad(dst_pathname);
+			soft_delete(dst_pathname);
+			_dirs_created.erase(dst_pathname);
+			_files_done--;
+		} else
+		{
+			_ad("");
+			state(state_unwind_replace);
+		}
+		break;
+		
 	case state_unwind_replace:
 		if (_files_unpacked.size())
 		{
@@ -708,8 +805,22 @@ void unpack::_poll()
 		{
 			// Restore file from backup.
 			string dst_pathname=*_files_being_removed.begin();
-			unwind_remove_file(dst_pathname);
+			if (dst_pathname.back() == '.')
+			{
+				// Just need to recreate directories they are not backed up
+				create_directory(dst_pathname.substr(0,dst_pathname.size()-1));
+			} else
+			{
+				unwind_remove_file(dst_pathname);
+			}
 			_files_being_removed.erase(dst_pathname);
+		} else if (_dirs_removed.size())
+		{
+			// Recreate empty directory that's been removed
+			string dst_pathname=*_dirs_removed.begin();
+			_ad(dst_pathname);
+			create_directory(dst_pathname);
+			_dirs_removed.erase(dst_pathname);
 		}
 		else
 		{
@@ -743,7 +854,13 @@ void unpack::_poll()
 		{
 			// Delete temporary file.
 			string dst_pathname=*_files_being_unpacked.begin();
-			unwind_unpack_file(dst_pathname);
+			if (dst_pathname.back() == '.')
+			{
+        soft_delete(dst_pathname.substr(0,dst_pathname.size()-1));
+			} else
+			{			
+			   unwind_unpack_file(dst_pathname);
+			}
 			_files_being_unpacked.erase(dst_pathname);
 		}
 		else if (_packages_being_unpacked.size())
@@ -932,9 +1049,24 @@ void unpack::state(state_type new_state)
 		state_text("Removing backups");
 		// Not logging as post remove/unpack is logged for each package
 		break;
+	case state_create_empty_dirs:
+	  if (!_empty_dirs_to_create.empty())
+		{
+			code = LOG_INFO_CREATE_EMPTY_DIRS;
+			state_text("Creating empty directories");
+		}
+		break;
+
 	case state_done:
 		code = LOG_INFO_UNPACK_DONE;
 		state_text("Finished");
+		break;
+	case state_unwind_create_empty_dirs:
+	  if (!_dirs_created.empty())
+		{
+			code = LOG_INFO_UNWIND_EMPTY_DIRS;
+			state_text("Unwinding after error");
+		}
 		break;
 	case state_unwind_remove:
 		if (!_files_being_removed.empty())
@@ -1030,13 +1162,38 @@ void unpack::read_manifest(std::set<string>& mf,const string& pkgname)
 
 void unpack::build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize)
 {
+	std::set<string> dir_names;
+	std::set<string> dirs_with_files;
+	std::string::size_type leaf_pos;
+
 	for (unsigned int i=0;i!=zf.size();++i)
 	{
 		string pathname=zf[i].pathname();
-		if (pathname.size()&&(pathname[pathname.length()-1]!='/'))
+		string src_pathname = zip_to_src(zf[i].pathname());
+		if (pathname.size())
 		{
-			mf.insert(zip_to_src(zf[i].pathname()));
-			if (usize) *usize+=zf[i].usize();
+			if(pathname[pathname.length()-1]!='/')
+			{
+				mf.insert(src_pathname);
+				if (usize) *usize+=zf[i].usize();
+			  leaf_pos = src_pathname.rfind('.');
+				if (leaf_pos != std::string::npos) dirs_with_files.insert(src_pathname.substr(0,leaf_pos+1));
+			} else
+			{
+				dir_names.insert(src_pathname);
+			}
+		}
+	}
+	// Add in empty directories
+	if (!dir_names.empty())
+	{
+		std::set<string>::iterator dir_iter;
+		for (dir_iter = dir_names.begin(); dir_iter != dir_names.end(); ++dir_iter)
+		{
+		   if (!dirs_with_files.count(*dir_iter))
+			 {
+				 mf.insert(*dir_iter);
+			 }
 		}
 	}
 }
@@ -1168,7 +1325,7 @@ void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 			finfo->find_extra<zipfile::riscos_info>())
 		{
 			write_file_info(tmp_pathname,rinfo->loadaddr(),
-				rinfo->execaddr(),rinfo->attr());
+			rinfo->execaddr(),rinfo->attr());
 		}
 
 		_bytes_done+=finfo->usize();
