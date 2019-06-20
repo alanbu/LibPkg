@@ -593,6 +593,13 @@ void unpack::_poll()
 			string dst_pathname=*_files_being_unpacked.begin();
 			bool overwrite=_files_to_remove.find(dst_pathname)!=
 				_files_to_remove.end();
+			if (!overwrite && _dirs_to_remove.find(dst_pathname) != _dirs_to_remove.end())
+			{
+				// Need to delete directory so it can be replaced
+				soft_delete(dst_pathname);
+				_dirs_removed.insert(dst_pathname);				
+				_dirs_to_remove.erase(dst_pathname);
+			}
 			replace_file(dst_pathname,overwrite);
 			if (overwrite)
 			{
@@ -788,6 +795,12 @@ void unpack::_poll()
 			string dst_pathname=*_files_unpacked.begin();
 			bool overwrite=_files_being_removed.find(dst_pathname)!=
 				_files_being_removed.end();
+			if (!overwrite && _dirs_removed.find(dst_pathname) != _dirs_removed.end())
+			{
+				// Replaced an empty directory so ensure it's in list to recreate
+				_dirs_removed.insert(dst_pathname);
+			}
+
 			unwind_replace_file(dst_pathname,overwrite);
 			if (overwrite)
 				_files_being_removed.erase(dst_pathname);
@@ -1310,7 +1323,7 @@ void unpack::add_post_remove_trigger(const string &pkgname, std::set<string> &mf
 
 void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 {
-	//std::cout << "unpack::unpack_file " << src_pathname << " to " << dst_pathname << std::endl;
+//	std::cout << "unpack::unpack_file " << src_pathname << " to " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string zip_pathname=src_to_zip(src_pathname);
