@@ -10,7 +10,7 @@ IfThere <LibPkg$Dir>.README Then Set LibPkg$Temp <LibPkg$Dir>.README
 IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Temp <LibPkg$Dir>.html.index/html
 If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Help>"="" Then Set LibPkg$Help <LibPkg$Temp>
 Unset LibPkg$Temp
-If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Version>"="" Then Set LibPkg$Version 0.7.0
+If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Version>"="" Then Set LibPkg$Version 0.8.0
 If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Web>"="" Then Set LibPkg$Web http://www.riscpkg.org/
 If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Title>"="" Then Set LibPkg$Title LibPkg
 If "<LibPkg$Dir>"="<Obey$Dir>" AND "<LibPkg$Publisher>"="" Then Set LibPkg$Publisher The RISC OS Packaging Project

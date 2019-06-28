@@ -1,8 +1,17 @@
 # This file is part of !LibPkg.
-# Copyright � 2003-2016 Graham Shaw.
+# Copyright � 2003-2019 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 # Versions after 0.3.0 were modified by Alan Buckley
+
+Version 0.8.0 (July 2019)
+
+  Raised supported standards version from 0.5.* to 0.6.*
+  Added support for Environment, OSDepends and InstallPriority fields.
+  Support hard spaces and single quotes in the Components field.
+  Overwrite packages added from disc to stop invalid URL error.
+  Added support for empty directories.
+
 
 Version 0.7.0 (March 2016)
 
