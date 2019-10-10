@@ -12,7 +12,7 @@
 #include "curl/curl.h"
 
 // Define the following to add extra logging of the download stage
-// #define LOG_DOWNLOAD
+#define LOG_DOWNLOAD
 
 #ifdef LOG_DOWNLOAD
 #include "libpkg/log.h"

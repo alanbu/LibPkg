@@ -81,6 +81,7 @@ download::download(const string& url,const string& pathname):
 	curl_easy_setopt(_ceasy,CURLOPT_FAILONERROR,true);
 	curl_easy_setopt(_ceasy,CURLOPT_ERRORBUFFER,_error_buffer);
 	curl_easy_setopt(_ceasy, CURLOPT_CONNECTTIMEOUT, 120L);
+	curl_easy_setopt(_ceasy, CURLOPT_CAINFO, "/<CaCertificates$Dir>/ca-certificates.crt");
 	#ifdef LOG_DOWNLOAD
 		curl_easy_setopt(_ceasy, CURLOPT_DEBUGFUNCTION, &debug_function);
 		curl_easy_setopt(_ceasy, CURLOPT_DEBUGDATA, this);
