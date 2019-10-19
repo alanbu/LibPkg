@@ -77,7 +77,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 {
 	// Initialise iterator.
 	std::string::const_iterator p=first;
-	std::string valid("!_+-.<>/'\xA0");
+	std::string valid("!_+-.<>/'");
 	_flags = 0;
 
 	// Parse package name.
@@ -85,7 +85,7 @@ void component::parse(std::string::const_iterator first,std::string::const_itera
 	while ((p!=last)&&(*p!=' ')&&(*p!='('))
 	{
 		char ch=*p++;
-		if (!std::isalnum(ch)&&(valid.find(ch) == std::string::npos))
+		if (!(std::isalnum(ch) || (ch >= 0xA0 && ch <= 0xFF))&&(valid.find(ch) == std::string::npos))
 			throw parse_error("illegal character in component name");
 	}
 	if (p==q) throw parse_error("component name expected");

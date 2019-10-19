@@ -8,7 +8,7 @@ Version 0.8.0 (Oct 2019)
 
   Raised supported standards version from 0.5.* to 0.6.*
   Added support for Environment, OSDepends and InstallPriority fields.
-  Support hard spaces and single quotes in the Components field.
+  Support top bit characters (codes 160 to 255) and single quotes in the Components field.
   Overwrite packages added from disc to stop invalid URL error.
   Added support for empty directories.
   Use CACertificates package for downloads from sites using SSL certificates.
