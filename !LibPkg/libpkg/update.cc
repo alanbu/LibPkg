@@ -131,6 +131,10 @@ void update::_poll()
 			string pathname=_pb.list_pathname(_url);
 			std::ifstream in(pathname.c_str());
 
+			// Absorb any spaces at beginning of file - some package list
+			// were including extra linefeeds at the beginning
+			while (in && !in.eof() && isspace(in.peek())) in.get();
+
 			while (in&&!in.eof())
 			{
 				// Read control record from source.
