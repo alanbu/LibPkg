@@ -109,19 +109,23 @@ public:
 		// VFPSupport_Features 0 is the main SWI you’ll want to use to detect VFP support.
 		// Assuming the baseline VFPv2 support is all you care about, I think you just need
 		// to check that each nibble of the MVFR0 register is non-zero, apart from the
-		// nibble at bits 24-27, which can be zero.
+		// nibble at bits 24-27 FPShVec, which can be zero.
+		// On a RPI 3 it also seems bits 12-15 FTrap are also zero
 
 		_kernel_swi_regs regs;
 		try
 		{
 			regs.r[0] = 0;
 			os::call_swi(swi::VFPSupport_Features, &regs);
-			unsigned int mvfr0 = static_cast<unsigned int>(regs.r[0]);
+			unsigned int mvfr0 = static_cast<unsigned int>(regs.r[1]);
 			_detected = ((mvfr0 & 0xF0000000) != 0);
 			unsigned int check =  0x00F00000;
 			while (_detected && check > 0)
 			{
-				_detected = ((mvfr0 & check) != 0);
+				if (check != 0x0000F000)
+				{
+				   _detected = ((mvfr0 & check) != 0);
+				}
 				check >>= 4;
 			}
 		} catch(...)
