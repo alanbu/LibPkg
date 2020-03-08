@@ -10,7 +10,7 @@ IfThere <LibPkg$Dir>.README Then Set LibPkg$Temp <LibPkg$Dir>.README
 IfThere <LibPkg$Dir>.html.index/html Then Set LibPkg$Temp <LibPkg$Dir>.html.index/html
 Set LibPkg$Help <LibPkg$Temp>
 Unset LibPkg$Temp
-Set LibPkg$Version 0.2.1
+Set LibPkg$Version 0.8.1
 Set LibPkg$Web http://www.riscpkg.org/
 Set LibPkg$Title LibPkg
 Set LibPkg$Publisher The RISC OS Packaging Project

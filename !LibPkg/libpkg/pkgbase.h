@@ -169,6 +169,7 @@ public:
 	/** Get pathname for sprites file.
 	 * @return the pathname
 	 */
+
 	string bootsprites_pathname();
 
 	/** Get pathname for component update file
@@ -211,7 +212,8 @@ private:
 	bool fix_dependencies(const pkg::control& ctrl,bool allow_new);
 
 	/** Fix dependencies for package.
-	 * @param ctrl the package control record
+	 * @param ctrl the package 				version pkgvrsn=ctrl.version();
+control record
 	 * @param allow_new true to allow packages that are not currently
 	 *  installed, otherwise false
 	 * @param apply true to apply changes to must-remove, must-install
@@ -264,6 +266,12 @@ private:
 	 * @param pkgenv the environment id for the package to install
 	 */
 	void ensure_installed(const string& pkgname,const string& pkgvrsn,const string &pkgenv);
+
+    /** Update status table to new version if necessary.
+	 * @param update_table the table to update
+	 * @return true if the table needed to be updated
+	 */
+	bool update_status_table(status_table &update_table);
 };
 
 /** An exception class for reporting cache errors. */

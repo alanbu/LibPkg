@@ -1,8 +1,12 @@
 # This file is part of !LibPkg.
-# Copyright � 2003-2019 Graham Shaw.
+# Copyright � 2003-2020 Graham Shaw.
 # Distribution and use are subject to the GNU Lesser General Public License,
 # a copy of which may be found in the file !LibPkg.Copyright.
 # Versions after 0.3.0 were modified by Alan Buckley
+
+Version 0.8.1 (Mar 2020)
+
+  Automatic upgrade of internal status files to new version with environment.
 
 Version 0.8.0 (Oct 2019)
 

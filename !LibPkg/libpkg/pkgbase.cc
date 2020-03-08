@@ -37,6 +37,11 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 {
 	create_directory(_pathname+string(".Cache"));
 	create_directory(_pathname+string(".Lists"));
+
+	if (update_status_table(_curstat))
+	{
+		update_status_table(_selstat);
+	}
 }
 
 pkgbase::~pkgbase()
@@ -514,6 +519,55 @@ void pkgbase::ensure_removed(const string& pkgname)
 		_changed=true;
 	}
 }
+
+
+bool pkgbase::update_status_table(status_table &update_table)
+{
+    status_table status_updates;
+	for (status_table::const_iterator i=update_table.begin();
+				i!=update_table.end();++i)
+	{
+		string pkgname=i->first;
+		if(i->second.environment_id() != "u")
+		{
+			// Any set and table is up to date
+			return false;
+		}
+		
+		binary_control_table::key_type key(pkgname,i->second.version(),i->second.environment_id());
+		if (_control[key].pkgname().empty())
+		{
+			// Package environment wrong, so update
+			string pathname=info_pathname(pkgname)+string(".Control");
+			std::ifstream in(pathname.c_str());
+			binary_control ctrl;
+			in >> ctrl;
+			if (!ctrl.pkgname().empty()
+			    && ctrl.environment_id() != i->second.environment_id()
+				)
+			{
+				status update_status(i->second);
+				update_status.environment_id(ctrl.environment_id());
+				status_updates.insert(pkgname, update_status);
+			}
+        }
+    }
+	if (status_updates.begin() != status_updates.end())
+	{
+		update_table.insert(status_updates);
+		try
+		{
+			update_table.commit();
+			return true;
+		}
+		catch(...)
+		{
+			return false;
+		}		
+	}
+	return false;
+}
+
 
 pkgbase::cache_error::cache_error(const char* message,
 	const binary_control& ctrl):
