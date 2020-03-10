@@ -1491,7 +1491,7 @@ bool unpack::already_installed(const control& ctrl, const std::set<string> &mf)
 	{
 		const string &check = *lp;
 		string::size_type dir_pos = check.find('.');
-		if (dir_pos != string::npos)
+		if (dir_pos != string::npos && check.back() != '.')
 		{
 			string base_dir = check.substr(0, dir_pos);
 			if (base_dir[0] == '!') base_dir.erase(0,1); // remove "!" alias

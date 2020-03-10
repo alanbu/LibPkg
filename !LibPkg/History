@@ -4,6 +4,10 @@
 # a copy of which may be found in the file !LibPkg.Copyright.
 # Versions after 0.3.0 were modified by Alan Buckley
 
+Version 0.8.2 (Mar 2020)
+
+  Fixed bug where modules were being overwritten.
+
 Version 0.8.1 (Mar 2020)
 
   Automatic upgrade of internal status files to new version with environment.
