@@ -189,7 +189,7 @@ namespace pkg {
 		std::time_t now;
 		std::time(&now);
 		struct std::tm *tm_now = std::localtime(&now);
-		_when = tm_now->tm_sec + tm_now->tm_min * 60 + tm_now->tm_hour * 60 * 24;
+		_when = tm_now->tm_sec + tm_now->tm_min * 60 + tm_now->tm_hour * 60 * 60;
 		_param1 = copystr(param1);
 		_param2 = copystr(param2);
 	}
@@ -198,7 +198,7 @@ namespace pkg {
 	{
 		int sec = _when % 60;
 		int min = (_when / 60) % 60;
-		int hour = _when / (60 * 24);
+		int hour = _when / (60 * 60);
 		std::ostringstream ss;
 
 		ss << std::setfill('0') << std::setw(2) << hour
