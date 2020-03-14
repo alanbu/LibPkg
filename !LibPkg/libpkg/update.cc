@@ -185,18 +185,21 @@ void update::_poll()
 				string pkgname=i->first;
 				string pathname=_pb.info_pathname(pkgname)+string(".Control");
 				std::ifstream in(pathname.c_str());
-				binary_control ctrl;
-				in >> ctrl;
-
-				// Extract package version.
-				version pkgvrsn=ctrl.version();
-				binary_control_table::key_type key(pkgname,pkgvrsn,ctrl.environment_id());
-				if (_packages_written.find(key)==_packages_written.end())
+				if (in)
 				{
-					// If not already written then write to available list.
-					if (_packages_written.size()) (*_out) << std::endl;
-					(*_out) << ctrl;
-					_packages_written.insert(key);
+					binary_control ctrl;
+					in >> ctrl;
+
+					// Extract package version.
+					version pkgvrsn=ctrl.version();
+					binary_control_table::key_type key(pkgname,pkgvrsn,ctrl.environment_id());
+					if (_packages_written.find(key)==_packages_written.end())
+					{
+						// If not already written then write to available list.
+						if (_packages_written.size()) (*_out) << std::endl;
+						(*_out) << ctrl;
+						_packages_written.insert(key);
+					}
 				}
 			}
 
