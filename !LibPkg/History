@@ -6,7 +6,9 @@
 
 Version 0.8.2 (Mar 2020)
 
-  Fixed bug where modules were being overwritten.
+   Fixed bug in module version checking that could cause a newer non-packaged version to be overwritten
+   Fixed times displayed in the log
+   Stopped blanks in package log where removed package had it's information deleted
 
 Version 0.8.1 (Mar 2020)
 

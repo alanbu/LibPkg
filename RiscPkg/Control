@@ -4,7 +4,7 @@ Priority: Extra
 Licence: Free
 Maintainer: Alan Buckley <alan_baa@hotmail.com>
 Standards-Version: 0.4.0
-Version: 0.8.1-1
+Version: 0.8.2-1
 Environment: arm
 Description: A package management library for RISC OS
  LibPkg includes libraries for:
