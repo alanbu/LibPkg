@@ -72,27 +72,44 @@ public:
 };
 
 /**
- * Class for packages that need a 32Bit version of RISC OS
+ * Class for packages that need to run 32 bit code
  */
 class arm_check : public env_check
 {
 public:
-	arm_check() : env_check("arm", "32bit RISC OS", "b", System, 8)
+	arm_check() : env_check("arm", "26/32 bit neutral code", "b", System, 8)
 	{
+		// All current platforms should be able to run 16/32 bit neutral code though
+		// they may need the 32 bit CLib to do it.
 		if (platform_features() & (1<<6)) _detected = true;
+		else if ((platform_features() & (1<<7)) == 0) _detected = true;
+
 		_available = _detected;
 	}
 };
 
 /**
- * Class for packages that need a 26 bit version of RISC OS
+ * Class for packages that need to run on a 26 bit version of RISC OS
  */
 class arm26_check : public env_check
 {
 public:
-	arm26_check() : env_check("arm26", "26bit RISC OS","b2", System, 4)
+	arm26_check() : env_check("arm26", "26 bit code","b2", System, 4)
 	{
 		if ((platform_features() & (1<<7)) == 0) _detected = true;
+		_available = _detected;
+	}
+};
+
+/**
+ * Class for packages that need to run on a 32 bit version of RISC OS
+ */
+class arm32_check : public env_check
+{
+public:
+	arm32_check() : env_check("arm32", "32 bit code","b3", System, 5)
+	{
+		if (platform_features() & (1<<6)) _detected = true;
 		_available = _detected;
 	}
 };
@@ -176,6 +193,7 @@ void env_checker::initialise(const std::string &module_map_path)
 	add_check(new all_check());
 	add_check(new arm_check());
 	add_check(new arm26_check());
+	add_check(new arm32_check());
 	add_check(new swp_check());
 	add_check(new vfp_check());
 	// Unset check is created in constructor

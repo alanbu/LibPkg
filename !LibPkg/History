@@ -4,6 +4,11 @@
 # a copy of which may be found in the file !LibPkg.Copyright.
 # Versions after 0.3.0 were modified by Alan Buckley
 
+Version 0.8.3 (Mar 2020)
+
+   Fixed arm environment detection for 26 bit machines.
+   Added arm32 environment support.
+
 Version 0.8.2 (Mar 2020)
 
    Fixed bug in module version checking that could cause a newer non-packaged version to be overwritten
