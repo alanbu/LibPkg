@@ -950,6 +950,7 @@ void unpack::_poll()
 			{
 				curstat.state(prevstat.state());
 				curstat.version(prevstat.version());
+				curstat.environment_id(prevstat.environment_id());
 				_pb.curstat().insert(_pkgname,curstat);
 				if (_log) _log->message(LOG_INFO_UNWIND_STATE, _pkgname);
 			}

@@ -38,9 +38,17 @@ pkgbase::pkgbase(const string& pathname,const string& dpathname,
 	create_directory(_pathname+string(".Cache"));
 	create_directory(_pathname+string(".Lists"));
 
-	if (update_status_table(_curstat))
+    // Update status files if necessary
+    std::fstream bvf(pathname+string(".Version"));
+	int db_version;
+	if (!(bvf >> db_version)) db_version = 1;
+	if (db_version < 2)
 	{
+		update_status_table(_curstat);
 		update_status_table(_selstat);
+		bvf.close();
+		bvf.open(pathname+string(".Version"), std::ios_base::out | std::ios_base::trunc);
+		bvf << 2;
 	}
 }
 
@@ -527,13 +535,7 @@ bool pkgbase::update_status_table(status_table &update_table)
 	for (status_table::const_iterator i=update_table.begin();
 				i!=update_table.end();++i)
 	{
-		string pkgname=i->first;
-		if(i->second.environment_id() != "u")
-		{
-			// Any set and table is up to date
-			return false;
-		}
-		
+		string pkgname=i->first;		
 		binary_control_table::key_type key(pkgname,i->second.version(),i->second.environment_id());
 		if (_control[key].pkgname().empty())
 		{
