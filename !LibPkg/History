@@ -10,6 +10,7 @@ Version 0.8.3 (Apr 2020)
    Added arm32 environment support.
    Fixed reset of environment after an error in installing
    Added version to package database to allow it to be updated when loaded if necessary
+   Fixed replacing a file with one or more files in a subdirectory with the same name
 
 Version 0.8.2 (Mar 2020)
 

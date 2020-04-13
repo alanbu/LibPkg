@@ -1,11 +1,10 @@
 // This file is part of LibPkg.
 // Copyright � 2003-2005 Graham Shaw.
-// Copyright � 2013 Alan Buckley.
+// Copyright � 2013-2020 Alan Buckley.
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
 #include <stdexcept>
-#include <iostream>
 
 #include "libpkg/filesystem.h"
 #include "libpkg/version.h"
@@ -19,6 +18,14 @@
 #include "libpkg/module_info.h"
 #include "libpkg/triggers.h"
 #include "libpkg/trigger.h"
+
+/* Uncomment the following line to shove loads of extra information
+ * to stdout to help debugging */
+//#define TRACE_TO_STD_OUT
+#ifdef TRACE_TO_STD_OUT
+#include <iostream>
+#endif
+
 
 namespace {
 
@@ -219,6 +226,10 @@ void unpack::poll()
 	catch (std::exception& ex)
 	{
 		_message=ex.what();
+		if (!_exception_item.empty())
+		{
+			_message += ". " + _exception_item;
+		}
 		_pb.curstat().rollback();
 		delete _zf;
 		_zf=0;
@@ -230,6 +241,10 @@ void unpack::poll()
 			if (!_existing_module_packages.empty()) unwind_existing_modules();
 			state(state_fail);
 			break;
+		case state_remove_files_replaced_by_dirs:
+			state(state_unwind_remove_files_replaced_by_dirs);
+			break;
+
 		case state_unpack:
 			state(state_unwind_unpack);
 			break;
@@ -249,7 +264,7 @@ void unpack::poll()
 			break;
 		case state_create_empty_dirs:
 		  state(state_unwind_create_empty_dirs);
-			break;
+ 		  break;
 
 		default:
 			state(state_fail);
@@ -265,87 +280,16 @@ void unpack::_poll()
 	case state_pre_unpack:
 		if (_files_to_unpack.size())
 		{
-			// Test whether file exists, add to set of conflicts if it does.
-			string src_pathname=*_files_to_unpack.begin();
-			if (src_pathname.back() == '.')
-			{
-				_empty_dirs_to_create.insert(src_pathname.substr(0, src_pathname.size()-1));
-			} else
-			{
-				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
-				if (object_type(dst_pathname))
-				{
-							_files_that_conflict.insert(dst_pathname);
-				}
-			}
-			_files_to_unpack.erase(src_pathname);			
+			pre_unpack_check_files();
 		} else if (_empty_dirs_to_create.size())
 		{
-			  // Test if an empty directory exists, add it to conflicts
-				// if it clashes with a file
-			string src_pathname=*_empty_dirs_to_create.begin();
-			string dst_pathname=_pb.paths()(src_pathname,_pkgname);
-			int type = object_type(dst_pathname);
-			if (type != 0 && type != 2)
-			{
-					_files_that_conflict.insert(dst_pathname);
-			}
-			_empty_dirs_to_create.erase(src_pathname);
-		}
-		else if (_packages_to_unpack.size())
+			pre_unpack_check_empty_dirs();
+		} else if (_parent_dirs.size())
 		{
-			// Select package.
-			_pkgname=*_packages_to_unpack.begin();
-			status curstat=_pb.curstat()[_pkgname];
-			const status& selstat=_pb.selstat()[_pkgname];
-			const status& prevstat=_pb.prevstat()[_pkgname];
-
-			if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
-
-			// Mark package as half-unpacked (but do not commit until
-			// pre-remove and pre-unpack phases have been completed).
-			curstat.state(status::state_half_unpacked);
-			curstat.version(selstat.version());
-			curstat.environment_id(selstat.environment_id());
-			curstat.flag(status::flag_auto,selstat.flag(status::flag_auto));
-			_pb.curstat().insert(_pkgname,curstat);
-
-			// Check whether standards-version can be processed.
-			binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
-			const control& ctrl=_pb.control()[key];
-			if (!can_process(ctrl.standards_version()))
-				_packages_cannot_process.insert(_pkgname);
-
-			// Open zip file.
-			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
-			delete _zf;
-			_zf=new zipfile(pathname);
-
-			// Build manifest from zip file (excluding package control file).
-			std::set<string> mf;
-			build_manifest(mf,*_zf,&_bytes_total_unpack);
-			mf.erase(ctrl_src_pathname);
-
-			// Check if it's a module already on the system in which case
-			// we don't need to reinstall it
-			if (!already_installed(ctrl, mf))
-			{
-				// Copy manifest to list of files to be unpacked.
-				_files_to_unpack=mf;
-				_files_total_unpack+=mf.size()+1;
-				bool overwrite_removed=prevstat.state()==status::state_removed;
-				if (overwrite_removed) _files_total_remove+=1;
-
-				if (mf.count(pre_install_src_pathname) == 1)
-				{
-					add_pre_install_trigger(_pkgname, (mf.count(post_remove_src_pathname) == 1));
-				}
-				if (mf.count(post_install_src_pathname) == 1) add_post_install_trigger(_pkgname);
-
-				// Progress to next package.
-			  _packages_pre_unpacked.insert(_pkgname);
-			}
-			_packages_to_unpack.erase(_pkgname);
+			pre_unpack_check_parent_dirs();
+		} else if (_packages_to_unpack.size())
+		{
+			pre_unpack_select_package();
 		}
 		else
 		{
@@ -358,57 +302,7 @@ void unpack::_poll()
 	case state_pre_remove:
 		if (_packages_to_remove.size())
 		{
-			// Select package.
-			_pkgname=*_packages_to_remove.begin();
-			status curstat=_pb.curstat()[_pkgname];
-			if (_log) _log->message(LOG_INFO_PREREMOVE, _pkgname);
-
-			// Mark package as half-unpacked (but do not commit until
-			// pre-remove and pre-unpack phases have been completed).
-			curstat.state(status::state_half_unpacked);
-			_pb.curstat().insert(_pkgname,curstat);
-
-			// Check whether package format is supported.
-			binary_control_table::key_type key(_pkgname,curstat.version(),curstat.environment_id());
-			const control& ctrl=_pb.control()[key];
-			if (!can_process(ctrl.standards_version()))
-				_packages_cannot_process.insert(_pkgname);
-
-			// Read manifest from package info directory.
-			std::set<string> mf;
-			read_manifest(mf,_pkgname);
-
-			// Add manifest to list of files to remove, provided that
-			// the files in question do currently exist.
-			// Remove manifest from list of files that conflict.
-			for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
-			{
-				string src_pathname=*i;
-				bool is_dir = (src_pathname.back()=='.');
-				if (is_dir) src_pathname.erase(src_pathname.size()-1);
-				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
-				_files_that_conflict.erase(dst_pathname);
-				if (object_type(dst_pathname))
-				{
-					if (is_dir)
-					{
-						_dirs_to_remove.insert(dst_pathname);
-					} else
-					{
-						_files_to_remove.insert(dst_pathname);
-					}
-					_files_total_remove+=1;
-				}
-			}
-			_files_total_remove+=1;
-
-			if (mf.count(pre_remove_src_pathname) == 1)	add_pre_remove_trigger(_pkgname);
-			if (mf.count(post_install_src_pathname) != 0) set_post_install_unwind(_pkgname);
-			if (mf.count(post_remove_src_pathname) == 1) add_post_remove_trigger(_pkgname,mf);
-
-			// Progress to next package.
-			_packages_being_removed.insert(_pkgname);
-			_packages_to_remove.erase(_pkgname);
+			pre_remove_select_package();
 		}
 		else
 		{
@@ -473,11 +367,31 @@ void unpack::_poll()
 		} else
 		{
 			// Progress to next state.
-			state(state_unpack);
+			state(state_remove_files_replaced_by_dirs);
 			_files_total = (_files_total_unpack + _files_total_remove) * 2;
 			_bytes_total = _bytes_total_unpack;
 		}
 		break;
+
+	case state_remove_files_replaced_by_dirs:
+	    if (_files_to_replace_by_dirs.size())
+		{
+			string dst_pathname=*_files_to_replace_by_dirs.begin();
+#ifdef TRACE_TO_STD_OUT
+			std::cout << "Removing file that will be replaced by dir ";
+#endif			
+			remove_file(dst_pathname);
+			_files_replaced_by_dirs.insert(dst_pathname);
+			_files_to_replace_by_dirs.erase(dst_pathname);
+			// File has been removed so don't remove it later
+			_files_to_remove.erase(dst_pathname);
+			_files_being_removed.insert(dst_pathname);
+		} else
+		{
+			// Progress to next state.
+			state(state_unpack);
+		}
+		break;		
 
 	case state_unpack:
 		if (_files_to_unpack.size())
@@ -485,7 +399,7 @@ void unpack::_poll()
 			// Unpack file to temporary location.
 			string src_pathname=*_files_to_unpack.begin();
 			bool is_dir = (src_pathname.back() == '.');
-      if (is_dir)
+      		if (is_dir)
 			{
 				string dst_pathname=_pb.paths()(src_pathname.substr(0, src_pathname.size()-1),_pkgname);
 				// Build list of all dirs to create for all packages
@@ -495,53 +409,14 @@ void unpack::_poll()
 				string dst_pathname=_pb.paths()(src_pathname,_pkgname);
 				// Make a note that we're trying to unpack this file,
 				// so can revert it later if necessary
-					unpack_file(src_pathname,dst_pathname);
+				unpack_file(src_pathname,dst_pathname);
 				_files_being_unpacked.insert(dst_pathname);
 			}
 			_files_to_unpack.erase(src_pathname);
 		}
 		else if (_packages_pre_unpacked.size())
 		{
-			// Select package.
-			_pkgname=*_packages_pre_unpacked.begin();
-			const status& selstat=_pb.selstat()[_pkgname];
-			const status& prevstat=_pb.prevstat()[_pkgname];
-
-      if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
-
-			// Open zip file.
-			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
-			delete _zf;
-			_zf=new zipfile(pathname);
-
-			// Unpack control file.
-			string ctrl_dst_pathname=_pb.paths()(ctrl_src_pathname,_pkgname);
-			bool overwrite=prevstat.state()>=status::state_removed;
-			unpack_file(ctrl_src_pathname,ctrl_dst_pathname);
-			replace_file(ctrl_dst_pathname,overwrite);
-
-			// Build manifest from zip file (excluding package control file).
-			std::set<string> mf;
-			build_manifest(mf,*_zf);
-			mf.erase(ctrl_src_pathname);
-
-			// Copy manifest to list of files to be unpacked.
-			_files_to_unpack=mf;
-			// _empty_dirs_to_check is not reset as it accumulates all dirs
-						
-			// Merge with manifest in package info directory.
-			read_manifest(mf,_pkgname);
-			prepare_manifest(mf,_pkgname);
-			activate_manifest(_pkgname);
-
-			// Prepeate final manifest (to be activated later).
-			prepare_manifest(_files_to_unpack,_pkgname);
-
-			// Progress to next package.
-			_packages_being_unpacked.insert(_pkgname);
-			_packages_pre_unpacked.erase(_pkgname);
-
-           if (_log) _log->message(LOG_INFO_UNPACK_FILES, _pkgname);
+			unpack_select_package();
 		}
 		else
 		{
@@ -752,7 +627,7 @@ void unpack::_poll()
 			_packages_unpacked.insert(_pkgname);
 			_packages_being_unpacked.erase(_pkgname);
 
-       if (_log) _log->message(LOG_INFO_UNPACKED_PACKAGE, _pkgname);
+       		if (_log) _log->message(LOG_INFO_UNPACKED_PACKAGE, _pkgname);
 		}
 		else
 		{
@@ -818,13 +693,17 @@ void unpack::_poll()
 		{
 			// Restore file from backup.
 			string dst_pathname=*_files_being_removed.begin();
-			if (dst_pathname.back() == '.')
+			// If file was replaced by an auto created directory it needs to be restored later
+			if (_files_replaced_by_dirs.find(dst_pathname) != _files_replaced_by_dirs.end())
 			{
-				// Just need to recreate directories they are not backed up
-				create_directory(dst_pathname.substr(0,dst_pathname.size()-1));
-			} else
-			{
-				unwind_remove_file(dst_pathname);
+				if (dst_pathname.back() == '.')
+				{
+					// Just need to recreate directories they are not backed up
+					create_directory(dst_pathname.substr(0,dst_pathname.size()-1));
+				} else
+				{
+					unwind_remove_file(dst_pathname);
+				}
 			}
 			_files_being_removed.erase(dst_pathname);
 		} else if (_dirs_removed.size())
@@ -869,7 +748,7 @@ void unpack::_poll()
 			string dst_pathname=*_files_being_unpacked.begin();
 			if (dst_pathname.back() == '.')
 			{
-        soft_delete(dst_pathname.substr(0,dst_pathname.size()-1));
+       		 	soft_delete(dst_pathname.substr(0,dst_pathname.size()-1));
 			} else
 			{			
 			   unwind_unpack_file(dst_pathname);
@@ -898,11 +777,23 @@ void unpack::_poll()
 		{
 			// Progress to next state.
 			_ad("");
+			state(state_unwind_remove_files_replaced_by_dirs);
+		}
+		break;
+
+	case state_unwind_remove_files_replaced_by_dirs:
+		if (_files_replaced_by_dirs.size())
+		{
+			string dst_pathname=*_files_replaced_by_dirs.begin();
+			unwind_remove_file(dst_pathname);
+			_files_replaced_by_dirs.erase(dst_pathname);
+		} else
+		{
 			state(state_unwind_pre_remove_triggers);
 			_trigger = 0;
 		}
 		break;
-
+		
 	case state_unwind_pre_remove_triggers:
 		if (_trigger)
 		{
@@ -1007,6 +898,256 @@ void unpack::_poll()
 	}
 }
 
+void unpack::pre_unpack_check_files()
+{
+	// Test whether file exists, add to set of conflicts if it does.
+	string src_pathname=*_files_to_unpack.begin();
+	string parent_dir;
+	if (src_pathname.back() == '.')
+	{
+		parent_dir = src_pathname.substr(0, src_pathname.size()-1);
+		_empty_dirs_to_create.insert(parent_dir);
+	} else
+	{
+		parent_dir = src_pathname;
+		string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+		if (object_type(dst_pathname))
+		{
+			_files_that_conflict.insert(dst_pathname);
+		}
+	}
+
+	// Make a list of parent directories to check for conflicts
+	string::size_type dir_pos = parent_dir.rfind('.');
+	while (dir_pos != string::npos)
+	{
+		parent_dir.erase(dir_pos);
+		if (_parent_dirs.insert(parent_dir).second)
+		{
+			dir_pos = parent_dir.rfind('.');
+		} else
+		{
+			dir_pos = string::npos;
+		}					
+	}
+	_files_to_unpack.erase(src_pathname);			
+}
+
+void unpack::pre_unpack_check_empty_dirs()
+{
+	// Test if an empty directory exists, add it to conflicts
+	// if it clashes with a file
+	string src_pathname=*_empty_dirs_to_create.begin();
+	string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+	int type = object_type(dst_pathname);
+	if (type != 0 && type != 2)
+	{
+		_files_that_conflict.insert(dst_pathname);
+	}
+	_empty_dirs_to_create.erase(src_pathname);
+}
+
+void unpack::pre_unpack_check_parent_dirs()
+{
+	// Test if any of the parent directories that will be automatically
+	// created clash with a file
+	string src_pathname=*_parent_dirs.begin();
+	string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+	int type = object_type(dst_pathname);
+	switch(type)
+	{
+		case 0: // Not found
+		    // No clash and subdirectories won't clash either
+			{
+				std::string subdir_start(src_pathname + ".");
+				std::set<std::string>::const_iterator it = _parent_dirs.lower_bound(subdir_start);
+				while (it != _parent_dirs.end())
+				{
+					if (subdir_start.compare(0, subdir_start.size(), *it) == 0)
+					{
+#ifdef TRACE_TO_STD_OUT
+						std::cout << "removing subirectory from parent check" << *it << std::endl;
+#endif						
+						it = _parent_dirs.erase(it);
+					} else
+					{
+						break; // No more to delete
+					}					
+				}
+			}
+			break;
+		case 2: // directory
+		    // Already a directory nothing to do
+			break;
+		default: // 1 file or 3 image file
+#ifdef TRACE_TO_STD_OUT
+		    std::cout << "Found file that conflicts with directory " << dst_pathname << std::endl;
+#endif			
+			_files_that_conflict.insert(dst_pathname);
+			_files_to_replace_by_dirs.insert(dst_pathname);
+			_files_total_remove++;
+			break;
+	}
+	_parent_dirs.erase(src_pathname);
+}
+
+void unpack::pre_unpack_select_package()
+{
+	// Select package.
+	_pkgname=*_packages_to_unpack.begin();
+	status curstat=_pb.curstat()[_pkgname];
+	const status& selstat=_pb.selstat()[_pkgname];
+	const status& prevstat=_pb.prevstat()[_pkgname];
+
+	if (_log) _log->message(LOG_INFO_PREUNPACK, _pkgname);
+
+	// Mark package as half-unpacked (but do not commit until
+	// pre-remove and pre-unpack phases have been completed).
+	curstat.state(status::state_half_unpacked);
+	curstat.version(selstat.version());
+	curstat.environment_id(selstat.environment_id());
+	curstat.flag(status::flag_auto,selstat.flag(status::flag_auto));
+	_pb.curstat().insert(_pkgname,curstat);
+
+	// Check whether standards-version can be processed.
+	binary_control_table::key_type key(_pkgname,selstat.version(),selstat.environment_id());
+	const control& ctrl=_pb.control()[key];
+	if (!can_process(ctrl.standards_version()))
+		_packages_cannot_process.insert(_pkgname);
+
+	// Open zip file.
+	string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
+	delete _zf;
+	_exception_item = pathname;
+	_zf=new zipfile(pathname);
+
+	// Build manifest from zip file (excluding package control file).
+	std::set<string> mf;
+	build_manifest(mf,*_zf,&_bytes_total_unpack);
+	mf.erase(ctrl_src_pathname);
+
+	// Check if it's a module already on the system in which case
+	// we don't need to reinstall it
+	if (!already_installed(ctrl, mf))
+	{
+		// Copy manifest to list of files to be unpacked.
+		_files_to_unpack=mf;
+		_files_total_unpack+=mf.size()+1;
+		bool overwrite_removed=prevstat.state()==status::state_removed;
+		if (overwrite_removed) _files_total_remove+=1;
+
+		if (mf.count(pre_install_src_pathname) == 1)
+		{
+			add_pre_install_trigger(_pkgname, (mf.count(post_remove_src_pathname) == 1));
+		}
+		if (mf.count(post_install_src_pathname) == 1) add_post_install_trigger(_pkgname);
+
+		// Progress to next package.
+		_packages_pre_unpacked.insert(_pkgname);
+	}
+	_exception_item.clear();
+	_packages_to_unpack.erase(_pkgname);
+}
+
+void unpack::pre_remove_select_package()
+{
+	// Select package.
+	_pkgname=*_packages_to_remove.begin();
+	status curstat=_pb.curstat()[_pkgname];
+	if (_log) _log->message(LOG_INFO_PREREMOVE, _pkgname);
+
+	// Mark package as half-unpacked (but do not commit until
+	// pre-remove and pre-unpack phases have been completed).
+	curstat.state(status::state_half_unpacked);
+	_pb.curstat().insert(_pkgname,curstat);
+
+	// Check whether package format is supported.
+	binary_control_table::key_type key(_pkgname,curstat.version(),curstat.environment_id());
+	const control& ctrl=_pb.control()[key];
+	if (!can_process(ctrl.standards_version()))
+		_packages_cannot_process.insert(_pkgname);
+
+	// Read manifest from package info directory.
+	std::set<string> mf;
+	read_manifest(mf,_pkgname);
+
+	// Add manifest to list of files to remove, provided that
+	// the files in question do currently exist.
+	// Remove manifest from list of files that conflict.
+	for (std::set<string>::const_iterator i=mf.begin();i!=mf.end();++i)
+	{
+		string src_pathname=*i;
+		bool is_dir = (src_pathname.back()=='.');
+		if (is_dir) src_pathname.erase(src_pathname.size()-1);
+		string dst_pathname=_pb.paths()(src_pathname,_pkgname);
+		_files_that_conflict.erase(dst_pathname);
+		if (object_type(dst_pathname))
+		{
+			if (is_dir)
+			{
+				_dirs_to_remove.insert(dst_pathname);
+			} else
+			{
+				_files_to_remove.insert(dst_pathname);
+			}
+			_files_total_remove+=1;
+		}
+	}
+	_files_total_remove+=1;
+
+	if (mf.count(pre_remove_src_pathname) == 1)	add_pre_remove_trigger(_pkgname);
+	if (mf.count(post_install_src_pathname) != 0) set_post_install_unwind(_pkgname);
+	if (mf.count(post_remove_src_pathname) == 1) add_post_remove_trigger(_pkgname,mf);
+
+	// Progress to next package.
+	_packages_being_removed.insert(_pkgname);
+	_packages_to_remove.erase(_pkgname);
+}
+
+void unpack::unpack_select_package()
+{
+	// Select package.
+	_pkgname=*_packages_pre_unpacked.begin();
+	const status& selstat=_pb.selstat()[_pkgname];
+	const status& prevstat=_pb.prevstat()[_pkgname];
+
+	if (_log) _log->message(LOG_INFO_UNPACKING_PACKAGE, _pkgname);
+
+	// Open zip file.
+	string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
+	delete _zf;
+	_zf=new zipfile(pathname);
+
+	// Unpack control file.
+	string ctrl_dst_pathname=_pb.paths()(ctrl_src_pathname,_pkgname);
+	bool overwrite=prevstat.state()>=status::state_removed;
+	unpack_file(ctrl_src_pathname,ctrl_dst_pathname);
+	replace_file(ctrl_dst_pathname,overwrite);
+
+	// Build manifest from zip file (excluding package control file).
+	std::set<string> mf;
+	build_manifest(mf,*_zf);
+	mf.erase(ctrl_src_pathname);
+
+	// Copy manifest to list of files to be unpacked.
+	_files_to_unpack=mf;
+	// _empty_dirs_to_check is not reset as it accumulates all dirs
+				
+	// Merge with manifest in package info directory.
+	read_manifest(mf,_pkgname);
+	prepare_manifest(mf,_pkgname);
+	activate_manifest(_pkgname);
+
+	// Prepeate final manifest (to be activated later).
+	prepare_manifest(_files_to_unpack,_pkgname);
+
+	// Progress to next package.
+	_packages_being_unpacked.insert(_pkgname);
+	_packages_pre_unpacked.erase(_pkgname);
+
+	if (_log) _log->message(LOG_INFO_UNPACK_FILES, _pkgname);
+}
+
 void unpack::state(state_type new_state)
 {
 	_state = new_state;
@@ -1033,6 +1174,11 @@ void unpack::state(state_type new_state)
 			state_text("Running pre-remove triggers");
 		}
 		break;
+	case state_remove_files_replaced_by_dirs:
+	    code = LOG_INFO_REMOVE_FILES_REPLACED_BY_DIRS;
+		state_text("Removing files that will be replaced by directories");
+		break;
+	    
 	case state_unpack:
 		// Not logging as unpack is logged for each package
 		state_text("Unpacking files");
@@ -1110,6 +1256,11 @@ void unpack::state(state_type new_state)
 			state_text("Unwinding after error");
 		}
 		break;
+	case state_unwind_remove_files_replaced_by_dirs:
+	    code = LOG_INFO_UNWIND_REMOVE_FILES_REPLACED_BY_DIRS;
+		state_text("Restoring files that were replaced by directories");
+		break;
+
 	case state_unwind_pre_remove_triggers:
 		if (_triggers && _triggers->pre_remove_to_unwind())
 		{
@@ -1144,6 +1295,9 @@ void unpack::state_text(const std::string &text)
 	{
 		_state_text = text;
 		_state_text_changed = true;
+#ifdef TRACE_TO_STD_OUT
+		std::cout << "state text changed to " << text << std::endl;
+#endif		
 	}
 }
 
@@ -1324,9 +1478,12 @@ void unpack::add_post_remove_trigger(const string &pkgname, std::set<string> &mf
 
 void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 {
-//	std::cout << "unpack::unpack_file " << src_pathname << " to " << dst_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::unpack_file " << src_pathname << " to " << dst_pathname << std::endl;
+#endif	
 	if (dst_pathname.size())
 	{
+        _exception_item = "unpack file " + dst_pathname;
 		string zip_pathname=src_to_zip(src_pathname);
 		string tmp_pathname=dst_to_tmp(dst_pathname);
 
@@ -1344,22 +1501,28 @@ void unpack::unpack_file(const string& src_pathname,const string& dst_pathname)
 
 		_bytes_done+=finfo->usize();
 		_files_done+=1;
+		_exception_item.clear();
 	}
 }
 
 void unpack::replace_file(const string& dst_pathname,bool overwrite)
 {
-	//std::cout << "unpack::replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
+#endif	
 	if (dst_pathname.size())
 	{
 		string tmp_pathname=dst_to_tmp(dst_pathname);
 		string bak_pathname=dst_to_bak(dst_pathname);
 
+	    _exception_item = "replace file "+dst_pathname;
 		// Force removal of backup pathname.
 		// From this point on, if the backup pathname exists
 		// then it is a usable backup.
 		_ad(bak_pathname);
-		//std::cout << "unpack::replace_file: delete " << bak_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+		std::cout << "unpack::replace_file: delete " << bak_pathname << std::endl;
+#endif		
 		force_delete(bak_pathname);
 
 		if (overwrite)
@@ -1369,7 +1532,9 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 			// file does not exist.
 			try
 			{
-				//std::cout << "unpack::replace_file: try move " << dst_pathname << " to "<< bak_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+				std::cout << "unpack::replace_file: try move " << dst_pathname << " to "<< bak_pathname << std::endl;
+#endif				
 				force_move(dst_pathname,bak_pathname);
 			}
 			catch (...) {}
@@ -1379,44 +1544,55 @@ void unpack::replace_file(const string& dst_pathname,bool overwrite)
 		// Move file regardless of file attributes, but not regardless
 		// of whether destination is present.
 		_ad(tmp_pathname);
-		//std::cout << "unpack::replace_file: force move "<<tmp_pathname << " to "<< dst_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+		std::cout << "unpack::replace_file: force move "<<tmp_pathname << " to "<< dst_pathname << std::endl;
+#endif		
 		force_move(tmp_pathname,dst_pathname);
 		_files_done+=1;
+		_exception_item.clear();
 	}
 }
 
 void unpack::remove_file(const string& dst_pathname)
 {
-	//std::cout << "unpack::remove_file " << dst_pathname << std::endl;
-	if (dst_pathname.size())
+	string bak_pathname=dst_to_bak(dst_pathname);
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::remove_file " << dst_pathname << " backup " << bak_pathname << std::endl;
+#endif	
+
+	// Force removal of backup pathname.
+	// From this point on, if the backup pathname exists
+	// then it is a usable backup.
+	_ad(bak_pathname);
+	force_delete(bak_pathname);
+
+	// Attempt to make backup of existing file, but do not report
+	// and error if the file does not exist.
+	try
 	{
-		string bak_pathname=dst_to_bak(dst_pathname);
-
-		// Force removal of backup pathname.
-		// From this point on, if the backup pathname exists
-		// then it is a usable backup.
-		_ad(bak_pathname);
-		force_delete(bak_pathname);
-
-		// Attempt to make backup of existing file, but do not report
-		// and error if the file does not exist.
-		try
-		{
-			force_move(dst_pathname,bak_pathname);
-		}
-		catch (...) {}
-		//catch (...) {std::cout << "unpack::remove_file: backup failed" << std::endl;}
-		_files_done+=1;
-		//std::cout << "unpack::remove_file: done" << std::endl;
+		force_move(dst_pathname,bak_pathname);
 	}
+	catch (...) 
+	{
+		#ifdef TRACE_TO_STD_OUT
+		std::cout << "unpack::remove_file: backup failed" << std::endl;
+		#endif
+	}
+	_files_done+=1;
+	#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::remove_file: done" << std::endl;
+	#endif
+	_exception_item.clear();
 }
 
 void unpack::remove_backup(const string& dst_pathname)
 {
-	//std::cout << "unpack::remove_backup " << dst_pathname << std::endl;
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
+		#ifdef TRACE_TO_STD_OUT
+		std::cout << "unpack::remove_backup of " << dst_pathname << " backup " << bak_pathname << std::endl;
+		#endif
 		_ad(bak_pathname);
 		try
 		{
@@ -1429,7 +1605,9 @@ void unpack::remove_backup(const string& dst_pathname)
 
 void unpack::unwind_remove_file(const string& dst_pathname)
 {
-	//std::cout << "unpack::unwind_remove_file "<< dst_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::unwind_remove_file "<< dst_pathname << std::endl;
+#endif	
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -1445,7 +1623,9 @@ void unpack::unwind_remove_file(const string& dst_pathname)
 
 void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 {
-	//std::cout << "unpack::unwind_replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::unwind_replace_file " << dst_pathname << " overwrite="<<overwrite << std::endl;
+#endif
 	if (dst_pathname.size())
 	{
 		string bak_pathname=dst_to_bak(dst_pathname);
@@ -1473,7 +1653,9 @@ void unpack::unwind_replace_file(const string& dst_pathname,bool overwrite)
 
 void unpack::unwind_unpack_file(const string& dst_pathname)
 {
-	//std::cout << "unpack::unwind_unpack_file " << dst_pathname << std::endl;
+#ifdef TRACE_TO_STD_OUT
+	std::cout << "unpack::unwind_unpack_file " << dst_pathname << std::endl;
+#endif	
 	if (dst_pathname.size())
 	{
 		string tmp_pathname=dst_to_tmp(dst_pathname);

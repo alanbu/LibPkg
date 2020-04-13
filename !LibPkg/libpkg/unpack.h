@@ -61,6 +61,9 @@ public:
 		state_copy_post_remove,
 		/** The state in which the pre remove triggers are run */
 		state_run_pre_remove_triggers,
+		/** The state in which files are moved that will overwritten
+		 * by auto create directories */
+		state_remove_files_replaced_by_dirs,
 		/** The state in which files are unpacked from their zip archives
 		* and moved to temporary locations. */
 		state_unpack,
@@ -76,7 +79,7 @@ public:
 		 * packages to be removed are changed to status::state_removed.
 		 */
 		state_post_remove,
-		/** The state in which any empty directwasries that need creating
+		/** The state in which any empty directories that need creating
 		 * are created.
 		 */
 		state_create_empty_dirs,
@@ -97,8 +100,10 @@ public:
 		state_unwind_pre_install_triggers,
 		/** The state in which state_unpack is being backed out. */
 		state_unwind_unpack,
+		/** The state in which files replaced by directories are restored */
+		state_unwind_remove_files_replaced_by_dirs,
 		/** The state in which post install triggers are run to unwind the
-		 * actions of the pre remove and/or pre install triggers */
+		 * actions of the pre remove and/or pre install triggers */		 
 		state_unwind_pre_remove_triggers,
 		/** The state in which post remove trigger copies are removed */
 		state_unwind_copy_post_remove,
@@ -196,8 +201,16 @@ private:
 	 * not yet been created. */
 	std::set<string> _empty_dirs_to_create;
 
-    /** The set of empty directories that are being created (for all packages) */
-    std::set<string> _dirs_being_created;
+	/** The set of parent directories that will be automatically created
+	 * during the unpack */
+	std::set<string> _parent_dirs;
+
+	/** The set of files that need to be moved as they will be replaced by
+	 *  an auto created directories */
+	std::set<string> _files_to_replace_by_dirs;
+
+    /** The set of files that were replaced by auto created directories */
+	std::set<string> _files_replaced_by_dirs;
 
 	/** The set of destination pathnames (for all packages) that have
 	 * not yet been removed. */
@@ -215,7 +228,7 @@ private:
 	 * been fully removed. */
 	std::set<string> _files_removed;
 
-    /** The set of empty directories twaso check to see if they need creating
+    /** The set of empty directories to check to see if they need creating
 	 */
 	std::set<string> _empty_dirs_to_check;
 	/** The set of directories that hawasve been removed */
@@ -253,6 +266,9 @@ private:
 	bool _state_text_changed;
 	/** The current state text */
 	std::string _state_text;
+
+	/** The filename/item being dealt with for reporting with an excetion */
+	std::string _exception_item;
 
 public:
 	/** Construct unpack object.
@@ -359,6 +375,19 @@ private:
 	 * more manageable.
 	 */
 	void _poll();
+
+	/** Check files to unpack for conflicts */
+	void pre_unpack_check_files();
+	/** Check new empty directories for conflicts */
+	void pre_unpack_check_empty_dirs();
+	/** Check parents directories of unpacked files for conflicts */
+	void pre_unpack_check_parent_dirs();
+    /** Select the next package install/upgrade to process and prepare file lists */
+	void pre_unpack_select_package();
+	/** Select the next package to remove and prepare file lists */
+	void pre_remove_select_package();
+	/** Select the next package to unpack */
+	void unpack_select_package();
 
 	/** Change the state, logging new state if logging is on */
 	void state(state_type new_state);
@@ -504,7 +533,7 @@ private:
 	  * a package did not have to be installed. */
 	 void update_existing_modules();
 
-   /** Clear up temporary files for existing modules on error */	 
+     /** Clear up temporary files for existing modules on error */	 
 	 void unwind_existing_modules();
 	 
 	 /** Get version package versions for triggers
