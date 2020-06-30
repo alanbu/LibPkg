@@ -30,6 +30,7 @@ const default_path default_paths[]={
 	{"Documents", "<Boot$Dir>.^.Documents"},
 	{"Manuals","<Boot$Dir>.^.Manuals"},
 	{"Printing","<Boot$Dir>.^.Printing"},
+        {"Public", "<Boot$Dir>.^.Public"},
 	{"Resources","<BootResources$Dir>"},
 	{"Sprites","<Packages$Dir>.Sprites"},
 	{"System","<System$Dir>"},
