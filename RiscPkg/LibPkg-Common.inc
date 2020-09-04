@@ -12,6 +12,6 @@ Apps/Library/!LibPkg/!Help
 Apps/Library/!LibPkg/!Run
 Apps/Library/!LibPkg/!Sprites
 Apps/Library/!LibPkg/!Sprites22
-Apps/Library/!LibPkg/Copyright
+Apps/Library/!LibPkg/LICENSE
 Apps/Library/!LibPkg/History
 Apps/Library/!LibPkg/README
