@@ -15,11 +15,10 @@
 # limitations under the License.
 # Versions after 0.3.0 were modified by Alan Buckley
 
-Version 0.9.0 (???)
+Version 0.9.0 (November 2020)
 
    Changed copyright to Apache License, Version 2.0 with permission from all the contributers
-   
-
+   Added contains method to binary control table function to allow checking a package with a given version/environment is available.   
 
 Version 0.8.3 (Apr 2020)
 
@@ -54,7 +53,7 @@ Version 0.7.0 (March 2016)
   Component parsing fixed so components including "<", ">" or "/" are processed correctly.
   Added support for running code during commit (triggers)
   Raised supported standards version from 0.4.* to 0.5.*
-  Fixed bug where desktop and PreDesktop boot files could be corrupted if look at/run/add to apps was selected and the exsiting boot files didn't have RISCOS sections.
+  Fixed bug where desktop and PreDesktop boot files could be corrupted if look at/run/add to apps was selected and the existing boot files didn't have RISCOS sections.
   
   
 Version 0.6.1 (Jan 2015)
