@@ -71,10 +71,17 @@ public:
 	virtual ~binary_control_table();
 
 	/** Get control record for package given package name and version.
-	 * @param key the package name and version
+	 * @param key the package name, version and environment
 	 * @return the control record
 	 */
 	const mapped_type& operator[](const key_type& key) const;
+
+    /** Check if a key has a corresponding control record
+	 * 
+	 * @param key the package name, version and environment
+	 * @return true if the control record exists
+	 */
+	bool contains(const key_type& key) const;
 
 	/** Get control record for latest version of package.
 	 * @param pkgname the package name

@@ -38,6 +38,11 @@ const binary_control_table::mapped_type&
 	return (f!=_data.end())?f->second:default_value;
 }
 
+bool binary_control_table::contains(const key_type& key) const
+{
+	return _data.find(key) != _data.end();
+}
+
 const binary_control_table::mapped_type&
 	binary_control_table::operator[](const string& pkgname) const
 {
