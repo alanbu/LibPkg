@@ -55,6 +55,13 @@ public:
 		state_fail
 	};
 
+	struct options
+	{
+		bool use_proxy;
+		string proxy;
+		string do_not_proxy;
+	};
+
 private:
 	/** The current state of the download. */
 	state_type _state;
@@ -90,8 +97,9 @@ public:
 	/** Construct download action.
 	 * @param url the URL from which to download
 	 * @param pathname the pathname to which the file is to be written
+	 * @param opts (optional additional options for the download)
 	 */
-download(const string& url,const string& pathname);
+download(const string& url,const string& pathname, options *opts = nullptr);
 
 	/** Destroy download action. */
 	~download();

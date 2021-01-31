@@ -51,7 +51,8 @@ commit::commit(pkgbase& pb,const std::set<string>& packages):
 	_triggers(0),
 	_trigger(0),
 	_log(0),
-	_warnings(0)
+	_warnings(0),
+	_download_options(nullptr)
 {
 	// Commit selected state to disc.
 	_pb.selstat().commit();
@@ -67,6 +68,13 @@ commit::~commit()
 {
 	delete _warnings;
 	delete _triggers;
+	delete _download_options;
+}
+
+void commit::download_options(const download::options &options)
+{
+	delete _download_options;
+	_download_options = new download::options(options);
 }
 
 void commit::poll()
@@ -297,7 +305,8 @@ void commit::poll()
 			const binary_control& ctrl=_pb.control()[key];
 			string url=ctrl.url();
 			string pathname=_pb.cache_pathname(_pkgname,selstat.version(),selstat.environment_id());
-			_dload=new download(url,pathname);
+
+			_dload=new download(url,pathname, _download_options);
 
 			if (_log) _log->message(LOG_INFO_DOWNLOADING_PACKAGE, _pkgname, url);
 		}

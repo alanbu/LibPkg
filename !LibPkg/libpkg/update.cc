@@ -33,11 +33,14 @@ update::update(pkgbase& pb):
 	_out(0),
 	_bytes_done(0),
 	_bytes_total(npos),
-	_log(0)
+	_log(0),
+	_download_options(nullptr)
 {}
 
 update::~update()
-{}
+{
+	delete _download_options;
+}
 
 void update::poll()
 {
@@ -118,7 +121,7 @@ void update::_poll()
 			// downloading the first.
 			_url=*_sources_to_download.begin();
 			string pathname=_pb.list_pathname(_url);
-			_dload=new download(_url,pathname);
+			_dload=new download(_url,pathname,_download_options);
 			if (_log) _log->message(LOG_INFO_DOWNLOADING_SOURCE, _url);
 			#ifdef LOG_DOWNLOAD
 			if (_log) _dload->log_to(_log);
@@ -283,6 +286,12 @@ update::progress::progress():
 void update::log_to(log *use_log)
 {
 	_log = use_log;
+}
+
+void update::download_options(const download::options &opts)
+{
+	delete _download_options;
+	_download_options = new download::options(opts);
 }
 
 }; /* namespace pkg */

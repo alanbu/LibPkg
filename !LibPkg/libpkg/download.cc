@@ -61,7 +61,7 @@ static int debug_function(CURL *handle,curl_infotype type,char *data, size_t siz
 
 namespace pkg {
 
-download::download(const string& url,const string& pathname):
+download::download(const string& url,const string& pathname, download::options *opts /*= nullptr*/) :
 	_state(state_download),
 	_ceasy(curl_easy_init()),
 	_result(CURLE_OK),
@@ -100,6 +100,21 @@ download::download(const string& url,const string& pathname):
 	#endif
 	// follow 301 Moved Permanently and similar redirects
 	curl_easy_setopt(_ceasy,CURLOPT_FOLLOWLOCATION,1);
+
+	if (opts)
+	{
+		if (opts->use_proxy)
+		{
+			if (!opts->proxy.empty())
+			{
+				curl_easy_setopt(_ceasy, CURLOPT_PROXY, opts->proxy.c_str());
+				if (!opts->do_not_proxy.empty())
+				{
+					curl_easy_setopt(_ceasy, CURLOPT_NOPROXY, opts->do_not_proxy.c_str());
+				}
+			}
+		}
+	}
 	curl_multi_add_handle(_cmulti,_ceasy);
 
 	__riscosify_control=riscosify_control;

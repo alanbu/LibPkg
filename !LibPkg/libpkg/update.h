@@ -25,13 +25,13 @@
 #include "libpkg/source_table.h"
 #include "libpkg/binary_control_table.h"
 #include "libpkg/thread.h"
+#include "libpkg/download.h"
 
 namespace pkg {
 
 using std::string;
 
 class pkgbase;
-class download;
 class log;
 
 /** A class for updating the package database.
@@ -110,6 +110,10 @@ private:
 
 	/** Optional log of update */
 	log *_log;
+
+	/** Optional additional download options */
+	download::options *_download_options;
+
 public:
 	/** Construct update operation.
 	 * @param pb the package database
@@ -149,6 +153,11 @@ public:
 	 * @param use_log log to use or 0 to stop logging
 	 */
 	void log_to(log *use_log);
+
+    /**
+	 * Set extra options used for the downloading of the package lists
+	 */
+	void download_options(const download::options &opts);
 
 protected:
 	void poll();

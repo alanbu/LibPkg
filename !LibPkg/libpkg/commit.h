@@ -20,12 +20,12 @@
 #include "libpkg/thread.h"
 #include "libpkg/log.h"
 #include "libpkg/trigger.h"
+#include "libpkg/download.h"
 
 namespace pkg {
 
 class control_binary;
 class pkgbase;
-class download;
 class unpack;
 class trigger_run;
 class triggers;
@@ -168,6 +168,9 @@ private:
 	/** Log created for any warnings */
 	log *_warnings;
 
+	/** Additional options for the downloads */
+	pkg::download::options *_download_options;
+
 public:
 	/** Construct commit operation.
 	 * @param pb the package database
@@ -248,6 +251,12 @@ public:
 	 * @returns warnings log or 0 if there were no warnings
 	 */
 	log *detach_warnings() {log *w = _warnings; _warnings = 0; return w;}
+
+    /**
+	 * Set additional options for any downloads required
+	 * @param options for download
+	 */
+	void download_options(const download::options &options);
 
 protected:
 	virtual void poll();
