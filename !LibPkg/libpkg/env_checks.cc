@@ -166,6 +166,29 @@ public:
 };
 
 /**
+ * Class for packages that need Vector Floating Point (VFP3) support
+ */
+class vfpv3_check : public env_check
+{
+public:
+	vfpv3_check() : env_check("vfpv3", "Vector Floating point V3", "v3", System, 34)
+	{
+		_kernel_swi_regs regs;
+		try
+		{
+			regs.r[0] = 0;
+			os::call_swi(swi::VFPSupport_Features, &regs);
+			unsigned int mvfr0 = static_cast<unsigned int>(regs.r[1]);
+			_detected = ((mvfr0 & 0xF00) == 0x200 || (mvfr0 & 0xF0) == 0x20);
+		} catch(...)
+		{
+			_detected = false;
+		}
+		_available = _detected;
+	}
+};
+
+/**
  * Class for packages that use the SWP instruction that was discontinued in ARMv8?
  */
 class swp_check : public env_check
@@ -208,6 +231,7 @@ void env_checker::initialise(const std::string &module_map_path)
 	add_check(new arm32_check());
 	add_check(new swp_check());
 	add_check(new vfp_check());
+	add_check(new vfpv3_check());
 	// Unset check is created in constructor
 	// Module checks are added as they are found
 	// Unknown checks are added as they are found
