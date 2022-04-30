@@ -1342,7 +1342,7 @@ void unpack::read_manifest(std::set<string>& mf,const string& pkgname)
 void unpack::build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize)
 {
 	std::set<string> dir_names;
-	std::set<string> dirs_with_files;
+	std::set<string> dirs_with_contents;
 	std::string::size_type leaf_pos;
 
 	for (unsigned int i=0;i!=zf.size();++i)
@@ -1355,10 +1355,12 @@ void unpack::build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize)
 			{
 				mf.insert(src_pathname);
 				if (usize) *usize+=zf[i].usize();
-			  leaf_pos = src_pathname.rfind('.');
-				if (leaf_pos != std::string::npos) dirs_with_files.insert(src_pathname.substr(0,leaf_pos+1));
+			  	leaf_pos = src_pathname.rfind('.');
+				if (leaf_pos != std::string::npos) dirs_with_contents.insert(src_pathname.substr(0,leaf_pos+1));
 			} else
 			{
+			  	leaf_pos = src_pathname.rfind('.',src_pathname.size()-2);
+				if (leaf_pos != std::string::npos) dirs_with_contents.insert(src_pathname.substr(0,leaf_pos+1));
 				dir_names.insert(src_pathname);
 			}
 		}
@@ -1369,10 +1371,10 @@ void unpack::build_manifest(std::set<string>& mf,zipfile& zf,size_type* usize)
 		std::set<string>::iterator dir_iter;
 		for (dir_iter = dir_names.begin(); dir_iter != dir_names.end(); ++dir_iter)
 		{
-		   if (!dirs_with_files.count(*dir_iter))
-			 {
+		   	if (!dirs_with_contents.count(*dir_iter))
+			{
 				 mf.insert(*dir_iter);
-			 }
+			}
 		}
 	}
 }

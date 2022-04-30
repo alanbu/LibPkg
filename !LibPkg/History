@@ -15,9 +15,10 @@
 # limitations under the License.
 # Versions after 0.3.0 were modified by Alan Buckley
 
-Version 0.9.? (xxxx 2021)
+Version 0.9.1 (May 2022)
 
    Added Vector floating point environment check (vfpv3)
+   Fixed bug where parents of empty directories were created in the default logical location even when the component had been moved.
 
 Version 0.9.0 (November 2020)
 
