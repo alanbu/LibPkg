@@ -137,17 +137,17 @@ void commit::poll()
 			while (paths_updated)
 			{			
 				paths_updated = false;
-				for (component_update::const_iterator c = update.begin(); c != update.end(); ++c)
+				for (component &comp : update)
 				{
-					const component &comp = *c;
 					std::string new_path = comp.path();
 					if (!new_path.empty())
 					{
 						std::string current_path = paths(comp.name(), ""); // Only dealing with paths without package names
-
+						new_path = canonicalise(new_path);
 						if (current_path != new_path)
 						{
 							new_path = boot_drive_relative(new_path);
+							comp.path(new_path);
 							paths.alter(comp.name(), new_path);
 							paths_updated = true;
 							paths_modified = true;

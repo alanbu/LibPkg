@@ -31,6 +31,7 @@ class component_update
 {
 public:
 	typedef std::vector<component>::const_iterator const_iterator;
+	typedef std::vector<component>::iterator iterator;
 	class commit_error;
 private:
 	/** The pathname of the underlying component update file,
@@ -66,6 +67,18 @@ public:
 	 * @return the const iterator
 	 */
 	const_iterator end() const
+		{ return _data.end(); }
+
+	/** Get iterator for start of the updates.
+	 * @return the  iterator
+	 */
+	iterator begin()
+		{ return _data.begin(); }
+
+	/** Get iterator for end of the updates.
+	 * @return the iterator
+	 */
+	iterator end()
 		{ return _data.end(); }
 
 	/** Find const iterator for a component name.
