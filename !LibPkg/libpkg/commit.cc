@@ -134,45 +134,50 @@ void commit::poll()
 
 			// A path change may change the default for another component, so loop until
 			// no more changes are required.
-			while (paths_updated)
-			{			
-				paths_updated = false;
-				for (component &comp : update)
+			try
+			{
+				while (paths_updated)
 				{
-					std::string new_path = comp.path();
-					if (!new_path.empty())
+					paths_updated = false;
+					for (component &comp : update)
 					{
-						std::string current_path = paths(comp.name(), ""); // Only dealing with paths without package names
-						new_path = canonicalise(new_path);
-						if (current_path != new_path)
+						std::string new_path = comp.path();
+						if (!new_path.empty())
 						{
-							new_path = boot_drive_relative(new_path);
-							comp.path(new_path);
-							paths.alter(comp.name(), new_path);
-							paths_updated = true;
-							paths_modified = true;
-							if (_log) _log->message(LOG_INFO_PATH_CHANGE, comp.name(), new_path);
+							std::string current_path = paths(comp.name(), ""); // Only dealing with paths without package names
+							new_path = canonicalise(new_path);
+							if (current_path != new_path)
+							{
+								new_path = boot_drive_relative(new_path);
+								comp.path(new_path);
+								paths.alter(comp.name(), new_path);
+								paths_updated = true;
+								paths_modified = true;
+								if (_log)
+									_log->message(LOG_INFO_PATH_CHANGE, comp.name(), new_path);
+							}
 						}
 					}
 				}
-			}
-			if (paths_modified)
-			{
-				try
+				if (paths_modified)
 				{
 					paths.commit();
-				} catch(std::exception &pe)
+				}
+			}
+			catch (std::exception &pe)
+			{
+				if (_log)
+					_log->message(LOG_ERROR_PATHS_COMMIT, pe.what());
+				_message = std::string("Failed to update paths for components, error: ") + pe.what();
+				_state = state_fail;
+				try
 				{
-					if (_log) _log->message(LOG_ERROR_PATHS_COMMIT, pe.what());
-					_message = std::string("Failed to update paths for components, error: ") + pe.what();
-					_state = state_fail;
-					try
-					{
-						paths.rollback();
-					} catch(std::exception &re)
-					{
-						if (_log) _log->message(LOG_ERROR_PATHS_ROLLBACK, re.what());
-					}
+					paths.rollback();
+				}
+				catch (std::exception &re)
+				{
+					if (_log)
+						_log->message(LOG_ERROR_PATHS_ROLLBACK, re.what());
 				}
 			}
 		}
